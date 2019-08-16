@@ -1,0 +1,24 @@
+{
+  "name": "emporio-admin",
+  "version": "1.0.0",
+  "description": "Emporio Legal",
+  "author": "Martín Valenzuela Magallanes",
+  "private": true,
+  "scripts": {
+    "dev": "nuxt --port 8020",
+    "build": "nuxt build",
+    "start": "nuxt start",
+    "generate": "nuxt generate"
+  },
+  "dependencies": {
+    "@nuxtjs/auth": "^4.8.1",
+    "@nuxtjs/axios": "^5.5.4",
+    "@nuxtjs/pwa": "^3.0.0-0",
+    "moment": "^2.24.0",
+    "nuxt": "^2.0.0",
+    "vue-the-mask": "^0.11.1"
+  },
+  "devDependencies": {
+    "@nuxtjs/vuetify": "^1.0.0"
+  }
+}
