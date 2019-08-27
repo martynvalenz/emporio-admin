@@ -11,7 +11,7 @@ export default {
         title: 'Inicio'
     },
     components:{Login},
-    middleware: ['guest'],
+    // middleware:['guest'],
     layout: 'auth'
 }
 </script>

@@ -11,12 +11,12 @@
             >
             <v-list dense nav>
                 <v-list-item router exact to="/admin/perfil">
-                    <v-list-item-avatar>
-                        <v-img src=""></v-img>
+                    <v-list-item-avatar class="elevation-4">
+                        <v-img :src="user_image"></v-img>
                     </v-list-item-avatar>
                     <v-list-item-content>
-                        <h4>{{ user.nombre }} {{ user.apellido }}</h4>
-                        <small>Puesto</small>
+                        <h4>{{ user.name }} {{ user.last_name }}</h4>
+                        <small>{{ user.role }}</small>
                     </v-list-item-content>
                 </v-list-item>
                 <v-divider></v-divider>
@@ -95,8 +95,8 @@
                             <v-list-item-title>Clientes</v-list-item-title>
                         </v-list-item-content>
                     </template>
-                    <v-list-item>
-                        <v-list-item-content router exact>
+                    <v-list-item router exact to="/admin/clientes/estrategias">
+                        <v-list-item-content>
                             <v-list-item-title>Estrategias</v-list-item-title>
                         </v-list-item-content>
                         <v-list-item-action>
@@ -448,7 +448,7 @@
                 <v-divider></v-divider>
 				<v-subheader>Página Web</v-subheader>
 
-                <v-list-item router exact to="/">
+                <v-list-item router exact>
                     <v-list-item-action>
                         <v-icon>public</v-icon>
                     </v-list-item-action>
@@ -624,48 +624,6 @@
                 </v-list-item>
             </v-list>
         </v-navigation-drawer>
-        <!-- <v-navigation-drawer
-            fixed
-            v-model="chatDrawer"
-            right
-            clipped
-            app
-            >
-            <v-toolbar color="light-blue darken-2" dense>
-                <v-btn icon @click="closeChatDrawer"><v-icon>close</v-icon></v-btn>
-                <v-toolbar-title>Chat</v-toolbar-title>
-                <v-spacer></v-spacer>
-                <v-btn icon><v-icon>search</v-icon></v-btn>
-            </v-toolbar>
-			<v-list v-if="!chatLabel">
-                <v-list-item 
-                    v-for="(item, i) in usuarios"
-					:key="i"
-					@click="openChat(item.title, item.avatar)">
-                    <v-list-item-avatar>
-                        <v-img :src="item.avatar"></v-img>
-                    </v-list-item-avatar>
-                    <v-list-item-content>{{ item.title }}</v-list-item-content>
-                    <v-list-item-icon>
-                        <v-icon :color="item.active ? 'green' : 'red'">lens</v-icon>
-                    </v-list-item-icon>
-                </v-list-item>
-			</v-list>
-			<v-list v-if="chatLabel">
-                <v-list-item>
-                    <v-list-item-icon>
-                        <v-btn icon @click="closeChat"><v-icon>arrow_back</v-icon></v-btn>
-                    </v-list-item-icon>
-                    <v-list-item-content>
-                        <v-list-item-title>{{ chatUser }}</v-list-item-title>
-                    </v-list-item-content>
-                    <v-list-item-avatar>
-                        <v-img :src="chatAvatar"></v-img>
-                    </v-list-item-avatar>
-                </v-list-item>
-                <v-divider></v-divider>
-			</v-list>
-		</v-navigation-drawer> -->
         <v-app-bar
             fixed
             app
@@ -690,13 +648,23 @@
 				<v-btn text rounded>
 					Soporte <v-icon>headset_mic</v-icon>
 				</v-btn>
-				<v-btn icon @click="openChatDrawerButton">
-					<v-icon>chat</v-icon>
-				</v-btn>
 				<v-btn icon>
 					<v-icon>date_range</v-icon>
 				</v-btn>
+                <v-btn icon>
+					<v-icon>gavel</v-icon>
+				</v-btn>
+                <v-btn icon>
+					<v-icon>assignment_turned_in</v-icon>
+				</v-btn>
+                <v-btn icon>
+					<v-icon>device_hub</v-icon>
+				</v-btn>
+                
 			</div>
+            <v-btn icon>
+					<v-icon>mail_outline</v-icon>
+				</v-btn>
 			<v-btn icon> 
                 <v-icon>notifications</v-icon>
             </v-btn>
@@ -710,7 +678,7 @@
                                 color="grey lighten-1"
                                 v-on="on"
                                 >
-                                <img src="/images/users/avatar.png" alt="">
+                                <img :src="user_image" alt="">
                                 <!-- <span class="white--text headline">C</span> -->
                             </v-avatar>
                         </template>
@@ -770,7 +738,7 @@
             clipped
             style="position: relative"
             dark
-            color="#01487f"
+            color="#093697"
             >
             <span></span>
             <v-spacer></v-spacer>
@@ -793,91 +761,22 @@ export default {
             chatLabel: false,
             title: 'Emporio Legal',
 			dark: true,
-			expand: false,
-            //Chat
-            chatUser: '',
-            chatAvatar: '',
-            stores: [
-                { title: 'Click Me' },
-                { title: 'Click Me' },
-                { title: 'Click Me' },
-                { title: 'Click Me 2' }
-            ],
-            menus: [
-            {
-                icon: 'dashboard',
-                title: 'Dashboard',
-                to: '/admin'
-            },    
-            {
-                icon: 'apps',
-                title: 'Welcome',
-                to: '/'
-            },
-            {
-                icon: 'bubble_chart',
-                title: 'Inspire',
-                to: '/inspire'
-            }],
-            
-            usuarios: [
-                {
-                    active: true,
-                    title: 'Jason Oner',
-                    avatar: 'https://cdn.vuetifyjs.com/images/lists/1.jpg'
-                },
-                {
-                    active: true,
-                    title: 'Ranee Carlson',
-                    avatar: 'https://cdn.vuetifyjs.com/images/lists/2.jpg'
-                },
-                {
-                    active: true,
-                    title: 'Cindy Baker',
-                    avatar: 'https://cdn.vuetifyjs.com/images/lists/3.jpg'
-                },
-                {
-                    active: false,
-                    title: 'Ali Connors',
-                    avatar: 'https://cdn.vuetifyjs.com/images/lists/4.jpg'
-                }
-            ],
-            menu: false
+            expand: false,
+            user_image: '',
 		}
     },
 
+    
+
     created(){
         // console.log(user.name)
+        this.getAvatar();
+
     },
     
     methods:{
-        openChat(title, avatar){
-            this.chatLabel = true;
-            this.chatUser = title;
-            this.chatAvatar = avatar;
-        },
-        closeChat(){
-            this.chatLabel = false;
-            this.chatUser = '';
-            this.chatAvatar = '';
-        },
-        openChatDrawer(){
-            this.chatDrawer = true;
-            this.chatLabel = false;
-        },
-        closeChatDrawer(){
-            this.chatDrawer = false;
-            this.chatLabel = false;
-            this.chatUser = '';
-            this.chatAvatar = '';
-        },
-        openChatDrawerButton(){
-            if(this.chatDrawer == false){
-                this.chatDrawer = true;
-            }
-            else if(this.chatDrawer == true){
-                this.chatDrawer = false;
-            }
+        getAvatar(){
+            this.user_image = `${this.$axios.defaults.baseURL}/images/users/${this.user.avatar}`;
         },
         Logout(){
             this.$auth.logout()

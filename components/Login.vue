@@ -109,7 +109,7 @@ export default {
             await this.$axios.get('/api/images/slider')
             .then(res => {
                 // console.log(res.data.image)
-                this.slider = `${this.$axios.defaults.baseURL}/images/background/${res.data.imagen}`;
+                this.slider = `${this.$axios.defaults.baseURL}/images/background/${res.data.image}`;
             })
         }
     },
