@@ -3,17 +3,17 @@
 		<h2>Clientes</h2>
 		<v-layout class="pt-4">
 			<v-flex xs12>
-				<v-card>
+				<v-card :loading="loading_table">
 					<v-card-title>
-						<v-btn class="primary mr-1 ml-1" @click="create"><v-icon>person_add</v-icon>Agregar Cliente</v-btn>
-						<v-btn color="info" class="mr-1 ml-1" @click="createStrategy">Agregar Estrategia <v-icon>add</v-icon></v-btn>
+						<v-btn class="primary mx-1" @click="create">Agregar Cliente<v-icon right>person_add</v-icon></v-btn>
+						<v-btn color="info" class="mx-1" @click="createStrategy">Agregar Estrategia<v-icon right>add</v-icon></v-btn>
 						<v-spacer></v-spacer>
-						<v-btn icon @click="Load"><v-icon>sync</v-icon></v-btn>
+						<v-btn icon @click="Refresh"><v-icon>sync</v-icon></v-btn>
 					</v-card-title>
 					<v-card-title>
 						<v-layout>
 							<v-flex xs12 sm12 md6>
-								<v-text-field  outlined color="light-blue darken-2" prepend-icon="search" name="login" label="Buscar" type="text" clearable></v-text-field>
+								<v-text-field  outlined color="light-blue darken-2" prepend-icon="search" v-model="search_customers" @change="Load" label="Buscar" type="text" clearable></v-text-field>
 							</v-flex>
 						</v-layout>
 					</v-card-title>
@@ -43,10 +43,12 @@
 									</td>
 									<td>{{ customer.created_at }}</td>
 									<td class="text-right">
+										<v-icon color="grey">all_inbox</v-icon>
 										<v-icon color="grey">list</v-icon>
 										<v-icon color="grey">copyright</v-icon>
-										<v-icon color="grey">person</v-icon>
-										<v-icon color="grey">folder</v-icon>
+										<v-icon color="grey" @click="openContacts(customer.id)">person</v-icon>
+										<v-icon v-if="customer.folder" @click="openFolder(customer.folder)" color="success">folder</v-icon>
+										<v-icon v-else @click="editFolder(index)" color="grey">folder</v-icon>
 										<v-icon icon @click="edit(index)" color="warning">edit</v-icon>
 										<v-icon @click="statusModal(index)" v-if="customer.status" color="error">block</v-icon>
 										<v-icon @click="statusModal(index)" v-else color="success">check</v-icon>
@@ -82,7 +84,7 @@
 					<v-card-actions>
 						<v-spacer></v-spacer>
 						<v-btn text @click="strategy_dialog = false">Cerrar</v-btn>
-						<v-btn class="primary" type="submit" :loading="loading">Guardar <v-icon>save</v-icon></v-btn>
+						<v-btn class="primary" type="submit" :loading="loading">Guardar<v-icon right>save</v-icon></v-btn>
 					</v-card-actions>
 				</v-card>
 			</v-form>
@@ -108,11 +110,10 @@
 							</v-row>
 							<v-row>
 								<v-col cols="12" sm="12" md="5">
-									<v-select v-model="strategy_id" outlined item-value="id" item-text="strategy" :items="strategies" label="Seleccionar estrategia"></v-select>
+									<v-select v-model="strategy_id" @change="changeStrategy" outlined item-value="id" item-text="strategy" :items="strategies" label="Seleccionar estrategia"></v-select>
 								</v-col>
 								<v-col cols="12" sm="12" md="7" v-if="strategy_id == 1">
-									<!-- <v-autocomplete label="Referido por..." outlined v-model="referred_by" :loading="referred_loading"></v-autocomplete> -->
-									<v-autocomplete v-model="referred_by" :items="referrals" outlined :loading="referral_loading" :search-input.sync="search" hide-no-data hide-selected item-text="Referido por..." item-value="API" placeholder="Referido por..." prepend-icon="search" return-object></v-autocomplete>
+									<v-autocomplete v-model="referred" :items="referrals" outlined :loading="referralLoading" :search_customers-input.sync="search_customers" hide-no-data hide-selected item-text="customer" item-value="id" placeholder="Referido por..." prepend-icon="person" return-object clearable label="Seleccionar cliente..."></v-autocomplete>
 								</v-col>
 							</v-row>
 							<v-row>
@@ -120,23 +121,6 @@
 									<v-text-field label="Carpeta de Google drive" outlined v-model="folder" append-icon="folder"></v-text-field>
 								</v-col>
 							</v-row>
-							<!-- <v-row>
-								<v-col cols="12" sm="12" md="12">
-									<v-text-field label="Página web" outlined v-model="web_page" append-icon="public"></v-text-field>
-								</v-col>
-							</v-row> -->
-							<!-- <v-row>
-								<v-col cols="12" sm="12" md="12">
-									<v-file-input label="Seleccionar Logo" outlined v-model="logo" prepend-icon="add_photo_alternate">
-										<template v-slot:selection="{index, text}">
-											<v-chip v-if="index < 2" color="light-blue darken-2" dark label small>
-												{{text}}
-											</v-chip>
-											<span v-else-if="index == 1" class="overline grey--text text--darken-3 mx-2">+ {{ logo.length - 2 }} Logo(s)</span>
-										</template>
-									</v-file-input>
-								</v-col>
-							</v-row> -->
 							<v-row>
 								<v-col cols="12" sm="12" md="12">
 									<v-textarea outlined label="Comentarios" v-model="comments" rows="4" auto-grow></v-textarea>
@@ -147,7 +131,7 @@
 					<v-card-actions>
 						<v-spacer></v-spacer>
 						<v-btn text @click="customer_dialog = false">Cerrar</v-btn>
-						<v-btn class="primary" type="submit" :loading="loading">Guardar <v-icon>save</v-icon></v-btn>
+						<v-btn class="primary" type="submit" :loading="loading">Guardar <v-icon right>save</v-icon></v-btn>
 					</v-card-actions>
 				</v-card>
 			</v-form>
@@ -156,18 +140,44 @@
 			<v-form @submit.prevent="changeStatus">
 				<v-card>
 					<v-card-title>
-						<div v-if="customer_status">¿Quieres inactivar la estrategia?</div>
-						<div v-else>¿Quieres activar la estrategia?</div>
+						<div v-if="customer_status">¿Quieres inactivar el cliente?</div>
+						<div v-else>¿Quieres activar el cliente?</div>
 					</v-card-title>
 					<br>
 					<v-card-actions>
 						<v-spacer></v-spacer>
 						<v-btn text @click="status_dialog = false">Cerrar</v-btn>
-						<v-btn v-if="customer_status" class="error" type="submit" :loading="loading">Desactivar <v-icon>block</v-icon></v-btn>
-						<v-btn v-else class="success" type="submit" :loading="loading">Activar <v-icon>check</v-icon></v-btn>
+						<v-btn v-if="customer_status" class="error" type="submit" :loading="loading">Desactivar<v-icon right>block</v-icon></v-btn>
+						<v-btn v-else class="success" type="submit" :loading="loading">Activar<v-icon right>check</v-icon></v-btn>
 					</v-card-actions>
 				</v-card>
 			</v-form>
+		</v-dialog>
+		<v-dialog v-model="contacts_dialog" fullscreen transition="dialog-bottom-transition" scrollable>
+			<v-card>
+				<v-card-title
+					color="primary"
+					style="background-color:#52AF50; color: white;"
+					dark
+					dense
+					>
+					Contactos
+					<v-spacer></v-spacer>
+					<v-btn
+						icon
+						dark
+						@click="contacts_dialog = false"
+						>
+						<v-icon>mdi-close</v-icon>
+					</v-btn>
+				</v-card-title>
+				<Contacts :customer="customer.id"></Contacts>
+				<v-card-actions style="background-color:rgba(0,0,0,0.1); color: white; position:absolute; bottom: 0; width:100%;">
+					<v-spacer></v-spacer>
+					<v-btn color="grey" @click="contacts_dialog = false" dark>Cerrar</v-btn>
+				</v-card-actions>
+				<div style="flex: 1 1 auto;"></div>
+			</v-card>
 		</v-dialog>
 		<v-snackbar
             v-model="snackbar"
@@ -189,6 +199,7 @@
 </template>
 
 <script>
+import Contacts from '@/components/Contacts'
 import axios from 'axios'
 import Vue from 'vue'
 export default {
@@ -197,13 +208,16 @@ export default {
 	head:{
         title: 'Clientes'
 	},
+	components:{Contacts},
 	data(){
 		return{
 			//Strategies
 			strategy_dialog: false,
 			strategy: '',
+			search_customers:'',
 			//Customers
 			customers:[],
+			loading_table:false,
 			customer_selected: '',
 			customer_dialog: false,
 			dialogTitle: '',
@@ -214,10 +228,13 @@ export default {
 			referred_loading: false,
 			folder: '',
 			// web_page: '',
+			//Referrals
 			referrals: [],
-			search: null,
-			referral_loading: false,
-			logo: [],
+			referred: null,
+			search_customers: null,
+			referralLoading: false,
+			descriptionLimit: 60,
+			//Stop referrals
 			comments: '',
 			strategies: [],
 			customer_status: '',
@@ -230,6 +247,8 @@ export default {
             snackColor: '',
             snackText: '',
 			timeout: 6000,
+			//Contacts
+			contacts_dialog:false
 		}
 	},
 
@@ -242,18 +261,58 @@ export default {
 	},
 
 	watch: {
-		
+		search(val){
+			if(val){
+				val && val !== this.referred && this.customerSelect(val)
+			}
+			else{
+				this.referred_by = '';
+				this.referrals = '';
+				this.referred = null;
+			}
+		}
 	},
 
 	methods:{
 		async Load(){
-			await this.$axios.get('/api/customers')
+			this.loading_table = true;
+			await this.$axios.post('/api/customers', {search:this.search_customers})
 			.then(res => {
 				this.customers = res.data.data;
+				this.loading_table = false;
 			})
 			.catch(error =>{
-				console.log(error)
+				console.log(error);
+				this.loading_table = false;
 			});
+		},
+
+		async Refresh(){
+			this.loading_table = true;
+			this.search_customers = '';
+			this.Load();
+		},
+
+		customerSelect(val){
+			this.referralLoading = true;
+			this.$axios.get(`/api/customers/list/${val}`)
+			.then(res => {
+				this.referrals = res.data;
+				this.referred_by = this.referred.id;
+				this.referralLoading = false;
+			})
+			.catch(error => {
+				console.log(error);
+				this.referralLoading = false;
+			})
+		},
+
+		changeStrategy(){
+			if(this.strategy_id !== 1){
+				this.referred_by = '';
+				this.referrals = '';
+				this.referred = null;
+			}
 		},
 
 		createStrategy(){
@@ -296,6 +355,7 @@ export default {
 			this.customer = '';
 			this.strategy_id = '';
 			this.referred_by = '';
+			this.referrals = '';
 			this.folder = '';
 			// this.web_page = '';
 			this.comments = '';
@@ -326,6 +386,11 @@ export default {
 			// this.customers.splice(index, 1, customer.id)
 			this.errors = {};
 			this.error_alert = false;
+
+			if(customer.referred_by){
+				this.customerSelect(customer.referred);
+				this.referrals = customer.referred;
+			}
 		},
 
 		async Save(){
@@ -398,6 +463,20 @@ export default {
                 this.snackbar = true;
                 this.snackText = 'No se pudo actualizar el registro.';
 			});
+		},
+
+		openFolder(folder){
+			window.open(folder, '_blank');    
+		},
+
+		editFolder(index){
+			alert('No hay url de carpeta, agréguela en el formulario de edición.');
+			this.edit(index);
+		},
+
+		openContacts(customer_id){
+			this.contacts_dialog = true;
+			// this.$refs.contactComponent.openContacts(customer_id);
 		}
 	}
 }

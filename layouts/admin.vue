@@ -12,7 +12,7 @@
             <v-list dense nav>
                 <v-list-item router exact to="/admin/perfil">
                     <v-list-item-avatar class="elevation-4">
-                        <v-img :src="user_image"></v-img>
+                        <v-img :src="user.avatar_img"></v-img>
                     </v-list-item-avatar>
                     <v-list-item-content>
                         <h4>{{ user.name }} {{ user.last_name }}</h4>
@@ -616,7 +616,7 @@
 
 				<v-list-item>
                     <v-list-item-action>
-                        <v-switch v-model="$vuetify.theme.dark" color="primary"></v-switch>
+                        <v-switch v-model="$vuetify.theme.dark" @change="changeDarkMode" color="primary"></v-switch>
                     </v-list-item-action>
                     <v-list-item-content>
                         <v-list-item-title>Tema</v-list-item-title>
@@ -645,9 +645,9 @@
             </v-toolbar-title>
             <v-spacer />
             <div class="big-menu">
-				<v-btn text rounded>
+				<!-- <v-btn text rounded>
 					Soporte <v-icon>headset_mic</v-icon>
-				</v-btn>
+				</v-btn> -->
 				<v-btn icon>
 					<v-icon>date_range</v-icon>
 				</v-btn>
@@ -678,7 +678,7 @@
                                 color="grey lighten-1"
                                 v-on="on"
                                 >
-                                <img :src="user_image" alt="">
+                                <img :src="user.avatar_img" alt="">
                                 <!-- <span class="white--text headline">C</span> -->
                             </v-avatar>
                         </template>
@@ -760,24 +760,31 @@ export default {
             chatDrawer: false,
             chatLabel: false,
             title: 'Emporio Legal',
-			dark: true,
+			dark:false,
             expand: false,
-            user_image: '',
+            user_image: ''
 		}
     },
 
-    
-
     created(){
-        // console.log(user.name)
-        this.getAvatar();
-
+        this.darkMode();
     },
     
     methods:{
-        getAvatar(){
-            this.user_image = `${this.$axios.defaults.baseURL}/images/users/${this.user.avatar}`;
+        darkMode(){
+            // if(this.user.dark == 1){
+            //     this.dark = true;
+            // }
+            // else{
+            //     this.dark = false;
+            // }
+            // this.$vuetify.theme = user.dark;
         },
+
+        changeDarkMode(){
+
+        },
+
         Logout(){
             this.$auth.logout()
             .then(res => {
@@ -789,6 +796,14 @@ export default {
 </script>
 
 <style>
+    *{
+        font-family: 'Lucida Sans Regular';
+    }
+
+    h1, h2, h3, h4, h5, h6{
+        font-family: 'Lucida Sans Regular';
+    }
+    
     .router-linker{
 		text-decoration: none;
 	}

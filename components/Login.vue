@@ -25,9 +25,11 @@
                                     @click:append="showPassword = !showPassword" name="password" label="Password" id="password"></v-text-field>
                             </v-card-text>
                             <v-card-actions>
-                                <v-btn to="/auth/remember" text color="light-blue" class="router-linker">¿Olvidaste tu contraseña?</v-btn>
-                                <v-spacer></v-spacer>
-                                <v-btn type="submit" dark color="light-blue darken-4" :loading="loading">Login <i style="padding-left: 0.5em" class="fas fa-lock-open"></i></v-btn>
+                                <v-layout wrap>
+                                    <v-btn to="/auth/remember" text color="light-blue" class="router-linker my-2">¿Olvidaste tu contraseña?</v-btn>
+                                    <v-spacer></v-spacer>
+                                    <v-btn type="submit" block dark color="light-blue darken-4" :loading="loading" class="my-1">Login <i style="padding-left: 0.5em" class="fas fa-lock-open"></i></v-btn>
+                                </v-layout>
                             </v-card-actions>
                         </v-card>
                     </v-form>

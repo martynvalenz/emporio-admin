@@ -3,7 +3,7 @@
 		<h2>Estrategias de Captación</h2>
 		<v-layout class="pt-4">
 			<v-flex xs12>
-				<v-card>
+				<v-card :loading="loading_table">
 					<v-card-title>
 						<v-btn class="primary" @click="create">Agregar Estrategia <v-icon>add</v-icon></v-btn>
 						<v-spacer></v-spacer>
@@ -64,7 +64,7 @@
 					<v-card-actions>
 						<v-spacer></v-spacer>
 						<v-btn text @click="strategy_dialog = false">Cerrar</v-btn>
-						<v-btn class="primary" type="submit" :loading="loading">Guardar <v-icon>save</v-icon></v-btn>
+						<v-btn class="primary" type="submit" :loading="loading">Guardar<v-icon right>save</v-icon></v-btn>
 					</v-card-actions>
 				</v-card>
 			</v-form>
@@ -80,8 +80,8 @@
 					<v-card-actions>
 						<v-spacer></v-spacer>
 						<v-btn text @click="status_dialog = false">Cerrar</v-btn>
-						<v-btn v-if="strategy_status" class="error" type="submit" :loading="loading">Desactivar <v-icon>block</v-icon></v-btn>
-						<v-btn v-else class="success" type="submit" :loading="loading">Activar <v-icon>check</v-icon></v-btn>
+						<v-btn v-if="strategy_status" class="error" type="submit" :loading="loading">Desactivar <v-icon right>block</v-icon></v-btn>
+						<v-btn v-else class="success" type="submit" :loading="loading">Activar<v-icon right>check</v-icon></v-btn>
 					</v-card-actions>
 				</v-card>
 			</v-form>
@@ -126,6 +126,7 @@ export default {
 			loading: false,
 			errors: {},
 			error_alert: false,
+			loading_table:false,
 			//snackbar
             snackbar: false,
             snackColor: '',
@@ -141,12 +142,15 @@ export default {
 
 	methods:{
 		async Load(){
+			this.loading_table = true;
 			await this.$axios.get('/api/strategies')
 			.then(res => {
 				this.strategies = res.data
+				this.loading_table = false;
 			})
 			.catch(error =>{
-				console.log(error)
+				console.log(error);
+				this.loading_table = false;
 			});
 		},
 
