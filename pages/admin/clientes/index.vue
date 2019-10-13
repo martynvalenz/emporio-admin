@@ -154,7 +154,7 @@
 				</v-card>
 			</v-form>
 		</v-dialog>
-		<Contacts :customer="customer_id" :bus="bus" ref="contacts_form"></Contacts>
+		<Contacts :customer="customer_id" ref="contacts_form"></Contacts>
 		<v-snackbar
             v-model="snackbar"
             :timeout="timeout"
@@ -223,8 +223,6 @@ export default {
             snackColor: '',
             snackText: '',
 			timeout: 6000,
-			//Contacts
-			bus: new Vue(),
 		}
 	},
 
@@ -452,9 +450,7 @@ export default {
 
 		openContacts(customer_id){
 			this.customer_id = customer_id;
-			// this.$refs.contactComponent.openContacts(customer_id);
-			// this.bus.$emit('openContacts');
-			this.$refs.contacts_form.openContacts();
+			this.$refs.contacts_form.openContacts(customer_id);
 		}
 	}
 }
