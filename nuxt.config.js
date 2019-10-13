@@ -1,4 +1,5 @@
 import colors from 'vuetify/es5/util/colors'
+require('dotenv').config()
 
 export default {
   mode: 'universal',
@@ -16,24 +17,24 @@ export default {
     ],
     link: [
       { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
-      { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons'},
-      { rel: 'stylesheet', href: 'https://use.fontawesome.com/releases/v5.8.1/css/all.css'},
+      { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons' },
+      { rel: 'stylesheet', href: 'https://use.fontawesome.com/releases/v5.8.1/css/all.css' },
     ]
   },
   /*
   ** Customize the progress-bar color
   */
-  loading: { 
+  loading: {
     name: 'chasing-dots',
     color: '#00b3b3',
     background: 'white',
-    height: '4px' 
+    height: '4px'
   },
   /*
   ** Global CSS
   */
   css: [
-    {src: '~assets/fonts.css'}
+    { src: '~assets/fonts.css' }
   ],
   /*
   ** Plugins to load before mounting the App
@@ -55,6 +56,7 @@ export default {
     '@nuxtjs/axios',
     '@nuxtjs/pwa',
     '@nuxtjs/auth',
+    '@nuxtjs/dotenv',
   ],
   /*
   ** Axios module configuration
@@ -71,12 +73,12 @@ export default {
         tokenRequired: true,
         tokenType: 'bearer'
       },
-      redirect: { login: '/login'}
+      redirect: { login: '/login' }
     }
   },
 
   axios: {
-    baseURL: 'http://localhost:8000'
+    baseURL: `${process.env.api}`
   },
   /*
   ** vuetify module configuration
@@ -106,7 +108,7 @@ export default {
     /*
     ** You can extend webpack config here
     */
-    extend (config, ctx) {
+    extend(config, ctx) {
     }
   }
 }

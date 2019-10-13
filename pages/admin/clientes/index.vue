@@ -34,7 +34,8 @@
 							<tbody>
 								<tr v-for="(customer, index) in customers" :key="index">
 									<td>{{ customer.customer }}</td>
-									<td>{{ customer.strategy }}</td>
+									<td v-if="customer.referred_by">Ref: {{ customer.referral }}</td>
+									<td v-else>{{ customer.strategy }}</td>
 									<td>{{ customer.balance }}</td>
 									<td>{{ customer.initials }}</td>
 									<td>
@@ -113,7 +114,7 @@
 									<v-select v-model="strategy_id" @change="changeStrategy" outlined item-value="id" item-text="strategy" :items="strategies" label="Seleccionar estrategia"></v-select>
 								</v-col>
 								<v-col cols="12" sm="12" md="7" v-if="strategy_id == 1">
-									<v-autocomplete v-model="referred" :items="referrals" outlined :loading="referralLoading" :search_customers-input.sync="search_customers" hide-no-data hide-selected item-text="customer" item-value="id" placeholder="Referido por..." prepend-icon="person" return-object clearable label="Seleccionar cliente..."></v-autocomplete>
+									<v-autocomplete v-model="referred" :items="referrals" outlined :loading="referralLoading" :search-input.sync="search" hide-no-data hide-selected item-text="customer" item-value="id" placeholder="Referido por..." prepend-icon="person" return-object clearable label="Seleccionar cliente..."></v-autocomplete>
 								</v-col>
 							</v-row>
 							<v-row>
@@ -153,32 +154,7 @@
 				</v-card>
 			</v-form>
 		</v-dialog>
-		<v-dialog v-model="contacts_dialog" fullscreen transition="dialog-bottom-transition" scrollable>
-			<v-card>
-				<v-card-title
-					color="primary"
-					style="background-color:#52AF50; color: white;"
-					dark
-					dense
-					>
-					Contactos
-					<v-spacer></v-spacer>
-					<v-btn
-						icon
-						dark
-						@click="contacts_dialog = false"
-						>
-						<v-icon>mdi-close</v-icon>
-					</v-btn>
-				</v-card-title>
-				<Contacts :customer="customer.id"></Contacts>
-				<v-card-actions style="background-color:rgba(0,0,0,0.1); color: white; position:absolute; bottom: 0; width:100%;">
-					<v-spacer></v-spacer>
-					<v-btn color="grey" @click="contacts_dialog = false" dark>Cerrar</v-btn>
-				</v-card-actions>
-				<div style="flex: 1 1 auto;"></div>
-			</v-card>
-		</v-dialog>
+		<Contacts :customer="customer_id" :bus="bus" ref="contacts_form"></Contacts>
 		<v-snackbar
             v-model="snackbar"
             :timeout="timeout"
@@ -231,7 +207,7 @@ export default {
 			//Referrals
 			referrals: [],
 			referred: null,
-			search_customers: null,
+			search: null,
 			referralLoading: false,
 			descriptionLimit: 60,
 			//Stop referrals
@@ -248,7 +224,7 @@ export default {
             snackText: '',
 			timeout: 6000,
 			//Contacts
-			contacts_dialog:false
+			bus: new Vue(),
 		}
 	},
 
@@ -475,8 +451,10 @@ export default {
 		},
 
 		openContacts(customer_id){
-			this.contacts_dialog = true;
+			this.customer_id = customer_id;
 			// this.$refs.contactComponent.openContacts(customer_id);
+			// this.bus.$emit('openContacts');
+			this.$refs.contacts_form.openContacts();
 		}
 	}
 }
