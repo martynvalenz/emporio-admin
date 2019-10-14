@@ -46,7 +46,7 @@
 									<td class="text-right">
 										<v-icon color="grey">all_inbox</v-icon>
 										<v-icon color="grey">list</v-icon>
-										<v-icon color="grey">copyright</v-icon>
+										<v-icon color="grey" @click="openBrands(customer.id)">copyright</v-icon>
 										<v-icon color="grey" @click="openContacts(customer.id)">person</v-icon>
 										<v-icon v-if="customer.folder" @click="openFolder(customer.folder)" color="success">folder</v-icon>
 										<v-icon v-else @click="editFolder(index)" color="grey">folder</v-icon>
@@ -155,6 +155,7 @@
 			</v-form>
 		</v-dialog>
 		<Contacts :customer="customer_id" ref="contacts_form"></Contacts>
+		<Brands :customer="customer_id" ref="brands_form"></Brands>
 		<v-snackbar
             v-model="snackbar"
             :timeout="timeout"
@@ -176,6 +177,7 @@
 
 <script>
 import Contacts from '@/components/Contacts'
+import Brands from '@/components/Brands'
 import axios from 'axios'
 import Vue from 'vue'
 export default {
@@ -184,7 +186,7 @@ export default {
 	head:{
         title: 'Clientes'
 	},
-	components:{Contacts},
+	components:{Contacts, Brands},
 	data(){
 		return{
 			//Strategies
@@ -451,6 +453,11 @@ export default {
 		openContacts(customer_id){
 			this.customer_id = customer_id;
 			this.$refs.contacts_form.openContacts(customer_id);
+		},
+
+		openBrands(customer_id){
+			this.customer_id = customer_id;
+			this.$refs.brands_form.openBrands(customer_id);
 		}
 	}
 }
