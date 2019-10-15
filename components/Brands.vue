@@ -51,7 +51,7 @@
 											<tr v-for="(brand, index) in brands" :key="index">
 												<td>
 													<v-avatar :size="$vuetify.breakpoint.smAndUp ? 42 : 42">
-														<v-img :src="brand.logo_url"></v-img>
+														<v-img :src="brand.logo_url" @click="changeLogo(index)"></v-img>
 													</v-avatar>
 												</td>
 												<td>{{ brand.brand }}</td>
@@ -70,8 +70,8 @@
 												<td>{{ brand.created_at }}</td>
 												<td class="text-right">
 													<v-icon color="grey">list</v-icon>
-													<v-icon color="warning">edit</v-icon>
-													<v-icon color="red">delete</v-icon>
+													<v-icon color="warning" @click="edit(index)">edit</v-icon>
+													<v-icon color="red" @click="changeStatus(index)">delete</v-icon>
 												</td>
 											</tr>
 										</tbody>
@@ -120,6 +120,51 @@
 				</v-card>
 			</v-form>
 		</v-dialog>
+		<v-dialog v-model="logo_dialog" max-width="450" height="auto" style="overflow: auto;">
+			<v-form @submit.prevent="Save">
+				<v-card>
+					<v-card-title class="primary white--text">
+						Cambiar Logo
+						<v-spacer></v-spacer>
+						<v-btn icon @click="logo_dialog = false"><v-icon>close</v-icon></v-btn>
+					</v-card-title>
+					<v-card-text>
+						<v-hover 
+                            v-slot:default="{ hover }"
+                            open-delay="0"
+                            close-delay="3"
+                            >
+                            <v-avatar
+                                :size="$vuetify.breakpoint.smAndUp ? 200 : 200"
+                                color="grey" 
+                                style="border: 1px solid grey;"
+								tile
+                                >
+                                <v-img :src="logo">
+                                    <v-layout justify-center align-center>
+                                        <v-expand-transition>
+                                            <div v-if="!selectedFile">
+                                                <v-btn v-if="hover" fab color="primary" @click="pickFile"><v-icon>image</v-icon></v-btn>
+                                            </div>
+                                        </v-expand-transition>
+                                        <div v-if="selectedFile">
+                                            <v-btn fab :loading="loading_avatar" color="success" @click="UploadImage"><v-icon>save</v-icon></v-btn>
+                                            <v-btn fab color="grey" @click="CancelImage"><v-icon>close</v-icon></v-btn>
+                                        </div>
+                                    </v-layout>
+                                </v-img>
+                            </v-avatar>
+                        </v-hover>
+                        <input ref="fileSelected" @change="onFileSelected" type="file" style="display:none;" accept="image/*" />
+					</v-card-text>
+					<v-card-actions>
+						<v-spacer></v-spacer>
+						<v-btn text @click="logo_dialog = false">Cerrar</v-btn>
+						<v-btn class="primary" type="submit" :loading="loading">Guardar <v-icon right>save</v-icon></v-btn>
+					</v-card-actions>
+				</v-card>
+			</v-form>
+		</v-dialog>
 	</div>
 </template>
 
@@ -142,7 +187,13 @@ export default {
             loading: false,
             brand_id: '',
             brand: '',
-			description:''
+			description:'',
+			selected_brand:'',
+			//Logo
+			logo_dialog:false,
+			logo:'',
+			selectedFile:'',
+			selected_logo:''
         };
     },
 
@@ -192,12 +243,33 @@ export default {
 				this.clearBrandForm();
 			}
 		},
+
+		edit(index){
+			this.brand_dialog = true;
+			const contact = this.contacts[index];
+			this.selected_brand = index;
+			this.dialog_title = 'Editar marca';
+			this.brand_id = contact.id;
+			this.brand = contact.brand;
+			this.description = contact.description;
+			this.errors = {};
+		},
 		
 		async Save(){
 			this.loading = true;
 			//Update
 			if(this.brand_id){
-
+				await this.$axios.put(`/api/customer/brand/${this.brand_id}`, {brand:this.brand, description:this.description})
+				.then(res => {
+					this.loading = false;
+					this.brands[this.selected_brand] = res.data;
+					this.brand_dialog = false;
+					this.clearBrandForm();
+				})
+				.catch(error => {
+					this.loading = false;
+					this.errors = error.response.data.errors;
+				})
 			}
 			//Store
 			else{
@@ -214,7 +286,43 @@ export default {
 				})
 			}
 			
-		}
+		},
+
+		changeLogo(index){
+			this.logo_dialog = true;
+			const logo = this.logo[index];
+			this.selected_logo = index;
+			this.brand_id = logo.id;
+			this.logo = logo.logo_url;
+			this.errors = {};
+		},
+
+		pickFile(){
+			this.$refs.fileSelected.click();
+		},
+
+		onFileSelected(event){
+			const files = event.target.files;
+            this.selectedFile = event.target.files[0];
+            let filename = files[0].name;
+            let size = files[0].size;
+
+            if(!filename){
+                this.selectedFile = null;
+                return;
+            }
+
+            if(size > 2000000){
+                alert( 'Archivo demasiado pesado. El límite es de 2mb.');
+                return;
+            }
+
+            const fileReader = new FileReader();
+            fileReader.addEventListener('load', () => {
+                this.logo = fileReader.result;
+            })
+            fileReader.readAsDataURL(files[0]);
+		},
     },
 };
 </script>
