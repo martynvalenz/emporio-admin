@@ -391,7 +391,7 @@ export default {
 			}
 			//Store
 			else{
-				await this.$axios.post(`/api/customer`, {customer:this.customer, strategy_id:this.strategy_id, referred_by:this.referred_by, folder:this.folder, comments:this.comments})
+				await this.$axios.post('/api/customer', {customer:this.customer, strategy_id:this.strategy_id, referred_by:this.referred_by, folder:this.folder, comments:this.comments})
 				.then(res => {
 					this.customers.unshift(res.data);
 					this.loading = false;

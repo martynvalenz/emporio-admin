@@ -19,7 +19,15 @@
 								</v-btn>
 							</v-flex>
 							<v-flex xs12 sm12 md4 lg4 xl4>
-								<v-select label="Agregar contactos existentes" outlined color="primary"></v-select>
+								<v-autocomplete v-model="search_contact" :items="search_contacts" outlined :loading="searchLoading" :search-input.sync="search" hide-no-data hide-selected item-text="contact" item-value="id" placeholder="Buscar contactos..." prepend-icon="person" return-object clearable :error-messages="errors.customer_id">
+									<template v-if="known_contact" v-slot:append-outer>
+										<v-slide-x-reverse-transition mode="out-in">
+											<v-btn fab small color="success"  @click="addKnownContact" :loading="searchLoading">
+												<v-icon color="white">add</v-icon>
+											</v-btn>
+										</v-slide-x-reverse-transition>
+									</template>
+								</v-autocomplete>
 							</v-flex>
 							<v-flex xs12 sm12 md4 lg4 xl4 class="text-right">
 								<v-btn icon class="ma-2 white--text" @click="Load">
@@ -64,7 +72,7 @@
 												</td>
 												<td>{{ contact.created_at }}</td>
 												<td class="text-right">
-													<v-icon color="grey">list</v-icon>
+													<v-icon color="grey" @click="showContact(index)">list</v-icon>
 													<v-icon color="warning" @click="editContact(index)">edit</v-icon>
 													<v-icon color="red" @click="deleteContact(index)">delete</v-icon>
 												</td>
@@ -137,6 +145,42 @@
 				</v-card>
 			</v-form>
 		</v-dialog>
+		<v-dialog v-model="dialog_description" max-width="650" height="auto" style="overflow: auto;">
+			<v-card>
+				<v-card-title>
+					Datos de contacto
+					<v-spacer></v-spacer>
+					<v-btn icon @click="dialog_description = false"><v-icon>close</v-icon></v-btn>
+				</v-card-title>
+				<v-divider></v-divider>
+				<v-card-text>
+					<v-container>
+						<v-layout row wrap>
+							<v-flex xs12 sm12 md6 lg6 xl6><p><b>Nombre: </b><span v-if="title">{{ title }} - </span><span>{{ name }}</span></p></v-flex>
+							<v-flex xs12 sm12 md6 lg6 xl6><p><b>Correo: </b>{{ email }}</p></v-flex>
+						</v-layout>
+						<v-layout row wrap>
+							<v-flex xs6 sm6 md6 lg6 xl6><p><b>Área: </b>{{ area }}</p></v-flex>
+							<v-flex xs6 sm6 md6 lg6 xl6><p><b>Puesto: </b>{{ position }}</p></v-flex>
+						</v-layout>
+						<v-layout row wrap>
+							<v-flex xs12 sm12 md6 lg6 xl6><p><b>Teléfono: </b>{{ phone }} <span v-if="extension">ext. {{ extension }}</span></p></v-flex>
+						</v-layout>
+						<br>
+						<v-layout row wrap>
+							<v-flex xs12 sm12 md12 lg12 xl12>
+								<p><b>Comentarios:</b></p>
+								<p>{{ comments }}</p>
+							</v-flex>
+						</v-layout>
+					</v-container>
+				</v-card-text>
+				<v-card-actions>
+					<v-spacer></v-spacer>
+					<v-btn text @click="dialog_description = false">Cerrar</v-btn>
+				</v-card-actions>
+			</v-card>
+		</v-dialog>
 	</div>
 </template>
 
@@ -157,7 +201,12 @@ export default {
             contacts_dialog: false,
             contacts: [],
             contacts_loading: false,
-            customer_id: '',
+			customer_id: '',
+			search_contact:'',
+			search_contacts:[],
+			searchLoading:false,
+			known_contact:'',
+			search: null,
 			//Contact form
 			errors:[],
 			contact_dialog: false,
@@ -173,8 +222,23 @@ export default {
 			extension:'',
 			comments:'',
 			selected_contact:'',
+			//Dialog description
+			dialog_description:false
         };
-    },
+	},
+	
+	watch: {
+		search(val){
+			if(val){
+				val && val !== this.referred && this.contactSelect(val)
+			}
+			else{
+				this.known_contact = '';
+				this.search_contacts = '';
+				this.search_contact = null;
+			}
+		}
+	},
 
     methods:
     {
@@ -205,6 +269,49 @@ export default {
 		
 		Load(){
 			this.LoadContacts(this.customer_id);
+		},
+
+		async contactSelect(val){
+			this.searchLoading = true;
+			await this.$axios.post('/api/contacts/customer/list', {customer_id:this.customer, search:val})
+			.then(res => {
+				this.search_contacts = res.data;
+				this.known_contact = this.search_contact.id;
+				this.searchLoading = false;
+			})
+			.catch(error => {
+				console.log(error);
+				this.searchLoading = false;
+			})
+		},
+
+		async addKnownContact(){
+			this.searchLoading = true;
+			await this.$axios.post('/api/contacts/add-to-customer', {customer_id:this.customer, contact_id:this.known_contact})
+			.then(res => {
+				this.searchLoading = false;
+				this.contacts.unshift(res.data);
+				this.known_contact = '';
+				this.search_contacts = '';
+				this.search_contact = null;
+			})
+			.catch(error => {
+				this.searchLoading = false;
+				this.errors = error.response.data.errors;
+			})
+		},
+
+		showContact(index){
+			this.dialog_description = true;
+			const contact = this.contacts[index];
+			this.position = contact.position;
+            this.title = contact.title;
+			this.area = contact.area;
+			this.name =contact.name;
+			this.email =contact.email;
+			this.phone =contact.phone;
+			this.extension =contact.extension;
+			this.comments =contact.comments;
 		},
 
         clearContactForm()
@@ -269,7 +376,7 @@ export default {
 			}
 			//Store
 			else{
-				await this.$axios.post('/api/customer', {position:this.position, title:this.title, area:this.area, name:this.name, email:this.email, phone:this.phone, extension:this.extension, comments:this.comments, customer_id:this.customer})
+				await this.$axios.post('/api/customer/contact', {position:this.position, title:this.title, area:this.area, name:this.name, email:this.email, phone:this.phone, extension:this.extension, comments:this.comments, customer_id:this.customer})
 				.then(res => {
 					this.loading = false;
 					this.contacts.unshift(res.data);
@@ -286,7 +393,13 @@ export default {
 
 		deleteContact(index){
 			const contact_to_delete = this.contacts[index];
-			this.contacts[index].splice(1);
+			this.$axios.post('/api/customerContacts/delete/', {customer_id:this.customer, contact_id:contact_to_delete.id})
+			.then(res => {
+				this.contacts.splice(index, 1);
+			})
+			.catch(error => {
+				console.log(error)
+			})
 		}
     },
 };

@@ -11,20 +11,20 @@
 				</v-card-title>
 				<v-card-text class="pb-4">
 					<v-container fluid grid-list-xl>
-						<v-layout wrap class="pt-2">
-							<v-flex xs12 sm12 md4 lg4 xl4>
+						<v-layout wrap class="">
+							<v-flex xs6 sm6 md3 lg3 xl3>
 								<v-btn color="primary" dark @click="createBrand">
 									<v-icon left>person_add</v-icon>
 									Agregar marca
 								</v-btn>
 							</v-flex>
-							<v-flex xs12 sm12 md4 lg4 xl4>
-								<v-select label="Agregar contactos existentes" outlined color="primary"></v-select>
+							<v-flex xs6 sm6 md3 lg3 xl3>
+								<v-select label="Agregar marcas existentes" outlined color="primary"></v-select>
 							</v-flex>
-							<v-flex xs12 sm12 md4 lg4 xl4>
-								<v-text-field  outlined color="light-blue darken-2" prepend-icon="search" v-model="search_brands" @change="LoadBrands" label="Buscar marcas..." type="text" clearable></v-text-field>
+							<v-flex xs6 sm6 md3 lg3 xl3>
+								<v-text-field class="text-right" outlined color="light-blue darken-2" prepend-icon="search" v-model="search_brands" @change="LoadBrands" label="Buscar marcas..." type="text" clearable></v-text-field>
 							</v-flex>
-							<v-flex xs12 sm12 md4 lg4 xl4 class="text-right">
+							<v-flex xs6 sm6 md3 lg3 xl3 class="text-right">
 								<v-btn icon class="ma-2 white--text" @click="LoadBrands">
 									<v-icon>sync</v-icon>
 								</v-btn>
@@ -32,7 +32,7 @@
 						</v-layout>
 						<v-layout wrap>
 							<v-flex xs12>
-								<v-card class="elevation-0" :loading="brands_loading">
+								<v-card class="elevation-4" :loading="brands_loading">
 									<v-simple-table class="elevation-1">
 										<thead>
 											<tr>
@@ -90,7 +90,7 @@
 				<div style="flex: 1 1 auto;"></div>
 			</v-card>
 		</v-dialog>
-		<v-dialog v-model="brand_dialog" max-width="450" height="auto" style="overflow: auto;">
+		<v-dialog v-model="brand_dialog" max-width="600" height="auto" style="overflow: auto;">
 			<v-form @submit.prevent="Save">
 				<v-card>
 					<v-card-title class="primary white--text">
@@ -153,17 +153,17 @@ export default {
         {
             this.brands_dialog = true;
             this.customer_id = customer_id;
-            this.LoadBrands();
+			this.LoadBrands(customer_id);
         },
 
         async LoadBrands(customer_id)
         {
             this.brands_loading = true;
             await this.$axios
-                .get('/api/customer/brands', {id:customer_id, search:this.search_brands})
+                .post('/api/customer/brands', {id:customer_id, search:this.search_brands})
                 .then(res =>
                 {
-                    this.brands = res.data;
+                    this.brands = res.data.data;
                     this.brands_loading = false;
                 })
                 .catch(error =>
@@ -183,7 +183,7 @@ export default {
 
         createBrand()
         {
-			if (this.brand_id == ''){
+			if (this.customer_id == ''){
 				this.brands_dialog = false;
 			}
 			else{
@@ -194,18 +194,23 @@ export default {
 		},
 		
 		async Save(){
+			this.loading = true;
 			//Update
 			if(this.brand_id){
 
 			}
 			//Store
 			else{
-				await this.$axios.post('/api/brands', {brand: this.brand, description:this.description, customer_id:this.customer_id})
+				await this.$axios.post('/api/customer/brand', {brand:this.brand, description:this.description, customer_id:this.customer_id})
 				.then(res => {
-
+					this.loading = false;
+					this.brands.unshift(res.data);
+					this.clearBrandForm();
+					this.brand_dialog = false;
 				})
 				.catch(error => {
-
+					this.loading = false;
+					this.errors = error.response.data.errors;
 				})
 			}
 			
