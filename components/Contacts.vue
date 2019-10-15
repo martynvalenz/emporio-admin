@@ -22,14 +22,14 @@
 								<v-select label="Agregar contactos existentes" outlined color="primary"></v-select>
 							</v-flex>
 							<v-flex xs12 sm12 md4 lg4 xl4 class="text-right">
-								<v-btn icon class="ma-2 white--text" @click="LoadContacts">
+								<v-btn icon class="ma-2 white--text" @click="Load">
 									<v-icon>sync</v-icon>
 								</v-btn>
 							</v-flex>
 						</v-layout>
 						<v-layout wrap>
 							<v-flex xs12>
-								<v-card class="elevation-0" :loading="contacts_loading">
+								<v-card class="elevation-4" :loading="contacts_loading">
 									<v-simple-table class="elevation-1">
 										<thead>
 											<tr>
@@ -65,8 +65,8 @@
 												<td>{{ contact.created_at }}</td>
 												<td class="text-right">
 													<v-icon color="grey">list</v-icon>
-													<v-icon color="warning">edit</v-icon>
-													<v-icon color="red">delete</v-icon>
+													<v-icon color="warning" @click="editContact(index)">edit</v-icon>
+													<v-icon color="red" @click="deleteContact(index)">delete</v-icon>
 												</td>
 											</tr>
 										</tbody>
@@ -116,7 +116,7 @@
 									<v-text-field label="Email" outlined v-model="email" append-icon="email" :error-messages="errors.email"></v-text-field>
 								</v-col>
 								<v-col cols="12" sm="8" md="8" lg="4">
-									<v-text-field label="Teléfono *" outlined v-model="phone" append-icon="phone" :error-messages="errors.phone"></v-text-field>
+									<v-text-field label="Teléfono *" outlined v-model="phone" append-icon="phone" :error-messages="errors.phone" v-mask="'(###) ### - ####'" masked="true"></v-text-field>
 								</v-col>
 								<v-col cols="12" sm="4" md="4" lg="2">
 									<v-text-field label="Ext." outlined v-model="extension" :error-messages="errors.extension"></v-text-field>
@@ -141,9 +141,11 @@
 </template>
 
 <script>
+import {mask} from 'vue-the-mask'
 import axios from "axios";
 export default {
 	props: ["customer"],
+	directives: {mask},
     data(){
         return {
             //snackbar
@@ -169,7 +171,8 @@ export default {
 			email:'',
 			phone:'',
 			extension:'',
-			comments:''
+			comments:'',
+			selected_contact:'',
         };
     },
 
@@ -180,7 +183,7 @@ export default {
         {
             this.contacts_dialog = true;
             this.customer_id = customer_id;
-            this.LoadContacts();
+            this.LoadContacts(customer_id);
         },
 
         async LoadContacts(customer_id)
@@ -198,7 +201,11 @@ export default {
                     console.log(error);
                     this.contacts_loading = false;
                 });
-        },
+		},
+		
+		Load(){
+			this.LoadContacts(this.customer_id);
+		},
 
         clearContactForm()
         {
@@ -209,14 +216,15 @@ export default {
 			this.name ='';
 			this.email ='';
 			this.phone ='';
-			this.unsigned_phone ='';
 			this.extension ='';
 			this.comments ='';
+			this.errors = {};
+			this.selected_contact = '';
         },
 
         createContact()
         {
-			if (this.customer_id == ''){
+			if (this.customer == ''){
 				this.contacts_dialog = false;
 			}
 			else{
@@ -225,23 +233,60 @@ export default {
 				this.clearContactForm();
 			}
 		},
+
+		editContact(index){
+			this.contact_dialog = true;
+			const contact = this.contacts[index];
+			this.selected_contact = index;
+			this.dialog_title = 'Editar contacto: '+contact.name;
+			this.contact_id = contact.id;
+			this.position = contact.position;
+            this.title = contact.title;
+			this.area = contact.area;
+			this.name =contact.name;
+			this.email =contact.email;
+			this.phone =contact.phone;
+			this.extension =contact.extension;
+			this.comments =contact.comments;
+			this.errors = {};
+		},
 		
 		async Save(){
+			this.loading = true;
 			//Update
 			if(this.contact_id){
-
+				await this.$axios.put(`/api/customer/update/${this.contact_id}`, {position:this.position, title:this.title, area:this.area, name:this.name, email:this.email, phone:this.phone, extension:this.extension, comments:this.comments, customer_id:this.customer})
+				.then(res => {
+					this.loading = false;
+					this.contacts[this.selected_contact] = res.data;
+					this.contact_dialog = false;
+					this.clearContactForm();
+				})
+				.catch(error => {
+					this.loading = false;
+					this.errors = error.response.data.errors;
+				})
 			}
 			//Store
 			else{
-				await this.$axios.post('/api/customer', {position:this.position, title:this.title, area:this.area, name:this.name, email:this.email, phone:this.phone, extension:this.extension, comments:this.comments})
+				await this.$axios.post('/api/customer', {position:this.position, title:this.title, area:this.area, name:this.name, email:this.email, phone:this.phone, extension:this.extension, comments:this.comments, customer_id:this.customer})
 				.then(res => {
-
+					this.loading = false;
+					this.contacts.unshift(res.data);
+					this.clearContactForm();
+					this.contact_dialog = false;
+					
 				})
 				.catch(error => {
-
+					this.loading = false;
+					this.errors = error.response.data.errors;
 				})
 			}
-			
+		},
+
+		deleteContact(index){
+			const contact_to_delete = this.contacts[index];
+			this.contacts[index].splice(1);
 		}
     },
 };
