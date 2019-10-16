@@ -12,19 +12,27 @@
 				<v-card-text class="pb-4">
 					<v-container fluid grid-list-xl>
 						<v-layout wrap class="">
-							<v-flex xs6 sm6 md3 lg3 xl3>
+							<v-flex xs6 sm6 md6 lg2 xl2>
 								<v-btn color="primary" dark @click="createBrand">
-									<v-icon left>person_add</v-icon>
+									<v-icon left>add</v-icon>
 									Agregar marca
 								</v-btn>
 							</v-flex>
-							<v-flex xs6 sm6 md3 lg3 xl3>
-								<v-select label="Agregar marcas existentes" outlined color="primary"></v-select>
+							<v-flex xs6 sm6 md6 lg4 xl4>
+								<v-autocomplete v-model="search_brand" :items="search_items" outlined :loading="searchLoading" :search-input.sync="search" hide-no-data hide-selected item-text="brand" item-value="id" placeholder="Buscar marcas..." prepend-icon="copyright" return-object clearable :error-messages="errors.brand_id">
+									<template v-if="known_brand" v-slot:append-outer>
+										<v-slide-x-reverse-transition mode="out-in">
+											<v-btn fab small color="success"  @click="addKnownBrand" :loading="searchLoading">
+												<v-icon color="white">add</v-icon>
+											</v-btn>
+										</v-slide-x-reverse-transition>
+									</template>
+								</v-autocomplete>
 							</v-flex>
-							<v-flex xs6 sm6 md3 lg3 xl3>
+							<v-flex xs6 sm6 md6 lg3 xl3>
 								<v-text-field class="text-right" outlined color="light-blue darken-2" prepend-icon="search" v-model="search_brands" @change="LoadBrands" label="Buscar marcas..." type="text" clearable></v-text-field>
 							</v-flex>
-							<v-flex xs6 sm6 md3 lg3 xl3 class="text-right">
+							<v-flex xs6 sm6 md6 lg3 xl3 class="text-right">
 								<v-btn icon class="ma-2 white--text" @click="LoadBrands">
 									<v-icon>sync</v-icon>
 								</v-btn>
@@ -71,7 +79,7 @@
 												<td class="text-right">
 													<v-icon color="grey">list</v-icon>
 													<v-icon color="warning" @click="edit(index)">edit</v-icon>
-													<v-icon color="red" @click="changeStatus(index)">delete</v-icon>
+													<v-icon color="red" @click="deleteBrand(index)">delete</v-icon>
 												</td>
 											</tr>
 										</tbody>
@@ -180,6 +188,12 @@ export default {
             brands_loading: false,
 			customer_id: '',
 			search_brands:'',
+			//Known brands
+			search:false,
+			search_brand:'',
+			search_items:[],
+			searchLoading:false,
+			known_brand:'',
 			//Contact form
 			errors:[],
 			brand_dialog: false,
@@ -195,7 +209,20 @@ export default {
 			selectedFile:'',
 			selected_logo:''
         };
-    },
+	},
+	
+	watch: {
+		search(val){
+			if(val){
+				val && val !== this.referred && this.brandSelect(val)
+			}
+			else{
+				this.known_brand = '';
+				this.search_items = '';
+				this.search_brand = null;
+			}
+		}
+	},
 
     methods:
     {
@@ -222,7 +249,37 @@ export default {
                     console.log(error);
                     this.brands_loading = false;
                 });
-        },
+		},
+		
+		async brandSelect(val){
+			this.searchLoading = true;
+			await this.$axios.post('/api/customer/brand-list', {customer_id:this.customer, search:val})
+			.then(res => {
+				this.search_items = res.data;
+				this.known_brand = this.search_brand.id;
+				this.searchLoading = false;
+			})
+			.catch(error => {
+				console.log(error);
+				this.searchLoading = false;
+			})
+		},
+
+		async addKnownBrand(){
+			this.searchLoading = true;
+			await this.$axios.post('/api/customer/add-brand', {customer_id:this.customer, brand_id:this.known_brand})
+			.then(res => {
+				this.searchLoading = false;
+				this.brands.unshift(res.data);
+				this.known_brand = '';
+				this.search_items = '';
+				this.search_brand = null;
+			})
+			.catch(error => {
+				this.searchLoading = false;
+				this.errors = error.response.data.errors;
+			})
+		},
 
         clearBrandForm()
         {
@@ -246,12 +303,12 @@ export default {
 
 		edit(index){
 			this.brand_dialog = true;
-			const contact = this.contacts[index];
+			const brand = this.brands[index];
 			this.selected_brand = index;
 			this.dialog_title = 'Editar marca';
-			this.brand_id = contact.id;
-			this.brand = contact.brand;
-			this.description = contact.description;
+			this.brand_id = brand.id;
+			this.brand = brand.brand;
+			this.description = brand.description;
 			this.errors = {};
 		},
 		
@@ -286,6 +343,17 @@ export default {
 				})
 			}
 			
+		},
+
+		deleteBrand(index){
+			const brand_to_delete = this.brands[index];
+			this.$axios.post('/api/customer/brand-delete', {customer_id:this.customer, brand_id:brand_to_delete.id})
+			.then(res => {
+				this.brands.splice(index, 1);
+			})
+			.catch(error => {
+				console.log(error)
+			})
 		},
 
 		changeLogo(index){
