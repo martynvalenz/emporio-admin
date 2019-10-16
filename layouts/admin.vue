@@ -616,7 +616,7 @@
 
 				<v-list-item>
                     <v-list-item-action>
-                        <v-switch v-model="$vuetify.theme.dark" @change="changeDarkMode" color="primary"></v-switch>
+                        <v-switch v-model="dark" @change="changeDarkMode" color="primary"></v-switch>
                     </v-list-item-action>
                     <v-list-item-content>
                         <v-list-item-title>Tema</v-list-item-title>
@@ -749,6 +749,7 @@
 </template>
 
 <script>
+import axios from 'axios'
 export default {
 	data () {
 		return {
@@ -772,17 +773,24 @@ export default {
     
     methods:{
         darkMode(){
-            // if(this.user.dark == 1){
-            //     this.dark = true;
-            // }
-            // else{
-            //     this.dark = false;
-            // }
-            // this.$vuetify.theme = user.dark;
+            this.dark = this.user.dark;
         },
 
         changeDarkMode(){
+            if(this.dark == 1){
+                this.dark = 0;
+            }
+            else{
+                this.dark = 1;
+            }
 
+            this.$axios.post('/api/user/dark-mode', {dark:this.dark})
+            .then(res => {
+                
+            })
+            .catch(error => {
+                console.log(error);
+            })
         },
 
         Logout(){

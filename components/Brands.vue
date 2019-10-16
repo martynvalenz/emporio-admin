@@ -238,17 +238,17 @@ export default {
         {
             this.brands_loading = true;
             await this.$axios
-                .post('/api/customer/brands', {id:customer_id, search:this.search_brands})
-                .then(res =>
-                {
-                    this.brands = res.data.data;
-                    this.brands_loading = false;
-                })
-                .catch(error =>
-                {
-                    console.log(error);
-                    this.brands_loading = false;
-                });
+			.post('/api/customer/brands', {id:customer_id, search:this.search_brands})
+			.then(res =>
+			{
+				this.brands = res.data.data;
+				this.brands_loading = false;
+			})
+			.catch(error =>
+			{
+				console.log(error);
+				this.brands_loading = false;
+			});
 		},
 		
 		async brandSelect(val){
@@ -373,7 +373,7 @@ export default {
 			const files = event.target.files;
             this.selectedFile = event.target.files[0];
             let filename = files[0].name;
-            let size = files[0].size;
+            let size = files[0].size; 
 
             if(!filename){
                 this.selectedFile = null;

@@ -1,6 +1,15 @@
 <template>
 	<div>
-		<h1>Control de Servicios</h1>
+		<h2>Control de Servicios</h2>
+		<v-layout class="pt-4">
+			<v-flex xs12>
+				<v-card>
+					<v-card-title>
+						
+					</v-card-title>
+				</v-card>
+			</v-flex>
+		</v-layout>
 	</div>
 </template>
 
