@@ -10,7 +10,7 @@
             nav
             >
             <v-list dense nav>
-                <v-list-item router exact to="/admin/perfil">
+                <v-list-item router exact to="/admin/profile">
                     <v-list-item-avatar class="elevation-4">
                         <v-img :src="user.avatar_img"></v-img>
                     </v-list-item-avatar>
@@ -95,7 +95,7 @@
                             <v-list-item-title>Clientes</v-list-item-title>
                         </v-list-item-content>
                     </template>
-                    <v-list-item router exact to="/admin/clientes/estrategias">
+                    <v-list-item router exact to="/admin/customers/strategies">
                         <v-list-item-content>
                             <v-list-item-title>Estrategias</v-list-item-title>
                         </v-list-item-content>
@@ -103,7 +103,7 @@
                             <v-icon>thumb_up</v-icon>
                         </v-list-item-action>
                     </v-list-item>
-                    <v-list-item router exact to="/admin/clientes">
+                    <v-list-item router exact to="/admin/customers">
                         <v-list-item-content>
                             <v-list-item-title>Listado de Clientes</v-list-item-title>
                         </v-list-item-content>
@@ -113,7 +113,7 @@
                     </v-list-item>
                 </v-list-group>
 
-                <v-list-item router exact to="/admin/control-servicios">
+                <v-list-item router exact to="/admin/services-control">
                     <v-list-item-action>
                         <v-icon>business_center</v-icon>
                     </v-list-item-action>
@@ -128,8 +128,8 @@
                             <v-list-item-title>Servicios</v-list-item-title>
                         </v-list-item-content>
                     </template>
-                    <v-list-item>
-                        <v-list-item-content router exact>
+                    <v-list-item router exact to="/admin/services/categories">
+                        <v-list-item-content>
                             <v-list-item-title>Categorías</v-list-item-title>
                         </v-list-item-content>
                         <v-list-item-action>
@@ -616,7 +616,7 @@
 
 				<v-list-item>
                     <v-list-item-action>
-                        <v-switch v-model="dark" @change="changeDarkMode" color="primary"></v-switch>
+                        <v-switch v-model="$vuetify.theme.dark" @change="changeDarkMode" inset color="primary"></v-switch>
                     </v-list-item-action>
                     <v-list-item-content>
                         <v-list-item-title>Tema</v-list-item-title>
@@ -750,6 +750,7 @@
 
 <script>
 import axios from 'axios'
+import store from '@/store/index'
 export default {
 	data () {
 		return {
@@ -767,26 +768,41 @@ export default {
 		}
     },
 
-    created(){
+    mounted() {
         this.darkMode();
+    },
+
+    created(){
+        // this.darkMode();
+        // console.log(this.user);
     },
     
     methods:{
-        darkMode(){
-            this.dark = this.user.dark;
-        },
-
-        changeDarkMode(){
-            if(this.dark == 1){
-                this.dark = 0;
+        async darkMode(){
+            if(this.user.dark == 1){
+                // this.dark = true;
+                this.$vuetify.theme.dark = true;
             }
             else{
-                this.dark = 1;
+                // this.dark = false;
+                this.$vuetify.theme.dark = false;
+            }
+            
+        },
+
+        async changeDarkMode(){
+            var dark = 0;
+
+            if(this.$vuetify.theme.dark === true){
+                dark = 1;
+            }
+            else{
+                dark = 0;
             }
 
-            this.$axios.post('/api/user/dark-mode', {dark:this.dark})
+            await this.$axios.post('/api/user/dark-mode', {dark:dark})
             .then(res => {
-                
+                this.$store.dispatch('auth/setDarkTheme', {dark:dark});
             })
             .catch(error => {
                 console.log(error);

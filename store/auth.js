@@ -15,13 +15,21 @@ export const getters = {
     }
 }
 
-export const mutations = {
-    setUserName(state, payload){
-        state.user.Name = payload
+export const actions = {
+    setDarkTheme(context, data) {
+        context.commit('setDarkTheme', data)
     }
 }
 
-export const actions = {
+export const mutations = {
+    setUserName(state, payload){
+        state.user.Name = payload
+    },
 
+    setDarkTheme(state, data){
+        state.user.dark = data.dark;
+    }
 }
+
+
 

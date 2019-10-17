@@ -229,14 +229,7 @@ export default {
 	
 	watch: {
 		search(val){
-			if(val){
-				val && val !== this.referred && this.contactSelect(val)
-			}
-			else{
-				this.known_contact = '';
-				this.search_contacts = '';
-				this.search_contact = null;
-			}
+			val && val !== this.search_contact && this.contactSelect(val)
 		}
 	},
 
@@ -247,7 +240,8 @@ export default {
         {
             this.contacts_dialog = true;
             this.customer_id = customer_id;
-            this.LoadContacts(customer_id);
+			this.LoadContacts(customer_id);
+			console.clear();
         },
 
         async LoadContacts(customer_id)
@@ -273,16 +267,22 @@ export default {
 
 		async contactSelect(val){
 			this.searchLoading = true;
-			await this.$axios.post('/api/contacts/customer/list', {customer_id:this.customer, search:val})
-			.then(res => {
-				this.search_contacts = res.data;
-				this.known_contact = this.search_contact.id;
-				this.searchLoading = false;
-			})
-			.catch(error => {
-				console.log(error);
-				this.searchLoading = false;
-			})
+			if(val){
+				await this.$axios.post('/api/contacts/customer/list', {customer_id:this.customer, search:val})
+				.then(res => {
+					this.search_contacts = res.data;
+					this.known_contact = this.search_contact.id;
+					this.searchLoading = false;
+				})
+				.catch(error => {
+					console.log(error);
+					this.searchLoading = false;
+				})
+			}
+			else{
+				this.search_contacts = {};
+				this.search_contact = '';
+			}
 		},
 
 		async addKnownContact(){
@@ -292,8 +292,8 @@ export default {
 				this.searchLoading = false;
 				this.contacts.unshift(res.data);
 				this.known_contact = '';
-				this.search_contacts = '';
-				this.search_contact = null;
+				this.search_contacts = {};
+				this.search_contact = '';
 			})
 			.catch(error => {
 				this.searchLoading = false;

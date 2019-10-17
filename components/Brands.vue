@@ -19,7 +19,7 @@
 								</v-btn>
 							</v-flex>
 							<v-flex xs6 sm6 md6 lg4 xl4>
-								<v-autocomplete v-model="search_brand" :items="search_items" outlined :loading="searchLoading" :search-input.sync="search" hide-no-data hide-selected item-text="brand" item-value="id" placeholder="Buscar marcas..." prepend-icon="copyright" return-object clearable :error-messages="errors.brand_id">
+								<v-autocomplete v-model="search_brand" :items="search_items" outlined :loading="searchLoading" :search-input.sync="search" hide-no-data hide-selected item-text="brand" item-value="id" placeholder="Agregar marcas existentes..." prepend-icon="copyright" return-object clearable :error-messages="errors.brand_id">
 									<template v-if="known_brand" v-slot:append-outer>
 										<v-slide-x-reverse-transition mode="out-in">
 											<v-btn fab small color="success"  @click="addKnownBrand" :loading="searchLoading">
@@ -30,10 +30,10 @@
 								</v-autocomplete>
 							</v-flex>
 							<v-flex xs6 sm6 md6 lg3 xl3>
-								<v-text-field class="text-right" outlined color="light-blue darken-2" prepend-icon="search" v-model="search_brands" @change="LoadBrands" label="Buscar marcas..." type="text" clearable></v-text-field>
+								<v-text-field class="text-right" outlined color="light-blue darken-2" prepend-icon="search" v-model="search_brands" @change="Load" label="Buscar marcas..." type="text" clearable></v-text-field>
 							</v-flex>
 							<v-flex xs6 sm6 md6 lg3 xl3 class="text-right">
-								<v-btn icon class="ma-2 white--text" @click="LoadBrands">
+								<v-btn icon class="ma-2 white--text" @click="Reload">
 									<v-icon>sync</v-icon>
 								</v-btn>
 							</v-flex>
@@ -213,14 +213,7 @@ export default {
 	
 	watch: {
 		search(val){
-			if(val){
-				val && val !== this.referred && this.brandSelect(val)
-			}
-			else{
-				this.known_brand = '';
-				this.search_items = '';
-				this.search_brand = null;
-			}
+			val && val !== this.search_brand && this.brandSelect(val)
 		}
 	},
 
@@ -229,16 +222,18 @@ export default {
         //Contacts
         openBrands(customer_id)
         {
-            this.brands_dialog = true;
-            this.customer_id = customer_id;
+			this.brands_dialog = true;
+			this.search_brands = '';
+			this.search_items = [];
+			this.customer_id = customer_id;
 			this.LoadBrands(customer_id);
+			console.clear();
         },
 
         async LoadBrands(customer_id)
         {
             this.brands_loading = true;
-            await this.$axios
-			.post('/api/customer/brands', {id:customer_id, search:this.search_brands})
+            await this.$axios.post('/api/customer/brands', {id:customer_id, search:this.search_brands})
 			.then(res =>
 			{
 				this.brands = res.data.data;
@@ -250,19 +245,34 @@ export default {
 				this.brands_loading = false;
 			});
 		},
+
+		Load(){
+			this.LoadBrands(this.customer);
+		},
+
+		Reload(){
+			this.search_brands = '';
+			this.LoadBrands(this.customer);
+		},
 		
 		async brandSelect(val){
 			this.searchLoading = true;
-			await this.$axios.post('/api/customer/brand-list', {customer_id:this.customer, search:val})
-			.then(res => {
-				this.search_items = res.data;
-				this.known_brand = this.search_brand.id;
-				this.searchLoading = false;
-			})
-			.catch(error => {
-				console.log(error);
-				this.searchLoading = false;
-			})
+			if(val){
+				await this.$axios.post('/api/customer/brand-list', {customer_id:this.customer, search:val})
+				.then(res => {
+					this.search_items = res.data;
+					this.known_brand = this.search_brand.id;
+					this.searchLoading = false;
+				})
+				.catch(error => {
+					console.log(error);
+					this.searchLoading = false;
+				})
+			}
+			else{
+				this.search_items = {};
+				this.seach_brand = '';
+			}
 		},
 
 		async addKnownBrand(){
@@ -272,7 +282,7 @@ export default {
 				this.searchLoading = false;
 				this.brands.unshift(res.data);
 				this.known_brand = '';
-				this.search_items = '';
+				this.search_items = {};
 				this.search_brand = null;
 			})
 			.catch(error => {
