@@ -1,54 +1,37 @@
 <template>
     <div>
-        <h2>Subcategorías de servicios</h2>
+        <h2>Bitácoras</h2>
 		<v-layout class="pt-4">
 			<v-flex xs12>
 				<v-card :loading="loading_table">
 					<v-card-title>
-						<v-btn color="primary" class="mx-1">Agregar Subcategoría<v-icon right>add</v-icon></v-btn>
+						<v-btn color="primary" class="mx-1">Agregar Bitácora<v-icon right>add</v-icon></v-btn>
 						<v-spacer></v-spacer>
-						<v-btn icon @click="loadSubcategories"><v-icon>sync</v-icon></v-btn>
+						<v-btn icon @click="Load"><v-icon>sync</v-icon></v-btn>
 					</v-card-title>
 					<v-divider></v-divider>
 					<v-card-text>
 						<v-simple-table class="elevation-1">
 							<thead>
 								<tr>
-									<th class="text-left">Subcategoría</th>
+									<th class="text-left">Clave</th>
 									<th class="text-left">Bitácora</th>
-									<th class="text-left">Renovación</th>
-									<th class="text-left">Declaración</th>
-									<th class="text-left">Recordatorio</th>
-									<th class="text-left">Vencimiento</th>
-									<th class="text-left">Registros</th>
+									<th class="text-left">Servicios</th>
 									<th class="text-left">Estatus</th>
+									<th class="text-left">Agregada</th>
 									<th class="text-right"></th>
 								</tr>
 							</thead>
 							<tbody>
-								<tr v-for="(reg, index) in subcategories" :key="index">
-									<td>{{ reg.subcategory }}</td>
-									<td>{{ reg.binnacle_status }}</td>
-									<td>
-										<v-chip v-if="reg.status" color="green" dark>Si</v-chip>
-										<v-chip v-else dark color="red">No</v-chip>
-									</td>
-									<td>
-										<span v-if="reg.expiration = 0">N/A</span>
-										<span v-else>{{ reg.expiration }} año/s</span>
-									</td>
-									<td>
-										<span v-if="reg.reminder = 0">N/A</span>
-										<span v-else>{{ reg.reminder }} mes/es</span></td>
-									<td>
-										<span v-if="reg.declaration_use = 0">N/A</span>
-										<span v-else>{{ reg.declaration_use }} año/s</span>
-									</td>
-									<td>{{ reg.registries }}</td>
+								<tr v-for="(reg, index) in binnacles" :key="index">
+									<td>{{ reg.key }}</td>
+									<td>{{ reg.binnacle }}</td>
+									<td>{{ reg.services }}</td>
 									<td>
 										<v-chip v-if="reg.status" color="green" dark>Activo</v-chip>
 										<v-chip v-else dark color="red">Inactivo</v-chip>
 									</td>
+									<td>{{ reg.created_at }}</td>
 									<td class="text-right">
 										<v-icon color="warning">edit</v-icon>
 										<v-icon color="error" v-if="reg.status = 1">block</v-icon>
@@ -73,26 +56,26 @@ export default {
     layout: 'admin',
 	middleware: 'auth',
 	head:{
-        title: 'Subcategorías'
+        title: 'Bitácoras'
 	},
     data(){
         return{
             //Data
-            subcategories:[],
+            binnacles:[],
             loading_table:false,
         }
     },
 
     created(){
-        this.loadSubcategories();
+        this.Load();
     },
 
     methods:{
-        async loadSubcategories(){
+        async Load(){
             this.loading_table = true;
-            await this.$axios('/api/subcategories')
+            await this.$axios('/api/binnacles')
             .then(res => {
-                this.subcategories = res.data;
+                this.binnacles = res.data;
                 this.loading_table = false;
             })
             .catch(error => {
