@@ -26,7 +26,7 @@
 								</tr>
 							</thead>
 							<tbody>
-								<tr v-for="(reg, index) in categories" :key="index">
+								<tr v-for="(reg, index) in subcategories" :key="index">
 									<td>{{ reg.subcategory }}</td>
 									<td>{{ reg.binnacle_status }}</td>
 									<td>{{ reg.renovation }}</td>

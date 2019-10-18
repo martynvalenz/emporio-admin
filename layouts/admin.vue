@@ -136,8 +136,8 @@
                             <v-icon>category</v-icon>
                         </v-list-item-action>
                     </v-list-item>
-                    <v-list-item>
-                        <v-list-item-content router exact>
+                    <v-list-item router exact to="/admin/services/subcategories">
+                        <v-list-item-content>
                             <v-list-item-title>Subcategorías</v-list-item-title>
                         </v-list-item-content>
                         <v-list-item-action>
