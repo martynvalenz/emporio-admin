@@ -144,8 +144,16 @@
                             <v-icon>device_hub</v-icon>
                         </v-list-item-action>
                     </v-list-item>
-                    <v-list-item>
-                        <v-list-item-content router exact>
+                    <v-list-item router exact to="/admin/services/binnacles">
+                        <v-list-item-content>
+                            <v-list-item-title>Bitácoras</v-list-item-title>
+                        </v-list-item-content>
+                        <v-list-item-action>
+                            <v-icon>bookmarks</v-icon>
+                        </v-list-item-action>
+                    </v-list-item>
+                    <v-list-item router exact to="/admin/services/catalogs">
+                        <v-list-item-content>
                             <v-list-item-title>Catálogo de Servicios</v-list-item-title>
                         </v-list-item-content>
                         <v-list-item-action>

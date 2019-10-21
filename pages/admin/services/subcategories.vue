@@ -29,22 +29,23 @@
 								<tr v-for="(reg, index) in subcategories" :key="index">
 									<td>{{ reg.subcategory }}</td>
 									<td>{{ reg.binnacle_status }}</td>
-									<td>
-										<v-chip v-if="reg.status" color="green" dark>Si</v-chip>
+									<td class="text-center">
+										<v-chip v-if="reg.renovation" color="green" dark>Si</v-chip>
 										<v-chip v-else dark color="red">No</v-chip>
 									</td>
 									<td>
-										<span v-if="reg.expiration = 0">N/A</span>
-										<span v-else>{{ reg.expiration }} año/s</span>
+										<span v-if="reg.declaration_use == 0" class="grey--text">N/A</span>
+										<span v-else>{{ Math.round(reg.declaration_use) }} año/s</span>
 									</td>
 									<td>
-										<span v-if="reg.reminder = 0">N/A</span>
-										<span v-else>{{ reg.reminder }} mes/es</span></td>
-									<td>
-										<span v-if="reg.declaration_use = 0">N/A</span>
-										<span v-else>{{ reg.declaration_use }} año/s</span>
+										<span v-if="reg.reminder == 0" class="grey--text">N/A</span>
+										<span v-else>{{ Math.round(reg.reminder) }} mes/es</span>
 									</td>
-									<td>{{ reg.registries }}</td>
+									<td>
+										<span v-if="reg.expiration == 0" class="grey--text">N/A</span>
+										<span v-else>{{ Math.round(reg.expiration) }} año/s</span>
+									</td>
+									<td class="text-center">{{ reg.registries }}</td>
 									<td>
 										<v-chip v-if="reg.status" color="green" dark>Activo</v-chip>
 										<v-chip v-else dark color="red">Inactivo</v-chip>
