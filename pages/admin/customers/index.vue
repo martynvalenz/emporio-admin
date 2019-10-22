@@ -19,7 +19,7 @@
 					</v-card-title>
 					<v-divider></v-divider>
 					<v-card-text>
-						<v-simple-table class="elevation-1">
+						<v-simple-table class="elevation-1" fixed-header height="500px">
 							<thead>
 								<tr>
 									<th class="text-left">Cliente</th>
