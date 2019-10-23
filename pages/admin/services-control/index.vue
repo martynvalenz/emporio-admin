@@ -5,13 +5,29 @@
 			<v-flex xs12>
 				<v-card :loading="services_loading">
 					<v-card-title>
-						<v-btn color="primary" class="mx-1">Agregar Servicio<v-icon right>add</v-icon></v-btn>
-						<v-btn color="info" class="mx-1">Agregar Cliente<v-icon right>person_add</v-icon></v-btn>
+						<v-btn color="primary" class="mx-1">Servicio<v-icon right>add</v-icon></v-btn>
+						<v-btn color="info" class="mx-1" @click="addCustomer">Cliente<v-icon right>person_add</v-icon></v-btn>
+						<v-btn color="secondary" class="mx-1">Factura/Recibo<v-icon right>add</v-icon></v-btn>
 						<v-spacer></v-spacer>
 						<v-btn icon @click="Refresh"><v-icon>sync</v-icon></v-btn>
 					</v-card-title>
+					<v-card-title>
+						<v-container>
+							<v-layout wrap>
+								<v-flex xs6 sm6 md4 lg2 xl2>
+									<v-select v-model="status" :items="statuses"  item-value="id" item-text="status" filled label="Trámite"></v-select>
+								</v-flex>
+								<v-flex xs6 sm6 md4 lg2 xl2>
+									<v-select v-model="payed_status" :items="payed_statuses" item-value="id" item-text="status" filled label="Cobranza"></v-select>
+								</v-flex>
+								<v-flex xs12 sm12 md6 lg4 xl4>
+									<v-text-field filled label="Buscar servicio..." clearable></v-text-field>
+								</v-flex>
+							</v-layout>
+						</v-container>
+					</v-card-title>
 					<v-card-text >
-						<v-simple-table class="elevation-1" >
+						<!-- <v-simple-table class="elevation-1" >
 							<thead>
 								<tr>
 									<th class="text-left">Fecha</th>
@@ -51,33 +67,107 @@
 									</td>
 								</tr>
 							</tbody>
-						</v-simple-table>
+						</v-simple-table> -->
+						<v-expansion-panels class="elevation-4">
+							<v-expansion-panel>
+								<v-expansion-panel-header v-slot="{ open }">
+									<v-layout row wrap>
+										<v-flex xs6 sm6 md4 lg2 xl2>
+											<small>Fecha</small><br>
+											01-01-2018
+										</v-flex>
+										<v-flex xs6 sm6 md12 lg4 xl4>
+											<small>Servicio</small><br>
+											RM - La pacotilla
+										</v-flex>
+										<v-flex xs6 sm6 md8 lg3 xl3>
+											<small>Cliente</small><br>
+											la pacotilla
+										</v-flex>
+										<v-flex xs6 sm6 md12 lg1 xl1>
+											<small>Cobranza</small><br>
+											<v-chip color="success">Pagado</v-chip>
+										</v-flex>
+										<v-flex xs6 sm6 md12 lg1 xl1>
+											<small>Trámite</small><br>
+											<v-chip color="warning">Pendiente</v-chip>
+										</v-flex>
+									</v-layout>
+								</v-expansion-panel-header>
+								<v-expansion-panel-content>
+									tester
+								</v-expansion-panel-content>
+							</v-expansion-panel>
+						</v-expansion-panels>
 					</v-card-text>
 				</v-card>
 			</v-flex>
 		</v-layout>
+		<Customer :customer_dialog="1" ref="customer_form"></Customer>
 	</div>
 </template>
 
 <script>
+import Customer from '@/components/Customer'
 import axios from 'axios'
 export default{
 	layout: 'admin',
 	middleware: 'auth',
 	head:{
-        title: 'Clientes'
+        title: 'Control de Servicios'
 	},
+	components:{Customer},
 
 	data(){
 		return{
 			//Data
 			services:[],
-			services_loading:false
+			services_loading:false,
+			status:'',
+			statuses:[],
+			payed_status:'',
+			payed_statuses:[]
 		}
+	},
+
+	created(){
+		this.loadFilters();
 	},
 
 	methods:{
 
+		addCustomer(){
+			this.$refs.customer_form.addCustomer();
+		},
+
+		Refresh(){
+
+		},
+
+		loadFilters(){
+			this.payed_statuses = [
+				{id:'todo', status:'Todo'},
+				{id:0, status:'Pendiente'},
+				{id:1, status:'Pagado'}
+			];
+			this.status = 'todo';
+
+			this.statuses = [
+				{id:'todo', status:'Todo'},
+				{id:0, status:'Pendiente'},
+				{id:1, status:'Terminado'},
+				{id:2, status:'Cancelado'},
+				{id:3, status:'No Registro'},
+				{id:4, status:'Repetido'}
+			];
+			this.payed_status = 'todo';
+		}
 	}
 }
 </script>	
+
+<style>
+	small{
+		color: grey !important;
+	}
+</style>
