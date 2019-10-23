@@ -9,21 +9,29 @@
 						<v-btn color="info" class="mx-1" @click="addCustomer">Cliente<v-icon right>person_add</v-icon></v-btn>
 						<v-btn color="secondary" class="mx-1">Factura/Recibo<v-icon right>add</v-icon></v-btn>
 						<v-spacer></v-spacer>
-						<v-btn icon @click="Refresh"><v-icon>sync</v-icon></v-btn>
+						<v-btn-toggle mandatory v-model="user.service_control">
+							<v-btn :value="0" @click="changeView(0)"><v-icon>list</v-icon></v-btn>
+							<v-btn :value="1" @click="changeView(1)"><v-icon>calendar_view_day</v-icon></v-btn>
+							<v-btn :value="2" @click="changeView(2)"><v-icon>view_model</v-icon></v-btn>
+						</v-btn-toggle>
+						<v-btn icon @click="loadData"><v-icon>sync</v-icon></v-btn>
 					</v-card-title>
 					<v-card-title>
 						<v-container>
-							<v-layout wrap>
-								<v-flex xs6 sm6 md4 lg2 xl2>
+							<v-row>
+								<v-col cols="12" sm="6" md="3" lg="2">
 									<v-select v-model="status" :items="statuses"  item-value="id" item-text="status" filled label="Trámite"></v-select>
-								</v-flex>
-								<v-flex xs6 sm6 md4 lg2 xl2>
+								</v-col>
+								<v-col cols="12" sm="6" md="3" lg="2">
 									<v-select v-model="payed_status" :items="payed_statuses" item-value="id" item-text="status" filled label="Cobranza"></v-select>
-								</v-flex>
-								<v-flex xs12 sm12 md6 lg4 xl4>
+								</v-col>
+								<v-col cols="12" sm="12" md="3" lg="5">
 									<v-text-field filled label="Buscar servicio..." clearable></v-text-field>
-								</v-flex>
-							</v-layout>
+								</v-col>
+								<v-col cols="12" sm="12" md="3" lg="3">
+									<v-text-field filled label="Buscar factura/recibo..." clearable></v-text-field>
+								</v-col>
+							</v-row>
 						</v-container>
 					</v-card-title>
 					<v-card-text >
@@ -98,6 +106,11 @@
 									tester
 								</v-expansion-panel-content>
 							</v-expansion-panel>
+							<infinite-loading>
+								<div slot="no-more">--</div>
+								<div slot="spinner">Cargando...</div>
+								<div slot="no-results">Se llegó al final de los resultados</div>
+							</infinite-loading>
 						</v-expansion-panels>
 					</v-card-text>
 				</v-card>
@@ -108,6 +121,8 @@
 </template>
 
 <script>
+// npm install vue-infinite-loading -S
+import InfiniteLoading from 'vue-infinite-loading';
 import Customer from '@/components/Customer'
 import axios from 'axios'
 export default{
@@ -116,7 +131,7 @@ export default{
 	head:{
         title: 'Control de Servicios'
 	},
-	components:{Customer},
+	components:{Customer,InfiniteLoading},
 
 	data(){
 		return{
@@ -126,11 +141,13 @@ export default{
 			status:'',
 			statuses:[],
 			payed_status:'',
-			payed_statuses:[]
+			payed_statuses:[],
+			page:0
 		}
 	},
 
 	created(){
+		this.loadData();
 		this.loadFilters();
 	},
 
@@ -140,8 +157,39 @@ export default{
 			this.$refs.customer_form.addCustomer();
 		},
 
-		Refresh(){
+		changeView(val){
 
+		},
+
+		async loadData(){
+			await this.$axios.post(`/api/services-control?page=${this.page}`, {search:this.search, invoice:this.invoice, status:this.status, payed_status:this.payed_status})
+			.then(res => {
+				this.services = res.data.data;
+			})
+			.catch(error => {
+
+			})   
+		},
+
+		async infinteHandler($state){
+			this.page++;
+			let url = `${process.env.api}/api/services-control?page=${this.page}`
+
+			await this.$axios.post(url, {search:this.search, invoice:this.invoice, status:this.status, payed_status:this.payed_status})
+			.then(res => {
+				let services = response.data.data;
+
+				if(services.length){
+					this.services = this.services.concat(services);
+					$state.loaded()
+				}
+				else{
+					$state.complete();
+				}
+			})
+			.catch(error => {
+
+			})
 		},
 
 		loadFilters(){
