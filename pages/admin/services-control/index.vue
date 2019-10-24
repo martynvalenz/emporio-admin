@@ -116,7 +116,7 @@
 			</v-flex>
 		</v-layout>
 		<Customer :customer_dialog="1" ref="customer_form"></Customer>
-		<Services :customer_dialog="1" ref="services_form"></Services>
+		<Services :service_dialog="1" ref="services_form"></Services>
 	</div>
 </template>
 
@@ -240,7 +240,7 @@ export default {
 		},
 
 		addService(){
-
+			this.$refs.customer_form.addCustomer();
 		},
 
 		changeView(val){

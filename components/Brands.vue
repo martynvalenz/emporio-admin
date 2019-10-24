@@ -30,7 +30,7 @@
 								</v-autocomplete>
 							</v-flex>
 							<v-flex xs6 sm6 md6 lg3 xl3>
-								<v-text-field class="text-right" outlined color="light-blue darken-2" prepend-icon="search" v-model="search_brands" @change="Load" label="Buscar marcas..." type="text" clearable></v-text-field>
+								<v-text-field class="text-right" outlined color="light-blue darken-2" prepend-icon="search" v-model="search_brands" @change="Reload" @click:clear="clearSearch" label="Buscar marcas..." type="text" clearable></v-text-field>
 							</v-flex>
 							<v-flex xs6 sm6 md6 lg3 xl3 class="text-right">
 								<v-btn icon class="ma-2 white--text" @click="Reload">
@@ -80,6 +80,14 @@
 													<v-icon color="grey">list</v-icon>
 													<v-icon color="warning" @click="edit(index)">edit</v-icon>
 													<v-icon color="red" @click="deleteBrand(index)">delete</v-icon>
+												</td>
+											</tr>
+											<tr>
+												<td style="width:100%" colspan="8">
+													<infinite-loading class="text-center" spinner="spiral" @infinite="infiniteScroll" ref="infiniteLoading">
+														<div slot="no-more">Ya no hay más registros</div>
+														<div slot="no-results">Se llegó al final de los resultados</div>
+													</infinite-loading>
 												</td>
 											</tr>
 										</tbody>
@@ -188,6 +196,7 @@ export default {
             brands_loading: false,
 			customer_id: '',
 			search_brands:'',
+			page:1,
 			//Known brands
 			search:false,
 			search_brand:'',
@@ -217,6 +226,12 @@ export default {
 		}
 	},
 
+	computed: {
+		url(){
+			return `${process.env.api}/api/customer/brands?page=${this.page}`
+		}
+	},
+
     methods:
     {
         //Contacts
@@ -226,14 +241,15 @@ export default {
 			this.search_brands = '';
 			this.search_items = [];
 			this.customer_id = customer_id;
-			this.LoadBrands(customer_id);
+			this.$refs.infiniteLoading.stateChanger.reset();
+			this.Load(customer_id);
 			console.clear();
         },
 
-        async LoadBrands(customer_id)
+        async Load(customer_id)
         {
             this.brands_loading = true;
-            await this.$axios.post('/api/customer/brands', {id:customer_id, search:this.search_brands})
+            await this.$axios.post(this.url, {id:customer_id, search:this.search_brands})
 			.then(res =>
 			{
 				this.brands = res.data.data;
@@ -246,13 +262,41 @@ export default {
 			});
 		},
 
-		Load(){
-			this.LoadBrands(this.customer);
+		infiniteScroll($state){
+			setTimeout(() => {
+				this.page++
+				this.$axios.post(this.url, {id:customer_id, search:this.search_brands})
+				.then( res => {
+
+					let brands = res.data.data;
+
+					if(brands.length > 0){
+						this.brands = this.brands.concat(brands);
+						$state.loaded()
+					}
+					else{
+						$state.complete()
+					}
+				})
+				.catch(error => {
+
+				})
+			}, 500);
+		},
+
+		clearSearch(){
+			this.search_brands = '';
+			this.brands = {};
+			this.page = 1;
+			this.$refs.infiniteLoading.stateChanger.reset();
+			this.Load(this.customer);
 		},
 
 		Reload(){
-			this.search_brands = '';
-			this.LoadBrands(this.customer);
+			this.brands = {};
+			this.page = 1;
+			this.$refs.infiniteLoading.stateChanger.reset();
+			this.Load(this.customer);
 		},
 		
 		async brandSelect(val){
