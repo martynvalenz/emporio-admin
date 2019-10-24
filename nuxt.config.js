@@ -40,7 +40,11 @@ export default {
   ** Plugins to load before mounting the App
   */
   plugins: [
-    './plugins/mixins/user.js'
+    './plugins/mixins/user.js',
+    {
+      src: '~/plugins/infiniteloading',
+      ssr: false
+    }
   ],
   /*
   ** Nuxt.js dev-modules

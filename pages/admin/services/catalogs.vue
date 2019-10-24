@@ -8,12 +8,12 @@
 						<v-btn color="primary" class="mx-1">Agregar Servicio<v-icon right>add</v-icon></v-btn>
 						<v-btn color="success" class="mx-1" to="/admin/services/comissions" router exact>Ver comisiones<v-icon right>money</v-icon></v-btn>
 						<v-spacer></v-spacer>
-						<v-btn icon @click="Load"><v-icon>sync</v-icon></v-btn>
+						<v-btn icon @click="Reload"><v-icon>sync</v-icon></v-btn>
 					</v-card-title>
                     <v-card-title>
 						<v-layout>
 							<v-flex xs12 sm12 md4>
-								<v-text-field  outlined color="light-blue darken-2" prepend-icon="search" v-model="search_table" @change="Load" @click:clear="Reload()" label="Buscar" type="text" clearable></v-text-field>
+								<v-text-field  outlined color="light-blue darken-2" prepend-icon="search" v-model="search_table" @change="Reload" @click:clear="clearSearch" label="Buscar" type="text" clearable></v-text-field>
 							</v-flex>
 						</v-layout>
 					</v-card-title>
@@ -51,11 +51,16 @@
 										<v-icon color="success" v-else>check</v-icon>
 									</td>
 								</tr>
+								<tr>
+									<td style="width:100%" colspan="8">
+										<infinite-loading class="text-center" spinner="spiral" @infinite="infiniteScroll" ref="infiniteLoading">
+											<div slot="no-more">Ya no hay más registros</div>
+											<div slot="no-results">Se llegó al final de los resultados</div>
+										</infinite-loading>
+									</td>
+								</tr>
 							</tbody>
 						</v-simple-table>
-						<!-- <v-data-table :headers="headers"  sort-by="customer" class="elevation-4">
-
-						</v-data-table> -->
 					</v-card-text>
 				</v-card>
 			</v-flex>
@@ -76,30 +81,68 @@ export default {
             //Data
             services:[],
             loading_table:false,
-            search_table:''
+			search_table:'',
+			page:1
         }
     },
+	
+	computed: {
+		url(){
+			return `${process.env.api}/api/catalogs?page=${this.page}`
+		}
+	},
 
-    created(){
+	created(){
         this.Load();
-    },
+	},
 
     methods:{
         async Load(){
-            this.loading_table = true;
-            await this.$axios.post('/api/catalogs/', {search:this.search_table})
-            .then(res => {
-                this.services = res.data;
-                this.loading_table = false;
-            })
-            .catch(error => {
-                this.loading_table = false;
-                console.log(error)
-            })
+			this.loading_table = true;
+			await this.$axios.post(this.url, {search:this.search_table})
+			.then(res => {
+				this.services = res.data.data;
+				this.loading_table = false;
+			})
+			.catch(error => {
+				this.loading_table = false;
+			})
+		},
+
+		infiniteScroll($state){
+			setTimeout(() => {
+				this.page++
+				this.$axios.post(this.url, {search:this.search_table})
+				.then( res => {
+
+					let services = res.data.data;
+
+					if(services.length > 0){
+						this.services = this.services.concat(services);
+						$state.loaded()
+					}
+					else{
+						$state.complete()
+					}
+				})
+				.catch(error => {
+
+				})
+			}, 500);
+		},
+
+		clearSearch(){
+			this.search_table = '';
+			this.services = {};
+			this.page = 1;
+			this.$refs.infiniteLoading.stateChanger.reset();
+			this.Load();
 		},
 
 		Reload(){
-			this.search_table = '';
+			this.services = {};
+			this.page = 1;
+			this.$refs.infiniteLoading.stateChanger.reset();
 			this.Load();
 		},
 		

@@ -39,11 +39,11 @@
 									<td>{{ reg.service }}</td>
 									<td class="text-center">{{ reg.money_code }}</td>
 									<td class="text-right">{{ formatPrice(reg.price) }}</td>
-									<td class="text-right" v-if="reg.sales == 0"><b class="red--text">%</b>{{ formatPrice(reg.sales_comission) }}</td>
+									<td class="text-right" v-if="reg.sales == 0" :title="Math.round(reg.sales_comission_ammount)"><b class="red--text">%</b>{{ formatPrice(reg.sales_comission) }}</td>
 									<td class="text-right" v-else><b class="green--text">$</b>{{ formatPrice(reg.sales_comission) }}</td>
-									<td class="text-right" v-if="reg.management == 0"><b class="red--text">%</b>{{ formatPrice(reg.management_comission) }}</td>
+									<td class="text-right" v-if="reg.management == 0" :title="Math.round(reg.management_comission_ammount)"><b class="red--text">%</b>{{ formatPrice(reg.management_comission) }}</td>
 									<td class="text-right" v-else><b class="green--text">$</b>{{ formatPrice(reg.management_comission) }}</td>
-									<td class="text-right" v-if="reg.operations == 0"><b class="red--text">%</b>{{ formatPrice(reg.operations_comission) }}</td>
+									<td class="text-right" v-if="reg.operations == 0" :title="Math.round(reg.operations_comission_ammount)"><b class="red--text">%</b>{{ formatPrice(reg.operations_comission) }}</td>
 									<td class="text-right" v-else><b class="green--text">$</b>{{ formatPrice(reg.operations_comission) }}</td>
 									<td class="text-center">
 										<v-chip v-if="reg.status" color="green" dark>Activo</v-chip>
@@ -110,6 +110,10 @@ export default {
 		formatPrice(value) {
 			let val = (value/1).toFixed(2).replace('.,', '.')
 			return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+		},
+
+		showTotal(){
+			alert('total');
 		}
     } 
 }

@@ -8,12 +8,12 @@
 						<v-btn class="primary mx-1" @click="create">Agregar Cliente<v-icon right>person_add</v-icon></v-btn>
 						<v-btn color="info" class="mx-1" @click="createStrategy">Agregar Estrategia<v-icon right>add</v-icon></v-btn>
 						<v-spacer></v-spacer>
-						<v-btn icon @click="Refresh"><v-icon>sync</v-icon></v-btn>
+						<v-btn icon @click="Reload"><v-icon>sync</v-icon></v-btn>
 					</v-card-title>
 					<v-card-title>
 						<v-layout>
 							<v-flex xs12 sm12 md6>
-								<v-text-field  outlined color="light-blue darken-2" prepend-icon="search" v-model="search_customers" @change="Load" label="Buscar" type="text" clearable></v-text-field>
+								<v-text-field  outlined color="light-blue darken-2" prepend-icon="search" v-model="search_customers" @change="Reload" label="Buscar" type="text" clearable @click:clear="clearSearch"></v-text-field>
 							</v-flex>
 						</v-layout>
 					</v-card-title>
@@ -55,11 +55,16 @@
 										<v-icon @click="statusModal(index)" v-else color="success">check</v-icon>
 									</td>
 								</tr>
+								<tr>
+									<td style="width:100%" colspan="8">
+										<infinite-loading class="text-center" spinner="spiral" @infinite="infiniteScroll" ref="infiniteLoading">
+											<div slot="no-more">Ya no hay más registros</div>
+											<div slot="no-results">Se llegó al final de los resultados</div>
+										</infinite-loading>
+									</td>
+								</tr>
 							</tbody>
 						</v-simple-table>
-						<!-- <v-data-table :headers="headers"  sort-by="customer" class="elevation-4">
-
-						</v-data-table> -->
 					</v-card-text>
 				</v-card>
 			</v-flex>
@@ -195,6 +200,7 @@ export default {
 			search_customers:'',
 			//Customers
 			customers:[],
+			page:1,
 			loading_table:false,
 			customer_selected: '',
 			customer_dialog: false,
@@ -228,12 +234,14 @@ export default {
 		}
 	},
 
-	created(){
-		this.Load();
+	computed: {
+		url(){
+			return `${process.env.api}/api/customers?page=${this.page}`
+		}
 	},
 
-	computed: {
-		
+	created(){
+		this.Load();
 	},
 
 	watch: {
@@ -252,20 +260,50 @@ export default {
 	methods:{
 		async Load(){
 			this.loading_table = true;
-			await this.$axios.post('/api/customers', {search:this.search_customers})
+			await this.$axios.post(this.url, {search:this.search_customers})
 			.then(res => {
 				this.customers = res.data.data;
 				this.loading_table = false;
 			})
-			.catch(error =>{
-				console.log(error);
+			.catch(error => {
 				this.loading_table = false;
-			});
+			})
 		},
 
-		async Refresh(){
-			this.loading_table = true;
+		infiniteScroll($state){
+			setTimeout(() => {
+				this.page++
+				this.$axios.post(this.url, {search:this.search_customers})
+				.then( res => {
+
+					let customers = res.data.data;
+
+					if(customers.length > 0){
+						this.customers = this.customers.concat(customers);
+						$state.loaded()
+					}
+					else{
+						$state.complete()
+					}
+				})
+				.catch(error => {
+
+				})
+			}, 500);
+		},
+
+		clearSearch(){
 			this.search_customers = '';
+			this.customers = {};
+			this.page = 1;
+			this.$refs.infiniteLoading.stateChanger.reset();
+			this.Load();
+		},
+
+		Reload(){
+			this.customers = {};
+			this.page = 1;
+			this.$refs.infiniteLoading.stateChanger.reset();
 			this.Load();
 		},
 

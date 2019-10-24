@@ -12,24 +12,24 @@
 						<v-btn-toggle mandatory v-model="user.service_control">
 							<v-btn :value="0" @click="changeView(0)"><v-icon>list</v-icon></v-btn>
 							<v-btn :value="1" @click="changeView(1)"><v-icon>calendar_view_day</v-icon></v-btn>
-							<v-btn :value="2" @click="changeView(2)"><v-icon>view_model</v-icon></v-btn>
+							<v-btn :value="2" @click="changeView(2)"><v-icon>view_module</v-icon></v-btn>
 						</v-btn-toggle>
-						<v-btn icon @click="loadData"><v-icon>sync</v-icon></v-btn>
+						<v-btn class="ml-2" icon @click="Reload"><v-icon>sync</v-icon></v-btn>
 					</v-card-title>
 					<v-card-title>
-						<v-container>
+						<v-container fluid>
 							<v-row>
 								<v-col cols="12" sm="6" md="3" lg="2">
-									<v-select v-model="status" :items="statuses"  item-value="id" item-text="status" filled label="Trámite"></v-select>
+									<v-select @change="Reload" v-model="status" :items="statuses" item-value="id" item-text="status" filled label="Trámite"></v-select>
 								</v-col>
 								<v-col cols="12" sm="6" md="3" lg="2">
-									<v-select v-model="payed_status" :items="payed_statuses" item-value="id" item-text="status" filled label="Cobranza"></v-select>
+									<v-select @change="Reload" v-model="payed_status" :items="payed_statuses" item-value="id" item-text="status" filled label="Cobranza"></v-select>
 								</v-col>
 								<v-col cols="12" sm="12" md="3" lg="5">
-									<v-text-field filled label="Buscar servicio..." clearable></v-text-field>
+									<v-text-field v-model="search_table" @change="Reload" filled label="Buscar servicio..." clearable @click:clear="clearSearch"></v-text-field>
 								</v-col>
 								<v-col cols="12" sm="12" md="3" lg="3">
-									<v-text-field filled label="Buscar factura/recibo..." clearable></v-text-field>
+									<v-text-field v-model="search_invoice" @change="Reload" filled label="Buscar factura/recibo..." clearable @click:clear="clearSearch"></v-text-field>
 								</v-col>
 							</v-row>
 						</v-container>
@@ -106,9 +106,8 @@
 									tester
 								</v-expansion-panel-content>
 							</v-expansion-panel>
-							<infinite-loading>
-								<div slot="no-more">--</div>
-								<div slot="spinner">Cargando...</div>
+							<infinite-loading class="text-center" spinner="spiral" @infinite="infiniteScroll" ref="infiniteLoading">
+								<div slot="no-more">Ya no hay más registros</div>
 								<div slot="no-results">Se llegó al final de los resultados</div>
 							</infinite-loading>
 						</v-expansion-panels>
@@ -117,81 +116,49 @@
 			</v-flex>
 		</v-layout>
 		<Customer :customer_dialog="1" ref="customer_form"></Customer>
+		<Services :customer_dialog="1" ref="services_form"></Services>
 	</div>
 </template>
 
 <script>
-// npm install vue-infinite-loading -S
-import InfiniteLoading from 'vue-infinite-loading';
 import Customer from '@/components/Customer'
+import Services from '@/components/Services'
 import axios from 'axios'
-export default{
+export default {
 	layout: 'admin',
 	middleware: 'auth',
 	head:{
         title: 'Control de Servicios'
 	},
-	components:{Customer,InfiniteLoading},
+	components:{Customer, Services},
 
 	data(){
 		return{
 			//Data
 			services:[],
 			services_loading:false,
-			status:'',
+			search_table:'',
+			search_invoice:'',
+			status:'todo',
 			statuses:[],
-			payed_status:'',
+			payed_status:'todo',
 			payed_statuses:[],
-			page:0
+			page:1
+		}
+	},
+
+	computed: {
+		url(){
+			return `${process.env.api}/api/services-control?page=${this.page}`
 		}
 	},
 
 	created(){
-		this.loadData();
 		this.loadFilters();
+		this.Load();
 	},
 
 	methods:{
-
-		addCustomer(){
-			this.$refs.customer_form.addCustomer();
-		},
-
-		changeView(val){
-
-		},
-
-		async loadData(){
-			await this.$axios.post(`/api/services-control?page=${this.page}`, {search:this.search, invoice:this.invoice, status:this.status, payed_status:this.payed_status})
-			.then(res => {
-				this.services = res.data.data;
-			})
-			.catch(error => {
-
-			})   
-		},
-
-		async infinteHandler($state){
-			this.page++;
-			let url = `${process.env.api}/api/services-control?page=${this.page}`
-
-			await this.$axios.post(url, {search:this.search, invoice:this.invoice, status:this.status, payed_status:this.payed_status})
-			.then(res => {
-				let services = response.data.data;
-
-				if(services.length){
-					this.services = this.services.concat(services);
-					$state.loaded()
-				}
-				else{
-					$state.complete();
-				}
-			})
-			.catch(error => {
-
-			})
-		},
-
 		loadFilters(){
 			this.payed_statuses = [
 				{id:'todo', status:'Todo'},
@@ -209,7 +176,78 @@ export default{
 				{id:4, status:'Repetido'}
 			];
 			this.payed_status = 'todo';
-		}
+		},
+
+		async Load(){
+			this.services_loading = true;
+			await this.$axios.post(this.url, {search:this.search_table, invoice:this.search_invoice, status:this.status, payed_status:this.payed_status})
+			.then(res => {
+				this.services = res.data.data;
+				this.services_loading = false;
+			})
+			.catch(error => {
+				this.services_loading = false;
+			})
+		},
+
+		infiniteScroll($state){
+			setTimeout(() => {
+				this.page++
+				this.$axios.post(this.url, {search:this.search_table, invoice:this.search_invoice, status:this.status, payed_status:this.payed_status})
+				.then( res => {
+
+					let services = res.data.data;
+
+					if(services.length > 0){
+						this.services = this.services.concat(services);
+						$state.loaded()
+					}
+					else{
+						$state.complete()
+					}
+				})
+				.catch(error => {
+
+				})
+			}, 500);
+		},
+
+		clearSearch(){
+			this.search_table = '';
+			this.search_invoice = '';
+			this.status = '';
+			this.payed_status = '';
+			this.services = {};
+			this.page = 1;
+			this.$refs.infiniteLoading.stateChanger.reset();
+			this.Load();
+		},
+
+		Reload(){
+			this.services = {};
+			this.page = 1;
+			this.$refs.infiniteLoading.stateChanger.reset();
+			this.Load();
+		},
+		
+		formatPrice(value) {
+			let val = (value/1).toFixed(2).replace('.,', '.')
+			return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+		},
+
+		addCustomer(){
+			this.$refs.customer_form.addCustomer();
+		},
+
+		addService(){
+
+		},
+
+		changeView(val){
+
+		},
+
+		
 	}
 }
 </script>	
