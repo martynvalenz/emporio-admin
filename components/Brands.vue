@@ -83,7 +83,7 @@
 												</td>
 											</tr>
 											<tr>
-												<td style="width:100%" colspan="8">
+												<td style="width:100%" colspan="9">
 													<infinite-loading class="text-center" spinner="spiral" @infinite="infiniteScroll" ref="infiniteLoading">
 														<div slot="no-more">Ya no hay más registros</div>
 														<div slot="no-results">Se llegó al final de los resultados</div>
@@ -241,7 +241,7 @@ export default {
 			this.search_brands = '';
 			this.search_items = [];
 			this.customer_id = customer_id;
-			this.$refs.infiniteLoading.stateChanger.reset();
+			// this.$refs.infiniteLoading.stateChanger.reset();
 			this.Load(customer_id);
 			console.clear();
         },

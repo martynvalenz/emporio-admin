@@ -1,6 +1,6 @@
 <template>
     <div>
-        <v-dialog v-model="service_dialog" max-width="750" height="auto" style="overflow: auto;">
+        <v-dialog v-model="service_dialog" fullscreen transition="dialog-bottom-transition" scrollable>
 			<v-form @submit.prevent="Save">
 				<v-card>
 					<v-card-title class="primary white--text">
@@ -9,29 +9,45 @@
 						<v-btn icon @click="service_dialog = false"><v-icon>close</v-icon></v-btn>
 					</v-card-title>
 					<v-card-text>
-						<v-container>
+						<v-container fluid>
 							<v-row>
-								<v-col cols="12" sm="12" md="7" lg="8">
-									<v-autocomplete v-model="search_customer" :items="search_customer_items" outlined :loading="customerLoading" :search-input.sync="sync_customer" hide-no-data hide-selected item-text="brand" item-value="id" placeholder="Agregar marcas existentes..." prepend-icon="copyright" return-object clearable :error-messages="errors.customer_id"></v-autocomplete>
+								<v-col cols="12" sm="12" md="7" lg="6">
+									<v-autocomplete v-model="customer" :items="customers" outlined :loading="customerLoading" :search-input.sync="sync_customer" hide-no-data hide-selected item-text="customer" item-value="id" placeholder="Buscar cliente..." return-object clearable :error-messages="errors.customer_id" label="Cliente"></v-autocomplete>
 								</v-col>
-                                <v-col cols="12" sm="12" md="5" lg="4">
-									
-								</v-col>
+                                <v-spacer></v-spacer>
+                                <v-col cols="12" sm="12" md="4" lg="2">
+                                    <v-menu v-model="date_menu" :close-on-content-click="false" :nudge-right="40" transition="scale-transition" offset-y full-width min-width="290px">
+                                        <template v-slot:activator="{ on }">
+                                            <v-text-field v-model="date" label="Fecha" append-icon="event" outlined readonly v-on="on"></v-text-field>
+                                        </template>
+                                        <v-date-picker v-model="date" locale="es" color="light-blue darken-3" @input="date_menu = false"></v-date-picker>
+                                    </v-menu>
+                                </v-col>
 							</v-row>
+                            <v-row>
+                                <v-col cols="12" sm="12" md="8" lg="8">
+                                    <v-select v-model="brand_id" outlined :items="brands" item-value="id" item-text="brand" label="Marca o aviso comercial" :error-messages="errors.brand_id"></v-select>
+                                </v-col>
+                                <v-col cols="12" sm="12" md="2" lg="2">
+                                    <v-select v-model="class_id" outlined :items="classes" item-value="id" item-text="class" label="Clase" :error-messages="errors.brand_id"></v-select>
+                                </v-col>
+                            </v-row>
 							<v-row>
-								<v-col cols="12" sm="12" md="5">
-									<v-select v-model="strategy_id" @change="changeStrategy" outlined item-value="id" item-text="strategy" :items="strategies" label="Seleccionar estrategia" :error-messages="errors.strategy_id"></v-select>
-								</v-col>
-								<v-col cols="12" sm="12" md="7" v-if="strategy_id == 1">
-									<v-autocomplete v-model="referred" :items="referrals" outlined :loading="referralLoading" :search-input.sync="search" hide-no-data hide-selected item-text="customer" item-value="id" placeholder="Referido por..." prepend-icon="person" return-object clearable label="Seleccionar cliente..." :error-messages="errors.referred_by"></v-autocomplete>
-								</v-col>
+								<v-col cols="12" sm="12" md="8" lg="8">
+                                    <v-autocomplete v-model="service" :items="services" outlined :loading="serviceLoading" :search-input.sync="sync_service" hide-no-data hide-selected item-text="service" item-value="id" placeholder="Buscar servicio..." return-object clearable :error-messages="errors.service_id" label="Servicio"></v-autocomplete>
+                                </v-col>
+							</v-row>
+                            <v-divider></v-divider>
+                            <v-row>
+								<v-col cols="12" sm="12" md="12" lg="12">
+                                    <v-textarea v-model="comments" label="Comentarios (opcional)" outlined></v-textarea>
+                                </v-col>
 							</v-row>
 						</v-container>
 					</v-card-text>
-					<v-card-actions>
+					<v-card-actions style="background-color:rgba(0,0,0,0.1); color: white; position:absolute; bottom: 0; width:100%;">
 						<v-spacer></v-spacer>
 						<v-btn text @click="service_dialog = false">Cerrar</v-btn>
-						<v-btn class="primary" type="submit" :loading="loading">Guardar <v-icon right>save</v-icon></v-btn>
 					</v-card-actions>
 				</v-card>
 			</v-form>
@@ -61,23 +77,28 @@ export default {
         return{
             service_dialog:false,
             errors:{},
-            //Referrals
-			referrals:[],
-            referred: null,
-            referred_by:'',
-			search: null,
-			referralLoading: false,
-            descriptionLimit: 60,
             //Customer
-            search_customer:'',
-            search_customer_item:'',
+            customers:[],
+            customer:'',
             customerLoading:false,
             sync_customer:'',
             customer_id:'',
-            customer:'',
-            strategies:[],
-            strategy_id:'',
-			loading: false,
+            //Service
+            services:[],
+            service:'',
+            serviceLoading:false,
+            sync_service:'',
+            service_id:'',
+            //Data
+            brand_id:'',
+            brands:[],
+            classes:[],
+            class_id:'',
+            comments:'',
+
+            loading: false,
+            date: new Date().toISOString().substr(0, 10),
+            date_menu:false,
 			//snackbar
             snackbar: false,
             snackColor: '',
@@ -87,24 +108,35 @@ export default {
     },
 
     watch: {
-		search(val){
+		sync_customer(val){
 			if(val){
-				val && val !== this.referred && this.customerSelect(val)
+				val && val !== this.customer && this.customerSelect(val)
 			}
 			else{
-				this.referred_by = '';
-				this.referrals = '';
-				this.referred = null;
+				this.customers = [];
+				this.customer_id = '';
+				this.customer = null;
+			}
+        },
+        
+        sync_service(val){
+			if(val){
+				val && val !== this.service && this.serviceSelect(val)
+			}
+			else{
+				this.services = [];
+				this.service_id = '';
+				this.service = null;
 			}
 		}
 	},
 
     methods:{
-        addCustomer()
+        addService()
         {
             this.service_dialog = true;
-            this.getStrategies();
-            this.clearForm();
+            this.getClasses();
+            // this.clearForm();
         },
 
         changeStrategy(){
@@ -115,28 +147,50 @@ export default {
 			}
         },
         
-        async getStrategies(){
-			await this.$axios.get('/api/getStrategies')
-			.then(res => {
-				this.strategies = res.data;
-			})
-			.catch(error =>{
-				console.log(error);
-			});
-        },
-        
         customerSelect(val){
-			this.referralLoading = true;
-			this.$axios.get(`/api/customers/list/${val}`)
+			this.customerLoading = true;
+			this.$axios.post('/api/service/customers', {search:val})
 			.then(res => {
-				this.referrals = res.data;
-				this.referred_by = this.referred.id;
-				this.referralLoading = false;
+				this.customers = res.data.data;
+                this.customer_id = this.customer.id;
+                this.getBrands();
+				this.customerLoading = false;
 			})
 			.catch(error => {
 				console.log(error);
-				this.referralLoading = false;
+				this.customerLoading = false;
 			})
+        },
+
+        serviceSelect(val){
+			this.serviceLoading = true;
+			this.$axios.post('/api/services/list', {search:val})
+			.then(res => {
+				this.services = res.data;
+				this.service_by = this.service.id;
+                this.serviceLoading = false;
+			})
+			.catch(error => {
+				console.log(error);
+				this.serviceLoading = false;
+			})
+        },
+
+        async getBrands(){
+            await this.$axios.post('/api/service/customer-brands', {customer_id:this.customer_id})
+            .thend(res => {
+                this.brands = res.data;
+            })
+            .catch(error => {
+                this.errors = error.response.data.errors;
+            })
+        },
+
+        async getClasses(){
+            await this.$axios.get('/api/classes-list')
+            .then(res => {
+                this.classes = res.data;
+            })
         },
         
         clearForm(){

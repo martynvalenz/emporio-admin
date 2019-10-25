@@ -5,7 +5,7 @@
 			<v-flex xs12>
 				<v-card :loading="services_loading">
 					<v-card-title>
-						<v-btn color="primary" class="mx-1">Servicio<v-icon right>add</v-icon></v-btn>
+						<v-btn color="primary" class="mx-1" @click="addService">Servicio<v-icon right>add</v-icon></v-btn>
 						<v-btn color="info" class="mx-1" @click="addCustomer">Cliente<v-icon right>person_add</v-icon></v-btn>
 						<v-btn color="secondary" class="mx-1">Factura/Recibo<v-icon right>add</v-icon></v-btn>
 						<v-spacer></v-spacer>
@@ -240,7 +240,7 @@ export default {
 		},
 
 		addService(){
-			this.$refs.customer_form.addCustomer();
+			this.$refs.services_form.addService();
 		},
 
 		changeView(val){
