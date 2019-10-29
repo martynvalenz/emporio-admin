@@ -199,6 +199,7 @@ export default {
             discount:0,
             discount_percent:0,
             final_price:0,
+            const_price:0,
             fee:0,
             total_advance:0,
             status_category_id:'',
@@ -345,6 +346,7 @@ export default {
                     this.conversion = conversion;
                     this.cost = res.data.service.cost * conversion;
                     this.final_price = (res.data.service.price * conversion) - discount;
+                    this.const_price = (res.data.service.price * conversion) - discount;
                     this.fee = (res.data.service.price * conversion) - (res.data.service.cost * conversion) - discount;
 
                     //Comissions
@@ -403,15 +405,14 @@ export default {
             }
         },
 
-        calculateComission(){
-            
+        editPercentDiscount(){
+            this.errors = {};
+            this.discount = this.final_price * (this.discount_percent / 100);
+            this.final_price = this.final_price - this.discount;
         },
 
-        ClearService(){
-            this.services = [];
-            this.service_id = '';
-            this.service = null;
-            this.binnacle_id = '';
+        editDiscount(){
+
         },
 
         updateCalcData(){
@@ -419,8 +420,7 @@ export default {
             const conversion = this.conversion;
 
             //Discounts
-            const discount = (this.final_price * conversion) * ((this.discount_percent * conversion) / 100);
-            this.discount = discount;
+            const discount = this.discount;
 
             //Totals
             this.conversion = conversion;
@@ -477,6 +477,17 @@ export default {
                     this.operations_comission = Math.round((this.operations_comission / this.fee) * 100);
                 }
             }
+        },
+
+        calculateComission(){
+            
+        },
+
+        ClearService(){
+            this.services = [];
+            this.service_id = '';
+            this.service = null;
+            this.binnacle_id = '';
         },
 
         async getClasses(){
