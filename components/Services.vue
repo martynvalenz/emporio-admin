@@ -35,7 +35,7 @@
                             </v-row>
 							<v-row>
 								<v-col cols="12" sm="12" md="10" lg="10">
-                                    <v-autocomplete v-model="service" :items="services" outlined :loading="serviceLoading" :search-input.sync="sync_service" hide-no-data hide-selected item-text="service" item-value="id" placeholder="Buscar servicio..." return-object :error-messages="errors.service_id" label="Servicio" append-outer-icon="refresh" append-icon="clear" @click:append="ClearService" @click:append-outer="getServiceData"></v-autocomplete>
+                                    <v-autocomplete v-model="service" :items="services" outlined :loading="serviceLoading" :search-input.sync="sync_service" hide-no-data hide-selected item-text="service" item-value="id" placeholder="Buscar servicio..." return-object :error-messages="errors.service_id" label="Servicio" append-outer-icon="refresh" append-icon="clear" @click:append="ClearData" @click:append-outer="getServiceData"></v-autocomplete>
                                 </v-col>
 							</v-row>
                             <v-row>
@@ -50,13 +50,13 @@
                             <br>
                             <v-row>
                                 <v-col cols="12" sm="6" md="3" lg="2">
-                                    <v-select v-model="coin_id" :items="coins" item-value="id" item-text="coin" outlined label="Moneda" @change="changeCoin"></v-select>
+                                    <v-select v-model="coin_id" :items="coins" item-value="id" item-text="coin" outlined label="Moneda" @change="changeCoin" readonly></v-select>
                                 </v-col>
                                 <v-col cols="12" sm="6" md="3" lg="2">
-                                    <v-text-field v-model="cost" type="number" step="any" outlined label="Costo Emporio" append-icon="refresh"></v-text-field>
+                                    <v-text-field v-model="cost" type="number" step="any" outlined label="Costo Emporio" append-icon="refresh" :error-messages="errors.cost" v-on:keyup="editCost" @click:append="editCost"></v-text-field>
                                 </v-col>
                                 <v-col cols="12" sm="6" md="3" lg="2">
-                                    <v-text-field v-model="price_desc" outlined label="Precio" readonly></v-text-field>
+                                    <v-text-field v-model="price_desc" outlined label="Precio base" readonly></v-text-field>
                                 </v-col>
                                 <v-col cols="12" sm="6" md="3" lg="2">
                                     <v-text-field v-model="fee" readonly type="number" step="any" outlined label="Honorarios"></v-text-field>
@@ -65,23 +65,23 @@
                             <v-row>
                                 <v-col cols="12" sm="6" md="3" lg="2">
                                     <v-text-field v-if="coin_id == 1" v-model="conversion" readonly outlined label="Tipo de Cambio"></v-text-field>
-                                    <v-text-field v-else v-model="conversion" type="number" step="any" outlined label="Tipo de Cambio" append-icon="refresh"></v-text-field>
+                                    <v-text-field v-else v-model="conversion" type="number" step="any" outlined label="Tipo de Cambio" append-icon="done_outline" :error-messages="errors.conversion" @click:append="editConversion"></v-text-field>
                                 </v-col>
                                 <v-col cols="12" sm="6" md="3" lg="2">
-                                    <v-text-field v-model="discount" type="number" step="any" outlined label="Descuento" append-icon="refresh"></v-text-field>
+                                    <v-text-field v-model="discount" type="number" step="any" outlined label="Descuento" append-icon="refresh" @click:append="editDiscount" :error-messages="errors.discount" v-on:keyup="editDiscount"></v-text-field>
                                 </v-col>
                                 <v-col cols="12" sm="6" md="3" lg="2">
-                                    <v-text-field v-model="discount_percent" type="number" step="any" outlined label="%Descuento" append-icon="refresh"></v-text-field>
+                                    <v-text-field v-model="discount_percent" type="number" step="any" outlined label="%Descuento" append-icon="refresh" @click:append="editPercentDiscount" :error-messages="errors.discount_percent" v-on:keyup="editPercentDiscount"></v-text-field>
                                 </v-col>
                                 <v-col cols="12" sm="6" md="3" lg="2">
-                                    <v-text-field v-model="final_price" type="number" step="any" outlined label="Precio sin IVA*" append-icon="refresh"></v-text-field>
+                                    <v-text-field v-model="final_price" type="number" step="any" outlined label="Precio sin IVA*" append-icon="refresh" :error-messages="errors.final_price" @click:append="FinalCut" v-on:keyup="FinalCut"></v-text-field>
                                 </v-col>
                             </v-row>
                             <hr>
                             <br>
                             <v-row>
                                 <v-col cols="12" xs="12">
-                                    <h3>Comisiones</h3>
+                                    <h3>Comisiones <v-btn icon @click="calculateComission"><v-icon>refresh</v-icon></v-btn></h3>
                                 </v-col>
                             </v-row>
                             <v-row>
@@ -101,7 +101,7 @@
                                                 <td class="text-right">% {{sales_comission}}</td>
                                                 <td class="text-right">$ {{sales_value}}</td>
                                                 <td>
-                                                    <v-checkbox @change="calculateComission" color="primary" v-model="sales_check"></v-checkbox>
+                                                    <v-checkbox @change="salesCheck" color="primary" v-model="sales_check"></v-checkbox>
                                                 </td>
                                             </tr>
                                             <tr>
@@ -109,7 +109,7 @@
                                                 <td class="text-right">% {{operations_comission}}</td>
                                                 <td class="text-right">$ {{operations_value}}</td>
                                                 <td>
-                                                    <v-checkbox @change="calculateComission" color="primary" v-model="operations_check"></v-checkbox>
+                                                    <v-checkbox color="primary" v-model="operations_check"></v-checkbox>
                                                 </td>
                                             </tr>
                                             <tr>
@@ -117,7 +117,7 @@
                                                 <td class="text-right">% {{management_comission}}</td>
                                                 <td class="text-right">$ {{management_value}}</td>
                                                 <td>
-                                                    <v-checkbox color="primary" v-model="management_check" @change="calculateComission"></v-checkbox>
+                                                    <v-checkbox color="primary" v-model="management_check" @change="managementCheck"></v-checkbox>
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -194,7 +194,7 @@ export default {
             price_desc:'',
             final_price:0,
             conversion:0,
-            conversion:0,
+            conversion_base:0,
             service_discount:0,
             discount:0,
             discount_percent:0,
@@ -220,6 +220,8 @@ export default {
             binnacle_id:'',
             responsables:[],
             responsable_id:'',
+            process:[],
+
 
             loading: false,
             date: new Date().toISOString().substr(0, 10),
@@ -264,7 +266,8 @@ export default {
             this.getBinnacles();
             this.getResponsables();
             this.getCoins();
-            // this.ClearService();
+            this.ClearService();
+            this.ClearData();
         },
         
         customerSelect(val){
@@ -298,6 +301,7 @@ export default {
 				this.services = res.data;
                 this.service_id = this.service.id;
                 this.getServiceData();
+                this.getProcess();
                 this.serviceLoading = false;
                 this.errors = {};
 			})
@@ -320,6 +324,15 @@ export default {
         changeCoin(){
             let coin = this.coins[this.coin_id -1];
             this.conversion = coin.conversion;
+            this.editConversion();
+        },
+
+        managementCheck(){
+
+        },
+
+        salesCheck(){
+
         },
 
         async getServiceData(){
@@ -344,10 +357,11 @@ export default {
 
                     //Totals
                     this.conversion = conversion;
+                    this.conversion_base = conversion;
                     this.cost = res.data.service.cost * conversion;
                     this.final_price = (res.data.service.price * conversion) - discount;
                     this.const_price = (res.data.service.price * conversion) - discount;
-                    this.fee = (res.data.service.price * conversion) - (res.data.service.cost * conversion) - discount;
+                    this.fee = Math.round(((res.data.service.price * conversion) - (res.data.service.cost * conversion) - discount) * 100)/100;
 
                     //Comissions
                     this.sales = res.data.service.sales;
@@ -366,7 +380,7 @@ export default {
                     }
 
                     if(res.data.service.sales_comission){
-                        if(res.data.service.management_check == true){
+                        if(this.management_check == true){
                             if(res.data.service.sales == 0){
                                 this.sales_comission = res.data.service.sales_comission - res.data.service.management_comission;
                                 this.sales_value = Math.round((res.data.service.sales_comission * this.fee) / 100);
@@ -406,71 +420,135 @@ export default {
         },
 
         editPercentDiscount(){
-            this.errors = {};
-            this.discount = this.final_price * (this.discount_percent / 100);
-            this.final_price = this.final_price - this.discount;
+            if(this.discount_percent){
+                if(this.discount_percent >= 100){
+                    this.errors.discount_percent = 'El porcentaje no puede ser mayor a 100%';
+                }
+                else{
+                    this.errors = {};
+                    const value = this.const_price - (this.const_price * (this.discount_percent / 100)) - this.cost;
+                    if(value < 0){
+                        this.errors.discount_percent = 'El descuento no puede ser mayor a los honorarios del servicio';
+                    }
+                    else{
+                        this.discount = this.const_price * (this.discount_percent / 100);
+                        this.final_price = this.const_price - this.discount;
+                        this.fee = this.final_price - this.cost;
+                        this.calculateComission();
+                    }
+                }
+            }
         },
 
         editDiscount(){
-
-        },
-
-        updateCalcData(){
-            this.errors = {};
-            const conversion = this.conversion;
-
-            //Discounts
-            const discount = this.discount;
-
-            //Totals
-            this.conversion = conversion;
-            this.cost = res.data.service.cost * conversion;
-            this.final_price = (res.data.service.price * conversion) - discount;
-            this.fee = (res.data.service.price * conversion) - (res.data.service.cost * conversion) - discount;
-
-            //Comissions
-            this.sales = res.data.service.sales;
-            this.management = res.data.service.management;
-            this.operations = res.data.service.operations;
-
-            if(res.data.service.management_comission){
-                if(res.data.service.management == 0){
-                    this.management_comission = res.data.service.management_comission;
-                    this.management_value = Math.round((res.data.service.management_comission * this.fee) / 100);
+            if(this.discount){
+                this.errors = {};
+                const value = this.const_price - this.cost - this.discount;
+                if(value < 0){
+                    this.errors.discount = 'El descuento no puede ser mayor a los honorarios del servicio.';
                 }
                 else{
-                    this.management_value = res.data.service.management_comission * conversion;
+                    this.final_price = (this.const_price * 1) - (this.discount * 1);
+                    this.fee = this.final_price - this.cost;
+                    this.discount_percent = Math.round(((this.discount / this.const_price) * 100) *100)/100;
+                    this.calculateComission();
+                }
+            }
+        },
+
+        editCost(){
+            if(this.cost){
+                const value = this.const_price - this.cost - this.discount;
+                if(value < 0){
+                    this.errors.cost = 'El costo no puede ser mayor al precio del servicio.';
+                }
+                else{
+                    this.errors = {};
+                    this.fee = value;
+                    this.calculateComission();
+                }
+            }
+        },
+
+        FinalCut(){
+            if(this.final_price){
+                const value = this.final_price - this.cost - this.discount;
+                if(value < 0){
+                    this.errors.final_price = 'El precio no puede ser menor a la suma de costos y descuentos';
+                }
+                else{
+                    this.errors = {};
+                    this.fee = value;
+                    this.const_price = (this.final_price * 1) + (this.discount * 1);
+                    this.discount_percent = Math.round(((this.discount / this.const_price) * 100) *100)/100;
+                    this.calculateComission();
+                }
+            }
+        },
+
+        async editConversion(){
+            if(this.conversion){
+                if(this.conversion > 0){
+                    await this.$axios.put(`/api/change-money/${this.coin_id}`, {conversion:this.conversion})
+                    .then(res => {
+                        this.errors = {};
+                        this.final_price = Math.round((this.final_price * this.conversion / this.conversion_base) * 100) / 100;
+                        this.cost = Math.round((this.cost * this.conversion / this.conversion_base) * 100) / 100;
+                        this.discount = Math.round((this.discount * this.conversion / this.conversion_base) * 100) / 100;
+                        this.const_price = Math.round((this.const_price * this.conversion / this.conversion_base) * 100) / 100;
+                        this.fee = Math.round((this.fee * this.conversion / this.conversion_base) * 100) / 100;
+                        this.calculateComission();
+                        this.conversion_base = res.data.conversion;
+                        this.snackbar = true;
+                        this.snackColor = 'success';
+                        this.snackText = 'Se actualizó el tipo de cambio para ' + res.data.code;
+                        this.timeout = 2000;
+
+                    })
+                    .catch(error => {
+                        this.errors = error.response.data.errors;
+                    })
+                }
+            }
+        },
+
+        calculateComission(){
+            if(this.management_comission){
+                if(this.management == 0){
+                    this.management_value = Math.round((this.management_comission * this.fee) / 100);
+                }
+                else{
                     this.management_comission = Math.round((this.management_value / this.fee) * 100);
                 }
             }
 
-            if(res.data.service.sales_comission){
-                if(res.data.service.management_check == true){
-                    if(res.data.service.sales == 0){
-                        this.sales_comission = res.data.service.sales_comission - res.data.service.management_comission;
-                        this.sales_value = Math.round((res.data.service.sales_comission * this.fee) / 100);
+            if(this.sales_comission){
+                if(this.management_check == true){
+                    if(this.sales == 0){
+                        this.sales_comission = this.sales_comission - this.management_comission;
+                        this.sales_value = Math.round((this.sales_comission * this.fee) / 100);
                     }
                     else{
-                        this.sales_value = res.data.service.sales_comission * conversion - this.management_value;
+                        this.sales_value = this.sales_comission * conversion - this.management_value;
                         this.sales_comission = Math.round((this.sales_value / this.fee) * 100);
                     }
                 }
                 else if(this.management_check == false){
-                    if(res.data.service.sales == 0){
-                        this.sales_comission = res.data.service.sales_comission;
-                        this.sales_value = Math.round((res.data.service.sales_comission * this.fee) / 100);
+                    if(this.sales == 0){
+                        this.sales_comission = this.sales_comission;
+                        this.sales_value = Math.round((this.sales_comission * this.fee) / 100);
                     }
                     else{
-                        this.sales_value = res.data.service.sales_comission * conversion;
+                        this.sales_value = this.sales_comission * conversion;
                         this.sales_comission = Math.round((this.sales_value / this.fee) * 100);
                     }
                 }
             }
 
-            if(res.data.service.operations_comission){
-                if(res.data.service.operations == 0){
-                    this.operations_comission = res.data.service.operations_comission;
-                    this.operations_value = Math.round((res.data.service.operations_comission * this.fee) / 100);
+            if(this.operations_comission){
+                if(this.operations == 0){
+                    this.operations_comission = this.operations_comission;
+                    this.operations_value = Math.round((this.operations_comission * this.fee) / 100);
                 }
                 else{
                     this.operations_value = this.operations_comission * conversion;
@@ -479,15 +557,56 @@ export default {
             }
         },
 
-        calculateComission(){
-            
+        async getProcess(){
+            if(this.service_id){
+
+            }
+        },
+
+        ClearData(){
+            this.services = {};
+            this.service_id = '';
+            this.service = null;
+            this.coin_id = '';
+            this.cost = 0;
+            this.price = 0;
+            this.price_desc = 0;
+            this.fee = 0;
+            this.conversion = 0;
+            this.conversion_base = 0;
+            this.discount = 0;
+            this.discount_percent = 0;
+            this.final_price = 0;
+            this.const_price = 0;
+            this.const_price = 0;
+            this.sales_comission = 0;
+            this.sales_value = 0;
+            this.management_comission = 0;
+            this.management_value = 0;
+            this.operations_comission = 0;
+            this.operations_value = 0;
+            this.binnacle_id = '';
+            this.process = [];
         },
 
         ClearService(){
-            this.services = [];
-            this.service_id = '';
-            this.service = null;
+            this.customers = {};
+            this.customer = null;
+            this.customer_id = '';
+            this.date = new Date().toISOString().substr(0, 10);
+            this.brands = {};
+            this.newBrand = false;
+            this.brand_id = '';
+            this.class_id = '';
             this.binnacle_id = '';
+            this.responsable_id = '';
+            this.comments = '';
+            this.management_check = false;
+            this.sales_check = true;
+            this.operations_check = true;
+            this.total_advance = 0;
+            this.status_category_id = '';
+            this.status_subcategory_id = '';
         },
 
         async getClasses(){
