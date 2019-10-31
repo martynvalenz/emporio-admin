@@ -81,7 +81,7 @@
                             <br>
                             <v-row>
                                 <v-col cols="12" xs="12">
-                                    <h3>Comisiones <v-btn icon @click="calculateComission"><v-icon>refresh</v-icon></v-btn></h3>
+                                    <h3>Comisiones <v-btn icon @click="updateComissions"><v-icon>refresh</v-icon></v-btn></h3>
                                 </v-col>
                             </v-row>
                             <v-row>
@@ -101,7 +101,7 @@
                                                 <td class="text-right">% {{sales_comission}}</td>
                                                 <td class="text-right">$ {{sales_value}}</td>
                                                 <td>
-                                                    <v-checkbox @change="salesCheck" color="primary" v-model="sales_check"></v-checkbox>
+                                                    <v-checkbox @change="updateComissions" color="primary" v-model="sales_check"></v-checkbox>
                                                 </td>
                                             </tr>
                                             <tr>
@@ -117,7 +117,7 @@
                                                 <td class="text-right">% {{management_comission}}</td>
                                                 <td class="text-right">$ {{management_value}}</td>
                                                 <td>
-                                                    <v-checkbox color="primary" v-model="management_check" @change="managementCheck"></v-checkbox>
+                                                    <v-checkbox color="primary" v-model="management_check" @change="updateComissions"></v-checkbox>
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -130,9 +130,10 @@
                                 </v-col>
 							</v-row>
                             <v-row>
-								<v-btn large color="success">Guardar<v-icon right>save</v-icon></v-btn>
+								<v-btn large color="success" :loading="loading" @click="StoreService">Guardar<v-icon right>save</v-icon></v-btn>
 							</v-row>
                             <br>
+                            
 						</v-container>
 					</v-card-text>
 					<v-card-actions style="background-color:rgba(0,0,0,0.1); color: white; position:absolute; bottom: 0; width:100%;">
@@ -204,10 +205,12 @@ export default {
             total_advance:0,
             status_category_id:'',
             status_subcategory_id:'',
+            //Comisions
             sales_comission:0,
             management_comission:0,
             operations_comission:0,
             sales:0,
+            sales_force:0,
             management:0,
             operations:0,
             sales_value:0,
@@ -216,6 +219,7 @@ export default {
             sales_check:true,
             management_check:false,
             operations_check:true,
+            //
             binnacles:[],
             binnacle_id:'',
             responsables:[],
@@ -301,7 +305,7 @@ export default {
 				this.services = res.data;
                 this.service_id = this.service.id;
                 this.getServiceData();
-                this.getProcess();
+                this.getRequirements();
                 this.serviceLoading = false;
                 this.errors = {};
 			})
@@ -327,12 +331,60 @@ export default {
             this.editConversion();
         },
 
-        managementCheck(){
+        updateComissions(){
+            if(this.management_comission){
+                if(this.management == 0){
+                    this.management_comission = this.management_comission;
+                    this.management_value = Math.round((this.management_comission * this.fee) / 100);
+                }
+                else{
+                    this.management_value = this.management_comission * conversion;
+                    this.management_comission = Math.round((this.management_value / this.fee) * 100);
+                }
+            }
 
-        },
+            if(this.sales_comission){
+                if(this.sales == 0){
+                    this.sales_comission = this.sales_force;
+                    this.sales_value = Math.round((this.sales_comission * this.fee) / 100);
+                }
+                else{
+                    this.sales_value = this.sales_force * conversion;
+                    this.sales_comission = Math.round((this.sales_value / this.fee) * 100);
+                }
+            }
 
-        salesCheck(){
+            if(this.operations_comission){
+                if(this.operations == 0){
+                    this.operations_comission = this.operations_comission;
+                    this.operations_value = Math.round((this.operations_comission * this.fee) / 100);
+                }
+                else{
+                    this.operations_value = this.operations_comission * conversion;
+                    this.operations_comission = Math.round((this.operations_comission / this.fee) * 100);
+                }
+            }
 
+            if(this.management_check){
+                if(this.sales_value == 0){
+                    
+                }
+                else if(this.management_value == 0)
+                {
+                    
+                }
+                else if(this.sales_value < this.management_value){
+                    this.sales_value = 0;
+                    this.sales_comission = 0;
+                }
+                else{
+                    this.sales_value = this.sales_value - this.management_value;
+                    this.sales_comission = Math.round(((this.sales_value / this.fee) * 100) * 100) / 100;
+                }
+            }
+            else{
+                
+            }
         },
 
         async getServiceData(){
@@ -380,25 +432,15 @@ export default {
                     }
 
                     if(res.data.service.sales_comission){
-                        if(this.management_check == true){
-                            if(res.data.service.sales == 0){
-                                this.sales_comission = res.data.service.sales_comission - res.data.service.management_comission;
-                                this.sales_value = Math.round((res.data.service.sales_comission * this.fee) / 100);
-                            }
-                            else{
-                                this.sales_value = res.data.service.sales_comission * conversion - this.management_value;
-                                this.sales_comission = Math.round((this.sales_value / this.fee) * 100);
-                            }
+                        if(res.data.service.sales == 0){
+                            this.sales_comission = res.data.service.sales_comission;
+                            this.sales_force = res.data.service.sales_comission;
+                            this.sales_value = Math.round((res.data.service.sales_comission * this.fee) / 100);
                         }
-                        else if(this.management_check == false){
-                            if(res.data.service.sales == 0){
-                                this.sales_comission = res.data.service.sales_comission;
-                                this.sales_value = Math.round((res.data.service.sales_comission * this.fee) / 100);
-                            }
-                            else{
-                                this.sales_value = res.data.service.sales_comission * conversion;
-                                this.sales_comission = Math.round((this.sales_value / this.fee) * 100);
-                            }
+                        else{
+                            this.sales_value = res.data.service.sales_comission * conversion;
+                            this.sales_force = res.data.service.sales_comission * conversion;
+                            this.sales_comission = Math.round((this.sales_value / this.fee) * 100);
                         }
                     }
 
@@ -410,6 +452,24 @@ export default {
                         else{
                             this.operations_value = this.operations_comission * conversion;
                             this.operations_comission = Math.round((this.operations_comission / this.fee) * 100);
+                        }
+                    }
+
+                    if(this.management_check){
+                        if(this.sales_value == 0){
+                            
+                        }
+                        else if(this.management_value == 0)
+                        {
+                            
+                        }
+                        else if(this.sales_value < this.management_value){
+                            this.sales_value = 0;
+                            this.sales_comission = 0;
+                        }
+                        else{
+                            this.sales_value = this.sales_value - this.management_value;
+                            this.sales_comission = Math.round(((this.sales_value / this.fee) * 100) * 100) / 100;
                         }
                     }
                 })
@@ -557,12 +617,6 @@ export default {
             }
         },
 
-        async getProcess(){
-            if(this.service_id){
-
-            }
-        },
-
         ClearData(){
             this.services = {};
             this.service_id = '';
@@ -587,6 +641,7 @@ export default {
             this.operations_value = 0;
             this.binnacle_id = '';
             this.process = [];
+            this.total_advance = 0;
         },
 
         ClearService(){
@@ -635,6 +690,16 @@ export default {
             .then(res => {
                 this.responsables = res.data;
             })
+        },
+
+        async getRequirements(){
+            if(this.service_id){
+                await this.$axios.get(`/api/services/requirements/${this.service_id}`)
+                .then(res => {
+                    this.process = res.data;
+                    this.total_advance = this.process.length;
+                })
+            }
         },
         
         clearForm(){
@@ -697,6 +762,23 @@ export default {
                 this.snackText = 'Seleccione una clase';
                 this.timeout = 1800;
             }
+        },
+
+        async StoreService(){
+            await this.$axios.post('/api/store/service', {
+                comment:this.comment, date:this.date, cost:this.cost, price:this.price, money_exchange:this.conversion, discount:this.discount, discount_percent:this.discount_percent, final_price:this.final_price, advance_total:this.total_advance, money_exchange_id:this.coin_id, process:this.process
+            })
+            .then(res => {
+                console.log(res.data)
+                this.errors = {};
+                this.snackbar = true;
+                this.snackColor = 'success';
+                this.snackText = 'Se creó el servicio: ' + res.data;
+                this.timeout = 2000;
+            })
+            .catch(error => {
+
+            })
         }
     }
 }
