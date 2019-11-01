@@ -765,19 +765,21 @@ export default {
         },
 
         async StoreService(){
-            await this.$axios.post('/api/store/service', {
-                comment:this.comment, date:this.date, cost:this.cost, price:this.price, money_exchange:this.conversion, discount:this.discount, discount_percent:this.discount_percent, final_price:this.final_price, advance_total:this.total_advance, money_exchange_id:this.coin_id, process:this.process
-            })
+            await this.$axios.post('/api/store/service', {comment:this.comment, date:this.date, cost:this.cost, price:this.price, money_exchange:this.conversion, discount:this.discount, discount_percent:this.discount_percent, final_price:this.final_price, advance_total:this.total_advance, money_exchange_id:this.coin_id, customer_id:this.customer_id, brand_id:this.brand_id, services_catalog_id:this.service_id, responsable_id:this.responsable_id, binnacle_id:this.binnacle_id, class_id:this.class_id, sales:this.sales, management:this.management, operations:this.operations, sales_comission:this.sales_comission, operations_comission:this.operations_comission, management_comission:this.management_comission, process:this.process})
             .then(res => {
-                console.log(res.data)
                 this.errors = {};
                 this.snackbar = true;
                 this.snackColor = 'success';
                 this.snackText = 'Se creó el servicio: ' + res.data;
                 this.timeout = 2000;
+                this.$emit('addService', res.data);
             })
             .catch(error => {
-
+                this.errors = error.response.data.errors;
+                this.snackbar = true;
+                this.snackColor = 'error';
+                this.snackText = 'No se pudo generar el servicio, revise los errores en el formulario.';
+                this.timeout = 2000;
             })
         }
     }

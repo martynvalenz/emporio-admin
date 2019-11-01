@@ -116,7 +116,7 @@
 			</v-flex>
 		</v-layout>
 		<Customer :customer_dialog="1" ref="customer_form"></Customer>
-		<Services :service_dialog="1" ref="services_form"></Services>
+		<Services :service_dialog="1" ref="services_form" v-on:addService="newService($event)"></Services>
 	</div>
 </template>
 
@@ -247,7 +247,9 @@ export default {
 
 		},
 
-		
+		newService(data){
+			this.services.unshift(data);
+		}
 	}
 }
 </script>	
