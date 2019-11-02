@@ -19,7 +19,7 @@
 								<v-col cols="12" sm="12" md="5">
 									<v-select v-model="strategy_id" @change="changeStrategy" outlined item-value="id" item-text="strategy" :items="strategies" label="Seleccionar estrategia" :error-messages="errors.strategy_id"></v-select>
 								</v-col>
-								<v-col cols="12" sm="12" md="7" v-if="strategy_id == 1">
+								<v-col cols="12" sm="12" md="7" v-if="strategy_id == 2">
 									<v-autocomplete v-model="referred" :items="referrals" outlined :loading="referralLoading" :search-input.sync="search" hide-no-data hide-selected item-text="customer" item-value="id" placeholder="Referido por..." prepend-icon="person" return-object clearable label="Seleccionar cliente..." :error-messages="errors.referred_by"></v-autocomplete>
 								</v-col>
 							</v-row>

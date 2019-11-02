@@ -16,9 +16,9 @@
 								<tr>
 									<th class="text-left">Clave</th>
 									<th class="text-left">Bitácora</th>
-									<th class="text-left">Servicios</th>
-									<th class="text-left">Estatus</th>
-									<th class="text-left">Agregada</th>
+									<th class="text-center">Servicios</th>
+									<th class="text-center">Estatus</th>
+									<th class="text-center">Agregada</th>
 									<th class="text-right"></th>
 								</tr>
 							</thead>
@@ -26,12 +26,12 @@
 								<tr v-for="(reg, index) in binnacles" :key="index">
 									<td>{{ reg.key }}</td>
 									<td>{{ reg.binnacle }}</td>
-									<td>{{ reg.services }}</td>
-									<td>
+									<td class="text-center">{{ reg.services }}</td>
+									<td class="text-center">
 										<v-chip v-if="reg.status" color="green" dark>Activo</v-chip>
 										<v-chip v-else dark color="red">Inactivo</v-chip>
 									</td>
-									<td>{{ reg.created_at }}</td>
+									<td class="text-center">{{ reg.created_at }}</td>
 									<td class="text-right">
 										<v-icon color="warning">edit</v-icon>
 										<v-icon color="error" v-if="reg.status = 1">block</v-icon>

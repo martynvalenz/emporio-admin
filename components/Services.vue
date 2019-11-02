@@ -20,7 +20,7 @@
                                         <template v-slot:activator="{ on }">
                                             <v-text-field v-model="date" label="Fecha" append-icon="event" outlined readonly v-on="on" @click:append="date_menu = true"></v-text-field>
                                         </template>
-                                        <v-date-picker v-model="date" locale="es" color="light-blue darken-3" @input="date_menu = false"></v-date-picker>
+                                        <v-date-picker v-model="date" locale="es" color="light-blue darken-3" @input="date_menu = false" :error-messages="errors.date"></v-date-picker>
                                     </v-menu>
                                 </v-col>
 							</v-row>
@@ -35,7 +35,7 @@
                             </v-row>
 							<v-row>
 								<v-col cols="12" sm="12" md="10" lg="10">
-                                    <v-autocomplete v-model="service" :items="services" outlined :loading="serviceLoading" :search-input.sync="sync_service" hide-no-data hide-selected item-text="service" item-value="id" placeholder="Buscar servicio..." return-object :error-messages="errors.service_id" label="Servicio" append-outer-icon="refresh" append-icon="clear" @click:append="ClearData" @click:append-outer="getServiceData"></v-autocomplete>
+                                    <v-autocomplete v-model="service" :items="services" outlined :loading="serviceLoading" :search-input.sync="sync_service" hide-no-data hide-selected item-text="service" item-value="id" placeholder="Buscar servicio..." return-object :error-messages="errors.services_catalog_id" label="Servicio" append-outer-icon="refresh" append-icon="clear" @click:append="ClearData" @click:append-outer="getServiceData"></v-autocomplete>
                                 </v-col>
 							</v-row>
                             <v-row>
@@ -58,9 +58,9 @@
                                 <v-col cols="12" sm="6" md="3" lg="2">
                                     <v-text-field v-model="price_desc" outlined label="Precio base" readonly></v-text-field>
                                 </v-col>
-                                <v-col cols="12" sm="6" md="3" lg="2">
+                                <!-- <v-col cols="12" sm="6" md="3" lg="2">
                                     <v-text-field v-model="fee" readonly type="number" step="any" outlined label="Honorarios"></v-text-field>
-                                </v-col>
+                                </v-col> -->
                             </v-row>
                             <v-row>
                                 <v-col cols="12" sm="6" md="3" lg="2">
@@ -126,14 +126,32 @@
                             </v-row>
                             <v-row>
 								<v-col cols="12" sm="12" md="12" lg="12">
-                                    <v-textarea v-model="comments" label="Comentarios (opcional)" outlined solo></v-textarea>
+                                    <v-textarea v-model="comment" label="Comentarios (opcional)" outlined solo></v-textarea>
                                 </v-col>
 							</v-row>
                             <v-row>
 								<v-btn large color="success" :loading="loading" @click="StoreService">Guardar<v-icon right>save</v-icon></v-btn>
 							</v-row>
                             <br>
-                            
+                            <v-simple-table class="elevation-4">
+                                <thead>
+                                    <tr>
+                                        <th class="text-left">Fecha</th>
+                                        <th class="text-left">Servicio</th>
+                                        <th class="text-left">Precio</th>
+                                        <th class="text-left">Resp</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="(service, index) in services_collection" :key="index">
+                                        <td title="service.id">{{ service.date }}</td>
+                                        <td>{{ service.code }} - {{ service.brand }}<span v-if="service.class"> {{service.class}}</span></td>
+                                        <td>{{ service.final_price }}</td>
+                                        <td>{{ service.resp }}</td>
+                                    </tr>
+                                </tbody>
+                            </v-simple-table>
+                            <div class="pt-4"></div>
 						</v-container>
 					</v-card-text>
 					<v-card-actions style="background-color:rgba(0,0,0,0.1); color: white; position:absolute; bottom: 0; width:100%;">
@@ -187,7 +205,7 @@ export default {
             newBrand:false,
             classes:[],
             class_id:'',
-            comments:'',
+            comment:'',
             coins:'',
             coin_id:'',
             cost:0,
@@ -226,10 +244,10 @@ export default {
             responsable_id:'',
             process:[],
 
-
             loading: false,
             date: new Date().toISOString().substr(0, 10),
             date_menu:false,
+            services_collection:[],
 			//snackbar
             snackbar: false,
             snackColor: '',
@@ -655,10 +673,20 @@ export default {
             this.class_id = '';
             this.binnacle_id = '';
             this.responsable_id = '';
-            this.comments = '';
+            this.comment = '';
             this.management_check = false;
             this.sales_check = true;
             this.operations_check = true;
+            this.total_advance = 0;
+            this.status_category_id = '';
+            this.status_subcategory_id = '';
+        },
+
+        ReloadService(){
+            this.ClearData();
+            this.class_id = '';
+            this.binnacle_id = '';
+            this.comment = '';
             this.total_advance = 0;
             this.status_category_id = '';
             this.status_subcategory_id = '';
@@ -765,14 +793,18 @@ export default {
         },
 
         async StoreService(){
-            await this.$axios.post('/api/store/service', {comment:this.comment, date:this.date, cost:this.cost, price:this.price, money_exchange:this.conversion, discount:this.discount, discount_percent:this.discount_percent, final_price:this.final_price, advance_total:this.total_advance, money_exchange_id:this.coin_id, customer_id:this.customer_id, brand_id:this.brand_id, services_catalog_id:this.service_id, responsable_id:this.responsable_id, binnacle_id:this.binnacle_id, class_id:this.class_id, sales:this.sales, management:this.management, operations:this.operations, sales_comission:this.sales_comission, operations_comission:this.operations_comission, management_comission:this.management_comission, process:this.process})
+            this.loading = true;
+            await this.$axios.post('/api/store/service', {comment:this.comment, date:this.date, cost:this.cost, price:this.price, money_exchange:this.conversion, discount:this.discount, discount_percent:this.discount_percent, final_price:this.final_price, advance_total:this.total_advance, money_exchange_id:this.coin_id, customer_id:this.customer_id, brand_id:this.brand_id, services_catalog_id:this.service_id, responsable_id:this.responsable_id, binnacle_id:this.binnacle_id, class_id:this.class_id, sales:this.sales, management:this.management, operations:this.operations, sales_comission:this.sales_comission, operations_comission:this.operations_comission, management_comission:this.management_comission, process:this.process, sales_check:this.sales_check, operations_check:this.operations_check, management_check:this.management_check, sales_value:this.sales_value, operations_value:this.operations_value, management_value:this.management_value})
             .then(res => {
                 this.errors = {};
                 this.snackbar = true;
                 this.snackColor = 'success';
-                this.snackText = 'Se creó el servicio: ' + res.data;
+                this.snackText = 'Se creó el servicio exitosamente';
                 this.timeout = 2000;
                 this.$emit('addService', res.data);
+                this.services_collection.unshift(res.data)
+                this.ReloadService();
+                this.loading = false;
             })
             .catch(error => {
                 this.errors = error.response.data.errors;
@@ -780,6 +812,7 @@ export default {
                 this.snackColor = 'error';
                 this.snackText = 'No se pudo generar el servicio, revise los errores en el formulario.';
                 this.timeout = 2000;
+                this.loading = false;
             })
         }
     }

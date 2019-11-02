@@ -35,48 +35,73 @@
 						</v-container>
 					</v-card-title>
 					<v-card-text >
-						<!-- <v-simple-table class="elevation-1" >
+						<v-simple-table class="elevation-1" >
 							<thead>
 								<tr>
-									<th class="text-left">Fecha</th>
-									<th class="text-left">Servicio</th>
-									<th class="text-left">Cliente</th>
-									<th class="text-left">Factura</th>
-									<th class="text-left">Recibo</th>
-									<th class="text-left">Precio</th>
-									<th class="text-left">Saldo</th>
-									<th class="text-left">Resp</th>
-									<th class="text-left">Trámite</th>
-									<th class="text-right"></th>
+									<th class="text-left" style="width:12%">Fecha</th>
+									<th class="text-left" style="width:21%">Servicio</th>
+									<th class="text-left" style="width:15%">Cliente</th>
+									<th class="text-left" style="width:8%">Factura</th>
+									<th class="text-left" style="width:8%">Recibo</th>
+									<th class="text-left" style="width:10%">Precio</th>
+									<th class="text-left" style="width:7%">Resp</th>
+									<th class="text-left" style="width:7%">Cobranza</th>
+									<th class="text-left" style="width:7%">Trámite</th>
+									<th class="text-right" style="width:5%"></th>
 								</tr>
 							</thead>
 							<tbody>
 								<tr v-for="(service, index) in services" :key="index">
-									<td>{{ service.service }}</td>
-									<td v-if="service.referred_by">Ref: {{ service.referral }}</td>
-									<td v-else>{{ service.strategy }}</td>
-									<td>{{ service.balance }}</td>
-									<td>{{ service.initials }}</td>
+									<td title="service.id">{{ service.date }}</td>
+									<td>{{ service.code }} - {{ service.brand }}<span v-if="service.class"> ({{service.class}})</span></td>
+									<td>{{ service.customer }}</td>
+									<td></td>
+									<td></td>
+									<td>{{ service.final_price }}</td>
+									<td>{{ service.resp }}</td>
+									<td></td>
+									<td></td>
 									<td>
-										<v-chip v-if="service.status" color="green" dark>Activo</v-chip>
-										<v-chip v-else dark color="red">Inactivo</v-chip>
+										<v-menu offset-y class="text-center">
+											<template v-slot:activator="{on}">
+												<v-btn v-on="on">
+													<v-icon>menu</v-icon>
+												</v-btn>
+											</template>
+											<v-list>
+												<v-list-item>
+													<v-list-item-title>Editar</v-list-item-title>
+												</v-list-item>
+												<v-list-item>
+													<v-list-item-title>Detalles</v-list-item-title>
+												</v-list-item>
+												<v-list-item>
+													<v-list-item-title>Comentarios</v-list-item-title>
+												</v-list-item>
+												<v-list-item>
+													<v-list-item-title>Comisiones</v-list-item-title>
+												</v-list-item>
+												<v-list-item>
+													<v-list-item-title>Facturas</v-list-item-title>
+												</v-list-item>
+												<v-list-item>
+													<v-list-item-title>Cancelar</v-list-item-title>
+												</v-list-item>
+											</v-list>
+										</v-menu>
 									</td>
-									<td>{{ service.created_at }}</td>
-									<td class="text-right">
-										<v-icon color="grey">all_inbox</v-icon>
-										<v-icon color="grey">list</v-icon>
-										<v-icon color="grey" @click="openBrands(service.id)">copyright</v-icon>
-										<v-icon color="grey" @click="openContacts(service.id)">person</v-icon>
-										<v-icon v-if="service.folder" @click="openFolder(service.folder)" color="success">folder</v-icon>
-										<v-icon v-else @click="editFolder(index)" color="grey">folder</v-icon>
-										<v-icon icon @click="edit(index)" color="warning">edit</v-icon>
-										<v-icon @click="statusModal(index)" v-if="service.status" color="error">block</v-icon>
-										<v-icon @click="statusModal(index)" v-else color="success">check</v-icon>
+								</tr>
+								<tr>
+									<td style="width:100%" colspan="10">
+										<infinite-loading class="text-center" spinner="spiral" @infinite="infiniteScroll" ref="infiniteLoading">
+											<div slot="no-more">Ya no hay más registros</div>
+											<div slot="no-results">Se llegó al final de los resultados</div>
+										</infinite-loading>
 									</td>
 								</tr>
 							</tbody>
-						</v-simple-table> -->
-						<v-expansion-panels class="elevation-4">
+						</v-simple-table>
+						<!-- <v-expansion-panels class="elevation-4">
 							<v-expansion-panel>
 								<v-expansion-panel-header v-slot="{ open }">
 									<v-layout row wrap>
@@ -105,12 +130,13 @@
 								<v-expansion-panel-content>
 									tester
 								</v-expansion-panel-content>
-							</v-expansion-panel>
-							<infinite-loading class="text-center" spinner="spiral" @infinite="infiniteScroll" ref="infiniteLoading">
-								<div slot="no-more">Ya no hay más registros</div>
-								<div slot="no-results">Se llegó al final de los resultados</div>
-							</infinite-loading>
+							</v-expansion-panel> 
+							
 						</v-expansion-panels>
+						<infinite-loading class="text-center" spinner="spiral" @infinite="infiniteScroll" ref="infiniteLoading">
+							<div slot="no-more">Ya no hay más registros</div>
+							<div slot="no-results">Se llegó al final de los resultados</div>
+						</infinite-loading>-->
 					</v-card-text>
 				</v-card>
 			</v-flex>
