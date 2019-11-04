@@ -5,7 +5,7 @@
 			<v-flex xs12>
 				<v-card :loading="loading_table">
 					<v-card-title>
-						<v-btn color="primary" class="mx-1">Agregar Servicio<v-icon right>add</v-icon></v-btn>
+						<v-btn color="primary" class="mx-1" @click="addService">Agregar Servicio<v-icon right>add</v-icon></v-btn>
 						<v-btn color="success" class="mx-1" to="/admin/services/comissions" router exact>Ver comisiones<v-icon right>money</v-icon></v-btn>
 						<v-spacer></v-spacer>
 						<v-btn icon @click="Reload"><v-icon>sync</v-icon></v-btn>
@@ -65,17 +65,20 @@
 				</v-card>
 			</v-flex>
 		</v-layout>
+		<AddService :service_dialog="1" ref="services_form" v-on:addService="newService($event)"></AddService>
     </div>
 </template>
 
 <script>
 import axios from 'axios'
+import AddService from '@/components/AddService'
 export default {
     layout: 'admin',
 	middleware: 'auth',
 	head:{
         title: 'Catálogo de servicios'
 	},
+	components:{AddService},
     data(){
         return{
             //Data
@@ -149,6 +152,14 @@ export default {
 		formatPrice(value) {
 			let val = (value/1).toFixed(2).replace('.,', '.')
 			return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+		},
+
+		addService(){
+			this.$refs.services_form.addService();
+		},
+
+		newService(data){
+			this.services.unshift(data);
 		}
     } 
 }

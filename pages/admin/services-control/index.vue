@@ -9,11 +9,11 @@
 						<v-btn color="info" class="mx-1" @click="addCustomer">Cliente<v-icon right>person_add</v-icon></v-btn>
 						<v-btn color="secondary" class="mx-1">Factura/Recibo<v-icon right>add</v-icon></v-btn>
 						<v-spacer></v-spacer>
-						<v-btn-toggle mandatory v-model="user.service_control">
+						<!-- <v-btn-toggle mandatory v-model="user.service_control">
 							<v-btn :value="0" @click="changeView(0)"><v-icon>list</v-icon></v-btn>
 							<v-btn :value="1" @click="changeView(1)"><v-icon>calendar_view_day</v-icon></v-btn>
 							<v-btn :value="2" @click="changeView(2)"><v-icon>view_module</v-icon></v-btn>
-						</v-btn-toggle>
+						</v-btn-toggle> -->
 						<v-btn class="ml-2" icon @click="Reload"><v-icon>sync</v-icon></v-btn>
 					</v-card-title>
 					<v-card-title>
@@ -43,7 +43,7 @@
 									<th class="text-left" style="width:15%">Cliente</th>
 									<th class="text-left" style="width:8%">Factura</th>
 									<th class="text-left" style="width:8%">Recibo</th>
-									<th class="text-left" style="width:10%">Precio</th>
+									<th class="text-center" style="width:10%">Precio</th>
 									<th class="text-left" style="width:7%">Resp</th>
 									<th class="text-left" style="width:7%">Cobranza</th>
 									<th class="text-left" style="width:7%">Trámite</th>
@@ -57,7 +57,7 @@
 									<td>{{ service.customer }}</td>
 									<td></td>
 									<td></td>
-									<td>{{ service.final_price }}</td>
+									<td class="text-right">{{ formatPrice(service.final_price) }}</td>
 									<td>{{ service.resp }}</td>
 									<td></td>
 									<td></td>
@@ -143,6 +143,7 @@
 		</v-layout>
 		<Customer :customer_dialog="1" ref="customer_form"></Customer>
 		<Services :service_dialog="1" ref="services_form" v-on:addService="newService($event)"></Services>
+		<!-- <Bills :bills_dialog="1" ref="services_form" v-on:addService="newBill($event)"></Bills> -->
 	</div>
 </template>
 
@@ -267,6 +268,11 @@ export default {
 
 		addService(){
 			this.$refs.services_form.addService();
+		},
+
+		formatPrice(value) {
+			let val = (value/1).toFixed(2).replace('.,', '.')
+			return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
 		},
 
 		changeView(val){

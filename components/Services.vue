@@ -805,6 +805,7 @@ export default {
                 this.services_collection.unshift(res.data)
                 this.ReloadService();
                 this.loading = false;
+                console.clear();
             })
             .catch(error => {
                 this.errors = error.response.data.errors;
