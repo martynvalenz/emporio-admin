@@ -772,7 +772,8 @@ export default {
             title: 'Emporio Legal',
 			dark:false,
             expand: false,
-            user_image: ''
+            user_image: '',
+            avatar_img:''
 		}
     },
 
@@ -828,7 +829,7 @@ export default {
 </script>
 
 <style>
-    p, label, span, input, li, a{
+    p, label, span, input, li, a, ul, div{
         font-family: 'Lucida Sans Regular' !important;
     }
 

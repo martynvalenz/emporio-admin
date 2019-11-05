@@ -12,7 +12,7 @@ export default {
     },
     components:{Login},
     middleware: ['guest'],
-    layout: 'auth'
+    layout: 'default'
 }
 </script>
 
