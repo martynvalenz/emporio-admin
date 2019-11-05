@@ -242,14 +242,14 @@ export default {
 			this.search_items = [];
 			this.customer_id = customer_id;
 			// this.$refs.infiniteLoading.stateChanger.reset();
-			this.Load(customer_id);
+			this.Load();
 			console.clear();
         },
 
-        async Load(customer_id)
+        async Load()
         {
             this.brands_loading = true;
-            await this.$axios.post(this.url, {id:customer_id, search:this.search_brands})
+            await this.$axios.post(this.url, {id:this.customer_id, search:this.search_brands})
 			.then(res =>
 			{
 				this.brands = res.data.data;
@@ -289,14 +289,14 @@ export default {
 			this.brands = {};
 			this.page = 1;
 			this.$refs.infiniteLoading.stateChanger.reset();
-			this.Load(this.customer);
+			this.Load();
 		},
 
 		Reload(){
 			this.brands = {};
 			this.page = 1;
 			this.$refs.infiniteLoading.stateChanger.reset();
-			this.Load(this.customer);
+			this.Load();
 		},
 		
 		async brandSelect(val){
