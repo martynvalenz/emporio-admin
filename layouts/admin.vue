@@ -828,12 +828,12 @@ export default {
 </script>
 
 <style>
-    *{
-        font-family: 'Lucida Sans Regular';
+    p, label, span, input, li, a{
+        font-family: 'Lucida Sans Regular' !important;
     }
 
     h1, h2, h3, h4, h5, h6{
-        font-family: 'Lucida Sans Regular';
+        font-family: 'Lucida Sans Regular' !important;
     }
     
     .router-linker{
