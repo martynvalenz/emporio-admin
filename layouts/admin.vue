@@ -127,6 +127,14 @@
                             <v-icon>chrome_reader_mode</v-icon>
                         </v-list-item-action>
                     </v-list-item>
+                    <v-list-item router exact to="/admin/services/comissions">
+                        <v-list-item-content>
+                            <v-list-item-title>Comisiones</v-list-item-title>
+                        </v-list-item-content>
+                        <v-list-item-action>
+                            <v-icon>money</v-icon>
+                        </v-list-item-action>
+                    </v-list-item>
                     <v-list-item>
                         <v-list-item-content router exact>
                             <v-list-item-title>Descuentos</v-list-item-title>
