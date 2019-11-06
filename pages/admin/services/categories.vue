@@ -16,7 +16,7 @@
 								<tr>
 									<th class="text-left">Clave</th>
 									<th class="text-left">Categoría</th>
-									<th class="text-left">Servicios</th>
+									<th class="text-center">Servicios</th>
 									<th class="text-left">Estatus</th>
 									<th class="text-left">Agregada</th>
 									<th class="text-right"></th>
@@ -26,7 +26,7 @@
 								<tr v-for="(reg, index) in categories" :key="index">
 									<td>{{ reg.key }}</td>
 									<td>{{ reg.binnacle_status }}</td>
-									<td>{{ reg.services }}</td>
+									<td class="text-center">{{ reg.services }}</td>
 									<td>
 										<v-chip v-if="reg.status" color="green" dark>Activo</v-chip>
 										<v-chip v-else dark color="red">Inactivo</v-chip>

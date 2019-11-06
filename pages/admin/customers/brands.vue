@@ -1,19 +1,19 @@
 <template>
 	<div>
-		<h2>Clientes <small># {{formatNumeric(customers_count)}}</small></h2>
+		<h2>Marcas y nombres comerciales <small># {{formatNumeric(brands_count)}}</small></h2>
 		<v-layout class="pt-4">
 			<v-flex xs12>
 				<v-card :loading="loading_table">
 					<v-card-title>
-						<v-btn class="primary mx-1" @click="create">Agregar Cliente<v-icon right>person_add</v-icon></v-btn>
-						<v-btn color="info" class="mx-1" @click="createStrategy">Agregar Estrategia<v-icon right>add</v-icon></v-btn>
+						<!-- <v-btn class="primary mx-1" @click="create">Agregar Marca<v-icon right>person_add</v-icon></v-btn>
+						<v-btn color="info" class="mx-1" @click="createStrategy">Agregar Estrategia<v-icon right>add</v-icon></v-btn> -->
 						<v-spacer></v-spacer>
 						<v-btn icon @click="Reload"><v-icon>sync</v-icon></v-btn>
 					</v-card-title>
 					<v-card-title>
 						<v-layout>
 							<v-flex xs12 sm12 md6>
-								<v-text-field  outlined color="light-blue darken-2" prepend-icon="search" v-model="search_customers" v-on:keyup.enter="Reload" label="Buscar" type="text" clearable @click:clear="clearSearch"></v-text-field>
+								<v-text-field  outlined color="light-blue darken-2" prepend-icon="search" v-model="search_brands" v-on:keyup.enter="Reload" label="Buscar" type="text" clearable @click:clear="clearSearch"></v-text-field>
 							</v-flex>
 						</v-layout>
 					</v-card-title>
@@ -22,39 +22,40 @@
 						<v-simple-table class="elevation-1" fixed-header height="600px">
 							<thead>
 								<tr>
-									<th class="text-left" style="width:25%">Cliente</th>
-									<th class="text-left" style="width:15%">Estrategia</th>
-									<th class="text-left" style="width:10%">Saldo</th>
-									<th class="text-center" style="width:5%">Usuario</th>
-									<th class="text-left" style="width:10%">Estatus</th>
-									<th class="text-left" style="width:13%">Agregado</th>
-									<th class="text-right" style="width:22%"></th>
+									<th class="text-left" style="width:5%"></th>
+                                    <th class="text-left" style="width:25%">Marca</th>
+                                    <th class="text-left" style="width:20%">Cliente</th>
+                                    <th class="text-left" style="width:12%">Creado</th>
+                                    <th class="text-left" style="width:12%">Registro</th>
+                                    <th class="text-center" style="width:10%">Estatus</th>
+                                    <th class="text-right" style="width:16%"></th>
 								</tr>
 							</thead>
 							<tbody>
-								<tr v-for="(customer, index) in customers" :key="index">
-									<td>{{ customer.customer }}</td>
-									<td v-if="customer.referred_by">Ref: {{ customer.referral }}</td>
-									<td v-else>{{ customer.strategy }}</td>
-									<td>{{ customer.balance }}</td>
-									<td class="text-center">{{ customer.initials }}</td>
-									<td>
-										<v-chip v-if="customer.status" color="green" dark>Activo</v-chip>
-										<v-chip v-else dark color="red">Inactivo</v-chip>
-									</td>
-									<td>{{ customer.created_at }}</td>
-									<td class="text-right">
-										<v-icon color="grey">all_inbox</v-icon>
-										<v-icon color="grey">list</v-icon>
-										<v-icon color="grey" @click="openBrands(customer.id)">copyright</v-icon>
-										<v-icon color="grey" @click="openContacts(customer.id)">person</v-icon>
-										<v-icon v-if="customer.folder" @click="openFolder(customer.folder)" color="success">folder</v-icon>
-										<v-icon v-else @click="editFolder(index)" color="grey">folder</v-icon>
-										<v-icon icon @click="edit(index)" color="warning">edit</v-icon>
-										<v-icon @click="statusModal(index)" v-if="customer.status" color="error">block</v-icon>
-										<v-icon @click="statusModal(index)" v-else color="success">check</v-icon>
-									</td>
-								</tr>
+								<tr v-for="(brand, index) in brands" :key="index">
+                                    <td>
+                                        <v-avatar :size="$vuetify.breakpoint.smAndUp ? 42 : 42">
+                                            <v-img :src="brand.logo_url" ></v-img>
+                                        </v-avatar>
+                                    </td>
+                                    <td>{{ brand.brand }}</td>
+                                    <td>{{ brand.customer }}</td>
+                                    <td>{{ brand.created_at }}</td>
+                                    <td>{{ brand.registration_date }}</td>
+                                    <td>
+                                        <div v-if="brand.status == 0">
+                                            <v-chip color="red" dark>Inactivo</v-chip>
+                                        </div>
+                                        <div v-if="brand.status == 1">
+                                            <v-chip color="green" dark>Activo</v-chip>
+                                        </div>
+                                    </td>
+                                    <td class="text-right">
+                                        <v-icon color="grey">list</v-icon>
+                                        <v-icon color="warning" >edit</v-icon>
+                                        <v-icon color="red" >delete</v-icon>
+                                    </td>
+                                </tr>
 								<tr>
 									<td style="width:100%" colspan="8">
 										<infinite-loading class="text-center" spinner="spiral" @infinite="infiniteScroll" ref="infiniteLoading">
@@ -69,7 +70,7 @@
 				</v-card>
 			</v-flex>
 		</v-layout>
-		<v-dialog v-model="strategy_dialog" width="400">
+		<!-- <v-dialog v-model="strategy_dialog" width="400">
 			<v-form @submit.prevent="saveStrategy">
 				<v-card>
 					<v-alert v-model="error_alert" border="left" close-text="Close Alert" color="red" dark dismissible>
@@ -158,9 +159,9 @@
 					</v-card-actions>
 				</v-card>
 			</v-form>
-		</v-dialog>
-		<Contacts :customer="customer_id" ref="contacts_form"></Contacts>
-		<Brands :customer="customer_id" ref="brands_form"></Brands>
+		</v-dialog> -->
+		<!-- <Contacts :customer="customer_id" ref="contacts_form"></Contacts>
+		<Brands :customer="customer_id" ref="brands_form"></Brands> -->
 		<v-snackbar
             v-model="snackbar"
             :timeout="timeout"
@@ -181,8 +182,8 @@
 </template>
 
 <script>
-import Contacts from '@/components/Contacts'
-import Brands from '@/components/Brands'
+// import Contacts from '@/components/Contacts'
+// import Brands from '@/components/Brands'
 import axios from 'axios'
 import Vue from 'vue'
 export default {
@@ -191,16 +192,16 @@ export default {
 	head:{
         title: 'Clientes'
 	},
-	components:{Contacts, Brands},
+	// components:{Contacts, Brands},
 	data(){
 		return{
 			//Strategies
 			strategy_dialog: false,
 			strategy: '',
-			search_customers:'',
+			search_brands:'',
 			//Customers
-			customers_count:0,
-			customers:[],
+			brands_count:0,
+			brands:[],
 			page:1,
 			loading_table:false,
 			customer_selected: '',
@@ -237,12 +238,12 @@ export default {
 
 	computed: {
 		url(){
-			return `${process.env.api}/api/customers?page=${this.page}`
+			return `${process.env.api}/api/brands?page=${this.page}`
 		}
 	},
 
 	created(){
-		this.customersCount();
+		this.brandsCount();
 		this.Load();
 	},
 
@@ -260,18 +261,18 @@ export default {
 	},
 
 	methods:{
-		async customersCount(){
-			await this.$axios.get('/api/customers-count')
+		async brandsCount(){
+			await this.$axios.get('/api/brands-count')
 			.then(res => {
-				this.customers_count = res.data;
+				this.brands_count = res.data;
 			})
 		},
 
 		async Load(){
 			this.loading_table = true;
-			await this.$axios.post(this.url, {search:this.search_customers})
+			await this.$axios.post(this.url, {search:this.search_brands})
 			.then(res => {
-				this.customers = res.data.data;
+				this.brands = res.data.data;
 				this.loading_table = false;
 			})
 			.catch(error => {
@@ -282,13 +283,13 @@ export default {
 		infiniteScroll($state){
 			setTimeout(() => {
 				this.page++
-				this.$axios.post(this.url, {search:this.search_customers})
+				this.$axios.post(this.url, {search:this.search_brands})
 				.then( res => {
 
-					let customers = res.data.data;
+					let brands = res.data.data;
 
-					if(customers.length > 0){
-						this.customers = this.customers.concat(customers);
+					if(brands.length > 0){
+						this.brands = this.brands.concat(brands);
 						$state.loaded()
 					}
 					else{
@@ -302,15 +303,15 @@ export default {
 		},
 
 		clearSearch(){
-			this.search_customers = '';
-			this.customers = {};
+			this.search_brands = '';
+			this.brands = {};
 			this.page = 1;
 			this.$refs.infiniteLoading.stateChanger.reset();
 			this.Load();
 		},
 
 		Reload(){
-			this.customers = {};
+			this.brands = {};
 			this.page = 1;
 			this.$refs.infiniteLoading.stateChanger.reset();
 			this.Load();

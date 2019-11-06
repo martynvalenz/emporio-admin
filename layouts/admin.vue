@@ -89,39 +89,6 @@
                 <v-divider></v-divider>
                 <v-subheader>Servicios</v-subheader>
 
-                <v-list-group prepend-icon="people" no-action>
-                    <template v-slot:activator>
-                        <v-list-item-content>
-                            <v-list-item-title>Clientes</v-list-item-title>
-                        </v-list-item-content>
-                    </template>
-                    <v-list-item router exact to="/admin/customers/strategies">
-                        <v-list-item-content>
-                            <v-list-item-title>Estrategias</v-list-item-title>
-                        </v-list-item-content>
-                        <v-list-item-action>
-                            <v-icon>thumb_up</v-icon>
-                        </v-list-item-action>
-                    </v-list-item>
-                    <v-list-item router exact to="/admin/customers">
-                        <v-list-item-content>
-                            <v-list-item-title>Listado de Clientes</v-list-item-title>
-                        </v-list-item-content>
-                        <v-list-item-action>
-                            <v-icon>people_outline</v-icon>
-                        </v-list-item-action>
-                    </v-list-item>
-                </v-list-group>
-
-                <v-list-item router exact to="/admin/services-control">
-                    <v-list-item-action>
-                        <v-icon>business_center</v-icon>
-                    </v-list-item-action>
-                    <v-list-item-content>
-                        <v-list-item-title>Control de Servicios</v-list-item-title>
-                    </v-list-item-content>
-                </v-list-item>
-
                 <v-list-group prepend-icon="work" no-action>
                     <template v-slot:activator>
                         <v-list-item-content>
@@ -185,6 +152,47 @@
                         </v-list-item-action>
                     </v-list-item>
                 </v-list-group>
+
+                <v-list-group prepend-icon="people" no-action>
+                    <template v-slot:activator>
+                        <v-list-item-content>
+                            <v-list-item-title>Clientes</v-list-item-title>
+                        </v-list-item-content>
+                    </template>
+                    <v-list-item router exact to="/admin/customers/strategies">
+                        <v-list-item-content>
+                            <v-list-item-title>Estrategias</v-list-item-title>
+                        </v-list-item-content>
+                        <v-list-item-action>
+                            <v-icon>thumb_up</v-icon>
+                        </v-list-item-action>
+                    </v-list-item>
+                    <v-list-item router exact to="/admin/customers">
+                        <v-list-item-content>
+                            <v-list-item-title>Listado de Clientes</v-list-item-title>
+                        </v-list-item-content>
+                        <v-list-item-action>
+                            <v-icon>people_outline</v-icon>
+                        </v-list-item-action>
+                    </v-list-item>
+                    <v-list-item router exact to="/admin/customers/brands">
+                        <v-list-item-content>
+                            <v-list-item-title>Marcas</v-list-item-title>
+                        </v-list-item-content>
+                        <v-list-item-action>
+                            <v-icon>copyright</v-icon>
+                        </v-list-item-action>
+                    </v-list-item>
+                </v-list-group>
+
+                <v-list-item router exact to="/admin/services-control">
+                    <v-list-item-action>
+                        <v-icon>business_center</v-icon>
+                    </v-list-item-action>
+                    <v-list-item-content>
+                        <v-list-item-title>Control de Servicios</v-list-item-title>
+                    </v-list-item-content>
+                </v-list-item>
 
                 <v-list-group prepend-icon="bookmarks" no-action>
                     <template v-slot:activator>
