@@ -26,10 +26,10 @@
 									<v-select @change="Reload" v-model="payed_status" :items="payed_statuses" item-value="id" item-text="status" filled label="Cobranza"></v-select>
 								</v-col>
 								<v-col cols="12" sm="12" md="3" lg="5">
-									<v-text-field v-model="search_table" @change="Reload" filled label="Buscar servicio..." clearable @click:clear="clearSearch"></v-text-field>
+									<v-text-field v-model="search_table" v-on:keyup.enter="Reload" filled label="Buscar servicio..." clearable @click:clear="clearSearch"></v-text-field>
 								</v-col>
 								<v-col cols="12" sm="12" md="3" lg="3">
-									<v-text-field v-model="search_invoice" @change="Reload" filled label="Buscar factura/recibo..." clearable @click:clear="clearSearch"></v-text-field>
+									<v-text-field v-model="search_invoice" v-on:keyup.enter="Reload" filled label="Buscar factura/recibo..." clearable @click:clear="clearSearch"></v-text-field>
 								</v-col>
 							</v-row>
 						</v-container>

@@ -39,11 +39,17 @@
                                 </v-col>
 							</v-row>
                             <v-row>
-                                <v-col cols="12" sm="12" md="4" lg="3">
+                                <v-col cols="12" sm="12" md="3" lg="3">
+                                    <v-select v-model="responsable_id" outlined :items="responsables" item-value="id" item-text="user" label="Seleccionar Responsable" :error-messages="errors.responsable_id" clearable></v-select>
+                                </v-col>
+                                <v-col cols="12" sm="12" md="3" lg="3">
                                     <v-select v-model="binnacle_id" outlined :items="binnacles" item-value="id" item-text="binnacle" label="Seleccionar Bitácora" :error-messages="errors.binnacle_id" clearable></v-select>
                                 </v-col>
-                                <v-col cols="12" sm="12" md="4" lg="3">
-                                    <v-select v-model="responsable_id" outlined :items="responsables" item-value="id" item-text="user" label="Seleccionar Responsable" :error-messages="errors.responsable_id" clearable></v-select>
+                                <v-col cols="12" sm="12" md="3" lg="3">
+                                    <v-select v-model="status_category_id" outlined :items="status_categories" item-value="id" item-text="category" label="Seleccionar Estatus" :error-messages="errors.status_category_id" clearable @change="getSubcategories"></v-select>
+                                </v-col>
+                                <v-col cols="12" sm="12" md="3" lg="3">
+                                    <v-select v-model="status_subcategory_id" outlined :items="status_subcategories" item-value="id" item-text="subcategory" label="Seleccionar Subcategoría" :error-messages="errors.status_subcategory_id" clearable></v-select>
                                 </v-col>
                             </v-row>
                             <hr>
@@ -223,6 +229,9 @@ export default {
             total_advance:0,
             status_category_id:'',
             status_subcategory_id:'',
+            status_categories:[],
+            status_subcategories:[],
+
             //Comisions
             sales_comission:0,
             management_comission:0,
@@ -288,6 +297,7 @@ export default {
             this.getBinnacles();
             this.getResponsables();
             this.getCoins();
+            this.getEstatus();
             this.ClearService();
             this.ClearData();
         },
@@ -419,6 +429,11 @@ export default {
                     this.total_advance = res.data.service.total_advance;
                     this.price_desc = res.data.service.price + ' ' + res.data.service.code;
                     this.price = res.data.service.price;
+                    this.status_category_id = res.data.service.status_category_id;
+                    if(this.status_category_id){
+                        this.getSubcategories();
+                        this.status_subcategory_id = res.data.service.status_subcategory_id;
+                    }
 
                     //Discounts
                     const discount = (res.data.service.price * conversion) * ((res.data.discount * conversion) / 100);
@@ -660,6 +675,8 @@ export default {
             this.binnacle_id = '';
             this.process = [];
             this.total_advance = 0;
+            this.status_category_id = '';
+            this.status_subcategory_id = '';
         },
 
         ClearService(){
@@ -680,6 +697,7 @@ export default {
             this.total_advance = 0;
             this.status_category_id = '';
             this.status_subcategory_id = '';
+            this.services_collection = {};
         },
 
         ReloadService(){
@@ -711,6 +729,22 @@ export default {
             .then(res => {
                 this.coins = res.data;
             })
+        },
+
+        async getEstatus(){
+            await this.$axios.get('/api/get-categories')
+            .then(res => {
+                this.status_categories = res.data;
+            })
+        },
+
+        async getSubcategories(){
+            if(this.status_category_id){
+                await this.$axios.get(`/api/get-subcategories/${this.status_category_id}`)
+                .then(res => {
+                    this.status_subcategories = res.data;
+                })
+            }
         },
 
         async getResponsables(){
@@ -794,7 +828,7 @@ export default {
 
         async StoreService(){
             this.loading = true;
-            await this.$axios.post('/api/store/service', {comment:this.comment, date:this.date, cost:this.cost, price:this.price, money_exchange:this.conversion, discount:this.discount, discount_percent:this.discount_percent, final_price:this.final_price, advance_total:this.total_advance, money_exchange_id:this.coin_id, customer_id:this.customer_id, brand_id:this.brand_id, services_catalog_id:this.service_id, responsable_id:this.responsable_id, binnacle_id:this.binnacle_id, class_id:this.class_id, sales:this.sales, management:this.management, operations:this.operations, sales_comission:this.sales_comission, operations_comission:this.operations_comission, management_comission:this.management_comission, process:this.process, sales_check:this.sales_check, operations_check:this.operations_check, management_check:this.management_check, sales_value:this.sales_value, operations_value:this.operations_value, management_value:this.management_value})
+            await this.$axios.post('/api/store/service', {comment:this.comment, date:this.date, cost:this.cost, price:this.price, money_exchange:this.conversion, discount:this.discount, discount_percent:this.discount_percent, final_price:this.final_price, advance_total:this.total_advance, money_exchange_id:this.coin_id, customer_id:this.customer_id, brand_id:this.brand_id, services_catalog_id:this.service_id, responsable_id:this.responsable_id, binnacle_id:this.binnacle_id, class_id:this.class_id, sales:this.sales, management:this.management, operations:this.operations, sales_comission:this.sales_comission, operations_comission:this.operations_comission, management_comission:this.management_comission, process:this.process, sales_check:this.sales_check, operations_check:this.operations_check, management_check:this.management_check, sales_value:this.sales_value, operations_value:this.operations_value, management_value:this.management_value, status_category_id:this.status_category_id, status_subcategory_id:this.status_subcategory_id})
             .then(res => {
                 this.errors = {};
                 this.snackbar = true;
