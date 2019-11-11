@@ -6,7 +6,7 @@
 					<v-card-title class="primary white--text">
 						Agregar cliente
 						<v-spacer></v-spacer>
-						<v-btn icon @click="service_dialog = false"><v-icon>close</v-icon></v-btn>
+						<v-btn icon @click="service_dialog = false"><v-icon color="white">close</v-icon></v-btn>
 					</v-card-title>
 					<v-card-text class="mb-4">
 						<v-container fluid>
@@ -175,13 +175,6 @@
             :color="snackColor"
             >
             {{ snackText }}
-            <!-- <v-btn
-                color="white"
-                text
-                @click="snackbar = false"
-                >
-                Cerrar
-            </v-btn> -->
         </v-snackbar>
     </div>
 </template>

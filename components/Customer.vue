@@ -6,7 +6,7 @@
 					<v-card-title class="primary white--text">
 						Agregar cliente
 						<v-spacer></v-spacer>
-						<v-btn icon @click="customer_dialog = false"><v-icon>close</v-icon></v-btn>
+						<v-btn icon @click="customer_dialog = false"><v-icon color="white">close</v-icon></v-btn>
 					</v-card-title>
 					<v-card-text>
 						<v-container>
