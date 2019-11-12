@@ -65,7 +65,7 @@
 				</v-card>
 			</v-flex>
 		</v-layout>
-		<Catalog :service_dialog="1" ref="services_form" v-on:addService="newService($event)"></Catalog>
+		<Catalog :service_dialog="1" ref="services_form" v-on:newService="newService($event)"></Catalog>
     </div>
 </template>
 

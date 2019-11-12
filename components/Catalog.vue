@@ -365,9 +365,9 @@ export default {
 
             }
             else{
-                await this.$axios.post('/catalog/store', {})
+                await this.$axios.post('/catalog/store', {code:this.code, service:this.service, comments:this.comments, price:this.price, cost:this.cost, fee:this.fee, utility:this.utility, utility_percent:this.utility_percent, sales_comission:this.sales_comission, management_comission:this.management_comission, operations_comission:this.operations_comission, sales:this.sales, operations:this.operations, authorize:this.authorize, money_exchange_id:this.money_exchange_id, services_category_id:this.services_category_id, binnacle_id:this.binnacle_id, status_category_id:this.status_category_id, status_subcategory_id:this.status_subcategory_id})
                 .then(res => {
-                    this.$emit('addService', res.data);
+                    this.$emit('newService', res.data);
                     this.snackbar = true;
                     this.snackColor = 'success';
                     this.snackText = 'Se guardó el registro exitosamente';
