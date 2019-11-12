@@ -1,7 +1,7 @@
 <template>
     <div>
         <v-dialog v-model="service_dialog" fullscreen transition="dialog-bottom-transition" scrollable>
-			<v-form @submit.prevent="Save">
+			<v-form>
 				<v-card>
 					<v-card-title class="primary white--text">
 						Agregar cliente
@@ -62,7 +62,7 @@
                                     <v-text-field v-model="cost" type="number" step="any" outlined label="Costo Emporio" append-icon="refresh" :error-messages="errors.cost" v-on:keyup="editCost" @click:append="editCost"></v-text-field>
                                 </v-col>
                                 <v-col cols="12" sm="6" md="3" lg="2">
-                                    <v-text-field v-model="price_desc" outlined label="Precio base" readonly></v-text-field>
+                                    <v-text-field v-model="price_desc" filled label="Precio base" readonly></v-text-field>
                                 </v-col>
                                 <!-- <v-col cols="12" sm="6" md="3" lg="2">
                                     <v-text-field v-model="fee" readonly type="number" step="any" outlined label="Honorarios"></v-text-field>

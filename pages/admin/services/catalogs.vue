@@ -65,20 +65,20 @@
 				</v-card>
 			</v-flex>
 		</v-layout>
-		<AddService :service_dialog="1" ref="services_form" v-on:addService="newService($event)"></AddService>
+		<Catalog :service_dialog="1" ref="services_form" v-on:addService="newService($event)"></Catalog>
     </div>
 </template>
 
 <script>
 import axios from 'axios'
-import AddService from '@/components/AddService'
+import Catalog from '@/components/Catalog'
 export default {
     layout: 'admin',
 	middleware: 'auth',
 	head:{
         title: 'Catálogo de servicios'
 	},
-	components:{AddService},
+	components:{Catalog},
     data(){
         return{
             //Data
