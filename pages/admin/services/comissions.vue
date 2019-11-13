@@ -13,7 +13,7 @@
                     <v-card-title>
 						<v-layout>
 							<v-flex xs12 sm12 md4>
-								<v-text-field  outlined color="light-blue darken-2" prepend-icon="search" v-model="search_table" @change="Load" @click:clear="Reload()" label="Buscar" type="text" clearable></v-text-field>
+								<v-text-field  outlined color="light-blue darken-2" prepend-icon="search" v-model="search_table" v-on:keyup.enter="Load" @click:clear="Reload()" label="Buscar" type="text" clearable></v-text-field>
 							</v-flex>
 						</v-layout>
 					</v-card-title>

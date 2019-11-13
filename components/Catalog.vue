@@ -12,10 +12,10 @@
 						<v-container fluid>
 							<v-row>
 								<v-col cols="12" sm="12" md="4" lg="2">
-									<v-text-field v-model="code" outlined label="Clave *" :error-message="errors.code"></v-text-field>
+									<v-text-field v-model="code" outlined label="Clave *" :error-messages="errors.code"></v-text-field>
 								</v-col>
                                 <v-col cols="12" sm="12" md="8" lg="10">
-									<v-text-field v-model="service" outlined label="Nombre del servicio *" :error-message="errors.code"></v-text-field>
+									<v-text-field v-model="service" outlined label="Nombre del servicio *" :error-messages="errors.service"></v-text-field>
 								</v-col>
 							</v-row>
                             <v-row>
@@ -203,9 +203,103 @@ export default {
     methods:{
         addService(){
             this.service_dialog = true;
+            this.service_catalog_id = '';
             this.title = 'Agregar servicio';
             this.getCatalogCategories();
             this.setComission();
+            this.ClearData();
+        },
+
+        ClearData(){
+            this.service_catalog_id = '';
+            this.title = '';
+            this.code = '';
+            this.service = '';
+            this.services_category_id = '';
+            this.binnacle_id = '';
+            this.status_category_id = '';
+            this.status_subcategory_id = '';
+            this.comments = '';
+            this.money_exchange_id = '';
+            this.authorize = 0;
+            this.cost = 0;
+            this.price = 0;
+            this.sales = 0;
+            this.sales_comission = 0;
+            this.operations = 0;
+            this.operations_comission = 0;
+            this.management = 0;
+            this.management_comission = 0;
+            this.fee = 0;
+            this.utility = 0;
+            this.utility_percent = 0;
+            this.sales_percent = 0;
+            this.sales_ammount = 0;
+            this.operations_percent = 0;
+            this.operations_ammount = 0;
+            this.management_percent = 0;
+            this.management_ammount = 0;
+        },
+
+        async editService(service_id){
+            this.service_dialog = true;
+            this.service_catalog_id = service_id;
+            this.getCatalogCategories();
+            await this.$axios.get(`/api/catalog/edit/${service_id}`)
+            .then(res => {
+                this.title = 'Editar servicio: ' + res.data.code;
+                this.code = res.data.code;
+                this.service = res.data.service;
+                this.services_category_id = res.data.services_category_id;
+                this.binnacle_id = res.data.binnacle_id;
+                this.status_category_id = res.data.status_category_id;
+                this.status_subcategory_id = res.data.status_subcategory_id;
+                this.comments = res.data.comments;
+                this.money_exchange_id = res.data.money_exchange_id;
+                this.authorize = res.data.authorize;
+                this.cost = (res.data.cost) * 1;
+                this.price = (res.data.price) * 1;
+                this.sales = (res.data.sales) * 1;
+                this.sales_comission = (res.data.sales_comission) * 1;
+                this.operations = (res.data.operations) * 1;
+                this.operations_comission = (res.data.operations_comission) * 1;
+                this.management = (res.data.management) * 1;
+                this.management_comission = (res.data.management_comission) * 1;
+
+                if(res.data.sales == 0){
+                    this.sales_percent = res.data.sales_comission;
+                    this.sales_ammount = Math.round((res.data.sales_comission * res.data.fee) / 100);
+                }
+                else if(res.data.sales == 1){
+                    this.sales_comission = res.data.sales_comission;
+                    this.sales_percent = Math.round((res.data.sales_comission * 100) / res.data.fee);
+                }
+
+                if(res.data.operations == 0){
+                    this.operations_percent = res.data.operations_comission;
+                    this.operations_ammount = Math.round((res.data.operations_comission * res.data.fee) / 100);
+                }
+                else if(res.data.operations == 1){
+                    this.operations_comission = res.data.operations_comission;
+                    this.operations_percent = Math.round((res.data.operations_comission * 100) / res.data.fee);
+                }
+
+                if(res.data.management == 0){
+                    this.management_percent = res.data.management_comission;
+                    this.management_ammount = Math.round((res.data.management_comission * res.data.fee) / 100);
+                }
+                else if(res.data.management == 1){
+                    this.management_comission = res.data.management_comission;
+                    this.management_percent = Math.round((res.data.management_comission * 100) / res.data.fee);
+                }
+                
+                this.fee = res.data.fee;
+                this.utility = res.data.utility;
+                this.utility_percent = res.data.utility_percent;
+            })
+            .catch(error => {
+                this.service_dialog = false;
+            })
         },
 
         async getCatalogCategories(){
@@ -362,10 +456,30 @@ export default {
 
         async Save(){
             if(this.service_catalog_id){
-
+                await this.$axios.put(`/api/catalog/update/${this.service_catalog_id}`, {code:this.code, service:this.service, comments:this.comments, price:this.price, cost:this.cost, fee:this.fee, utility:this.utility, utility_percent:this.utility_percent, sales_comission:this.sales_comission, management_comission:this.management_comission, operations_comission:this.operations_comission, sales:this.sales, operations:this.operations, management:this.management, authorize:this.authorize, money_exchange_id:this.money_exchange_id, services_category_id:this.services_category_id, binnacle_id:this.binnacle_id, status_category_id:this.status_category_id, status_subcategory_id:this.status_subcategory_id})
+                .then(res => {
+                    this.$emit('updateService', res.data);
+                    this.snackbar = true;
+                    this.snackColor = 'success';
+                    this.snackText = 'Se guardó el servicio: ' + this.code;
+                    this.timeout = 1500;
+                    this.errors= {};
+                    this.loading = false;
+                    this.service_dialog = false;
+                    this.ClearData();
+                })
+                .catch(error => {
+                    this.snackbar = true;
+                    this.snackColor = 'error';
+                    this.snackText = 'No se pudo guardar el registro, revise los errores en el formulario';
+                    this.timeout = 1500;
+                    this.loading = false;
+                    this.errors = error.response.data.errors;
+                    this.loading = false;
+                })
             }
             else{
-                await this.$axios.post('/catalog/store', {code:this.code, service:this.service, comments:this.comments, price:this.price, cost:this.cost, fee:this.fee, utility:this.utility, utility_percent:this.utility_percent, sales_comission:this.sales_comission, management_comission:this.management_comission, operations_comission:this.operations_comission, sales:this.sales, operations:this.operations, authorize:this.authorize, money_exchange_id:this.money_exchange_id, services_category_id:this.services_category_id, binnacle_id:this.binnacle_id, status_category_id:this.status_category_id, status_subcategory_id:this.status_subcategory_id})
+                await this.$axios.post('/api/catalog/store', {code:this.code, service:this.service, comments:this.comments, price:this.price, cost:this.cost, fee:this.fee, utility:this.utility, utility_percent:this.utility_percent, sales_comission:this.sales_comission, management_comission:this.management_comission, operations_comission:this.operations_comission, sales:this.sales, operations:this.operations, management:this.management, authorize:this.authorize, money_exchange_id:this.money_exchange_id, services_category_id:this.services_category_id, binnacle_id:this.binnacle_id, status_category_id:this.status_category_id, status_subcategory_id:this.status_subcategory_id})
                 .then(res => {
                     this.$emit('newService', res.data);
                     this.snackbar = true;

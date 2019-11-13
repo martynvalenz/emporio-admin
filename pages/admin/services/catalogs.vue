@@ -13,13 +13,13 @@
                     <v-card-title>
 						<v-layout>
 							<v-flex xs12 sm12 md4>
-								<v-text-field  outlined color="light-blue darken-2" prepend-icon="search" v-model="search_table" @change="Reload" @click:clear="clearSearch" label="Buscar" type="text" clearable></v-text-field>
+								<v-text-field  outlined color="light-blue darken-2" prepend-icon="search" v-model="search_table" v-on:keyup.enter="Reload" @click:clear="clearSearch" label="Buscar" type="text" clearable></v-text-field>
 							</v-flex>
 						</v-layout>
 					</v-card-title>
 					<v-divider></v-divider>
 					<v-card-text>
-						<v-simple-table class="elevation-1" fixed-header height="500px"> 
+						<v-simple-table class="elevation-1" fixed-header height="650px"> 
 							<thead>
 								<tr>
 									<th class="text-left" style="width:10%">Clave</th>
@@ -41,14 +41,14 @@
 									<td class="text-right">{{ formatPrice(reg.price) }}</td>
 									<td class="text-center">{{ reg.services }}</td>
 									<td class="text-center">
-										<v-chip v-if="reg.status" color="green" dark>Activo</v-chip>
+										<v-chip v-if="reg.status == 1" color="green" dark>Activo</v-chip>
 										<v-chip v-else dark color="red">Inactivo</v-chip>
 									</td>
 									<td class="text-right">
 										<v-icon color="warning">list</v-icon>
-										<v-icon color="warning">edit</v-icon>
-										<v-icon color="error" v-if="reg.status = 1">block</v-icon>
-										<v-icon color="success" v-else>check</v-icon>
+										<v-icon color="warning" @click="editService(index)">edit</v-icon>
+										<v-icon color="error" v-if="reg.status == 1" @click="editStatus(index, reg.status)">block</v-icon>
+										<v-icon color="success" v-else @click="editStatus(index, reg.status)">check</v-icon>
 									</td>
 								</tr>
 								<tr>
@@ -65,7 +65,31 @@
 				</v-card>
 			</v-flex>
 		</v-layout>
-		<Catalog :service_dialog="1" ref="services_form" v-on:newService="newService($event)"></Catalog>
+
+		<Catalog :service_dialog="1" ref="services_form" v-on:newService="newService($event)" v-on:updateService="updateService($event)"></Catalog>
+
+		<v-dialog v-model="status_dialog" width="400">
+			<v-form>
+				<v-card>
+					<v-card-title>
+						{{title}}
+						<v-spacer></v-spacer>
+						<v-btn icon @click="status_dialog = false"><v-icon>close</v-icon></v-btn>
+					</v-card-title>
+					<v-card-text>
+						<div v-if="service_status">¿Quieres inactivar el servicio? Ya no aparecerá como opción seleccionable en servicios nuevos.</div>
+						<div v-else>¿Quieres activar el servicio?</div>
+					</v-card-text>
+					<br>
+					<v-card-actions>
+						<v-spacer></v-spacer>
+						<v-btn text @click="status_dialog = false">Cerrar</v-btn>
+						<v-btn v-if="service_status == 1" @click="changeStatus()" class="error" :loading="loading">Desactivar <v-icon right>block</v-icon></v-btn>
+						<v-btn v-else class="success" @click="changeStatus()" :loading="loading">Activar<v-icon right>check</v-icon></v-btn>
+					</v-card-actions>
+				</v-card>
+			</v-form>
+		</v-dialog>
     </div>
 </template>
 
@@ -83,9 +107,20 @@ export default {
         return{
             //Data
             services:[],
-            loading_table:false,
+			loading_table:false,
+			loading:false,
 			search_table:'',
-			page:1
+			page:1,
+			title:'',
+			catalog_selected:'',
+			services_catalog_id:'',
+			status_dialog:false,
+			service_status:'',
+			//snackbar
+            snackbar: false,
+            snackColor: '',
+            snackText: '',
+			timeout: 6000,
         }
     },
 	
@@ -158,8 +193,59 @@ export default {
 			this.$refs.services_form.addService();
 		},
 
+		editService(index){
+			const service = this.services[index];
+			this.catalog_selected = index;
+			var service_id = service.id;
+			this.$refs.services_form.editService(service_id);
+		},
+
 		newService(data){
 			this.services.unshift(data);
+		},
+
+		updateService(data){
+			this.services[this.catalog_selected] = data;
+			this.catalog_selected = '';
+		},
+
+		editStatus(index, value){
+			const service = this.services[index];
+			this.catalog_selected = index;
+			this.services_catalog_id = service.id;
+			this.service_status = value;
+			this.status_dialog = true;
+			if(value == 1){
+				this.title = 'Desactivar registro';
+			}
+			else if(value == 0){
+				this.title = 'Activar registro';
+			}
+		},
+
+		async changeStatus(){
+			this.loading = true;
+			await this.$axios.put(`/api/catalog/status/${this.services_catalog_id}`, {status:this.service_status})
+			.then(res => {
+				this.services[this.catalog_selected] = res.data;
+				this.snackbar = true;
+				this.snackColor = 'info';
+				this.snackText = 'Se cambió el estatus del servicio';
+				this.timeout = 1500;
+				this.catalog_selected = '';
+				this.services_catalog_id = '';
+				this.service_status = '';
+				this.loading = false;
+				this.status_dialog = false;
+			})
+			.catch(error => {
+				this.snackbar = true;
+				this.snackColor = 'error';
+				this.snackText = 'No se pudo cambiar el estatus, inténtelo de nuevo o refresque la página.';
+				this.timeout = 1500;
+				this.loading = false;
+				this.status_dialog = false
+			})
 		}
     } 
 }
