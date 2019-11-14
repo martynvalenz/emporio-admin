@@ -8,33 +8,33 @@
 						<v-btn color="primary" class="mx-1">Agregar Servicio<v-icon right>add</v-icon></v-btn>
 						<v-btn color="info" class="mx-1" to="/admin/services/catalogs" router exact>Ver catálogo<v-icon right>chrome_reader_mode</v-icon></v-btn>
 						<v-spacer></v-spacer>
-						<v-btn icon @click="Load"><v-icon>sync</v-icon></v-btn>
+						<v-btn icon @click="Reload"><v-icon>sync</v-icon></v-btn>
 					</v-card-title>
                     <v-card-title>
 						<v-layout>
 							<v-flex xs12 sm12 md4>
-								<v-text-field  outlined color="light-blue darken-2" prepend-icon="search" v-model="search_table" v-on:keyup.enter="Load" @click:clear="Reload()" label="Buscar" type="text" clearable></v-text-field>
+								<v-text-field  outlined color="light-blue darken-2" prepend-icon="search" v-model="search_table" v-on:keyup.enter="Reload" @click:clear="clearSearch" label="Buscar" type="text" clearable></v-text-field>
 							</v-flex>
 						</v-layout>
 					</v-card-title>
 					<v-divider></v-divider>
 					<v-card-text>
-						<v-simple-table class="elevation-1" fixed-header height="500px">
+						<v-simple-table class="elevation-1" fixed-header height="650px">
 							<thead>
 								<tr>
 									<th class="text-left" style="width:10%">Clave</th>
 									<th class="text-left" style="width:25%">Servicio</th>
 									<th class="text-center" style="width:5%">Moneda</th>
-									<th class="text-center" style="width:15%">Precio</th>
+									<th class="text-center" style="width:13%">Precio</th>
 									<th class="text-center" style="width:6%">Venta</th>
 									<th class="text-center" style="width:6%">Operativa</th>
 									<th class="text-center" style="width:6%">Gestión</th>
 									<th class="text-center" style="width:7%">Status</th>
-									<th class="text-right" style="width:10%"></th>
+									<th class="text-right" style="width:12%"></th>
 								</tr>
 							</thead>
 							<tbody>
-								<tr v-for="(reg, index) in comissions" :key="index">
+								<tr v-for="(reg, index) in services" :key="index">
 									<td>{{ reg.code }}</td>
 									<td>{{ reg.service }}</td>
 									<td class="text-center">{{ reg.money_code }}</td>
@@ -50,60 +50,142 @@
 										<v-chip v-else dark color="red">Inactivo</v-chip>
 									</td>
 									<td class="text-right">
-										<v-icon color="warning">edit</v-icon>
-										<v-icon color="error" v-if="reg.status = 1">block</v-icon>
-										<v-icon color="success" v-else>check</v-icon>
+										<v-icon color="warning">list</v-icon>
+										<v-icon color="warning" @click="editService(index)">edit</v-icon>
+										<v-icon color="error" v-if="reg.status == 1" @click="editStatus(index, reg.status)">block</v-icon>
+										<v-icon color="success" v-else @click="editStatus(index, reg.status)">check</v-icon>
+									</td>
+								</tr>
+								<tr>
+									<td style="width:100%" colspan="9">
+										<infinite-loading class="text-center" spinner="spiral" @infinite="infiniteScroll" ref="infiniteLoading">
+											<div slot="no-more">Ya no hay más registros</div>
+											<div slot="no-results">Se llegó al final de los resultados</div>
+										</infinite-loading>
 									</td>
 								</tr>
 							</tbody>
 						</v-simple-table>
-						<!-- <v-data-table :headers="headers"  sort-by="customer" class="elevation-4">
-
-						</v-data-table> -->
 					</v-card-text>
 				</v-card>
 			</v-flex>
 		</v-layout>
+
+		<Catalog :service_dialog="1" ref="services_form" v-on:newService="newService($event)" v-on:updateService="updateService($event)"></Catalog>
+
+		<v-dialog v-model="status_dialog" width="400">
+			<v-form>
+				<v-card>
+					<v-card-title>
+						{{title}}
+						<v-spacer></v-spacer>
+						<v-btn icon @click="status_dialog = false"><v-icon>close</v-icon></v-btn>
+					</v-card-title>
+					<v-card-text>
+						<div v-if="service_status">¿Quieres inactivar el servicio? Ya no aparecerá como opción seleccionable en servicios nuevos.</div>
+						<div v-else>¿Quieres activar el servicio?</div>
+					</v-card-text>
+					<br>
+					<v-card-actions>
+						<v-spacer></v-spacer>
+						<v-btn text @click="status_dialog = false">Cerrar</v-btn>
+						<v-btn v-if="service_status == 1" @click="changeStatus()" class="error" :loading="loading">Desactivar <v-icon right>block</v-icon></v-btn>
+						<v-btn v-else class="success" @click="changeStatus()" :loading="loading">Activar<v-icon right>check</v-icon></v-btn>
+					</v-card-actions>
+				</v-card>
+			</v-form>
+		</v-dialog>
     </div>
 </template>
 
 <script>
 import axios from 'axios'
+import Catalog from '@/components/Catalog'
 export default {
     layout: 'admin',
 	middleware: 'auth',
 	head:{
         title: 'Catálogo de comisiones'
 	},
+	components:{Catalog},
     data(){
         return{
             //Data
-            comissions:[],
-            loading_table:false,
-            search_table:''
+            services:[],
+			loading_table:false,
+			loading:false,
+			search_table:'',
+			page:1,
+			title:'',
+			catalog_selected:'',
+			services_catalog_id:'',
+			status_dialog:false,
+			service_status:'',
+			//snackbar
+            snackbar: false,
+            snackColor: '',
+            snackText: '',
+			timeout: 6000,
         }
     },
+	
+	computed: {
+		url(){
+			return `${process.env.api}/api/catalogs?page=${this.page}`
+		}
+	},
 
-    created(){
+	created(){
         this.Load();
-    },
+	},
 
     methods:{
         async Load(){
-            this.loading_table = true;
-            await this.$axios.post('/api/catalogs/comissions', {search:this.search_table})
-            .then(res => {
-                this.comissions = res.data;
-                this.loading_table = false;
-            })
-            .catch(error => {
-                this.loading_table = false;
-                console.log(error)
-            })
+			this.loading_table = true;
+			await this.$axios.post(this.url, {search:this.search_table})
+			.then(res => {
+				this.services = res.data.data;
+				this.loading_table = false;
+			})
+			.catch(error => {
+				this.loading_table = false;
+			})
+		},
+
+		infiniteScroll($state){
+			setTimeout(() => {
+				this.page++
+				this.$axios.post(this.url, {search:this.search_table})
+				.then( res => {
+
+					let services = res.data.data;
+
+					if(services.length > 0){
+						this.services = this.services.concat(services);
+						$state.loaded()
+					}
+					else{
+						$state.complete()
+					}
+				})
+				.catch(error => {
+
+				})
+			}, 500);
+		},
+
+		clearSearch(){
+			this.search_table = '';
+			this.services = {};
+			this.page = 1;
+			this.$refs.infiniteLoading.stateChanger.reset();
+			this.Load();
 		},
 
 		Reload(){
-			this.search_table = '';
+			this.services = {};
+			this.page = 1;
+			this.$refs.infiniteLoading.stateChanger.reset();
 			this.Load();
 		},
 		
@@ -112,8 +194,63 @@ export default {
 			return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
 		},
 
-		showTotal(){
-			alert('total');
+		addService(){
+			this.$refs.services_form.addService();
+		},
+
+		editService(index){
+			const service = this.services[index];
+			this.catalog_selected = index;
+			var service_id = service.id;
+			this.$refs.services_form.editService(service_id);
+		},
+
+		newService(data){
+			this.services.unshift(data);
+		},
+
+		updateService(data){
+			this.services[this.catalog_selected] = data;
+			this.catalog_selected = '';
+		},
+
+		editStatus(index, value){
+			const service = this.services[index];
+			this.catalog_selected = index;
+			this.services_catalog_id = service.id;
+			this.service_status = value;
+			this.status_dialog = true;
+			if(value == 1){
+				this.title = 'Desactivar registro';
+			}
+			else if(value == 0){
+				this.title = 'Activar registro';
+			}
+		},
+
+		async changeStatus(){
+			this.loading = true;
+			await this.$axios.put(`/api/catalog/status/${this.services_catalog_id}`, {status:this.service_status})
+			.then(res => {
+				this.services[this.catalog_selected] = res.data;
+				this.snackbar = true;
+				this.snackColor = 'info';
+				this.snackText = 'Se cambió el estatus del servicio';
+				this.timeout = 1500;
+				this.catalog_selected = '';
+				this.services_catalog_id = '';
+				this.service_status = '';
+				this.loading = false;
+				this.status_dialog = false;
+			})
+			.catch(error => {
+				this.snackbar = true;
+				this.snackColor = 'error';
+				this.snackText = 'No se pudo cambiar el estatus, inténtelo de nuevo o refresque la página.';
+				this.timeout = 1500;
+				this.loading = false;
+				this.status_dialog = false
+			})
 		}
     } 
 }
