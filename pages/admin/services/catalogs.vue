@@ -45,7 +45,20 @@
 										<v-chip v-else dark color="red">Inactivo</v-chip>
 									</td>
 									<td class="text-right">
-										<v-icon color="warning" @click="openProcess(index)">list</v-icon>
+										<span @click="openProcess(index)">
+											<v-badge color="primary" overlap v-if="reg.requisites > 0">
+												<template v-slot:badge>
+													<span>{{reg.requisites}}</span>
+												</template>
+												<v-icon color="warning" @click="openProcess(index)">list</v-icon>
+											</v-badge>
+											<v-badge color="error" overlap v-if="reg.requisites == 0">
+												<template v-slot:badge >
+													<span>{{reg.requisites}}</span>
+												</template>
+												<v-icon color="warning" @click="openProcess(index)">list</v-icon>
+											</v-badge>
+										</span>
 										<v-icon color="warning" @click="editService(index)">edit</v-icon>
 										<v-icon color="error" v-if="reg.status == 1" @click="editStatus(index, reg.status)">block</v-icon>
 										<v-icon color="success" v-else @click="editStatus(index, reg.status)">check</v-icon>

@@ -50,7 +50,20 @@
 										<v-chip v-else dark color="red">Inactivo</v-chip>
 									</td>
 									<td class="text-right">
-										<v-icon color="warning">list</v-icon>
+										<span @click="openProcess(index)">
+											<v-badge color="primary" overlap v-if="reg.requisites > 0">
+												<template v-slot:badge>
+													<span>{{reg.requisites}}</span>
+												</template>
+												<v-icon color="warning" @click="openProcess(index)">list</v-icon>
+											</v-badge>
+											<v-badge color="error" overlap v-if="reg.requisites == 0">
+												<template v-slot:badge >
+													<span>{{reg.requisites}}</span>
+												</template>
+												<v-icon color="warning" @click="openProcess(index)">list</v-icon>
+											</v-badge>
+										</span>
 										<v-icon color="warning" @click="editService(index)">edit</v-icon>
 										<v-icon color="error" v-if="reg.status == 1" @click="editStatus(index, reg.status)">block</v-icon>
 										<v-icon color="success" v-else @click="editStatus(index, reg.status)">check</v-icon>
@@ -72,6 +85,7 @@
 		</v-layout>
 
 		<Catalog :service_dialog="1" ref="services_form" v-on:newService="newService($event)" v-on:updateService="updateService($event)"></Catalog>
+		<Process ref="process_form"></Process>
 
 		<v-dialog v-model="status_dialog" width="400">
 			<v-form>
@@ -101,13 +115,14 @@
 <script>
 import axios from 'axios'
 import Catalog from '@/components/Catalog'
+import Process from '@/components/Process'
 export default {
     layout: 'admin',
 	middleware: 'auth',
 	head:{
         title: 'Catálogo de comisiones'
 	},
-	components:{Catalog},
+	components:{Catalog, Process},
     data(){
         return{
             //Data
@@ -207,6 +222,12 @@ export default {
 
 		newService(data){
 			this.services.unshift(data);
+		},
+
+		openProcess(index){
+			const service = this.services[index];
+			var service_id = service.id;
+			this.$refs.process_form.openProcess(service_id)
 		},
 
 		updateService(data){

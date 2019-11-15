@@ -84,20 +84,6 @@
                         <br>
                         <hr>
                         <v-container>
-                            <v-layout>
-                                <v-row cols="12" sm="12" md="12" lg="12" class="text-center">
-                                    <ul>
-                                        <li class="green--text">Jurídico</li>
-                                        <li class="yellow--text">Administración</li>
-                                        <li class="red--text">Gestión</li>
-                                        <li class="purple--text">Dirección</li>
-                                        <li class="light-blue--text">Operaciones</li>
-                                        <li class="grey--text">Inactivo</li>
-                                    </ul>
-                                </v-row>
-                            </v-layout>
-                        </v-container>
-                        <v-container>
                             <v-layout row wrap>
                                 <v-flex xs12 sm12 md6 lg4 xl3 v-for="(requirement, index) in requisites" :key="index" class="px-3">
                                     <v-switch color="primary" v-bind:class="[requirement.status == 0 ? 'inactive':'']" :value="requirement.selected" :input-value="requirement.selected" :label="requirement.requisite" inset append-icon="edit" @click:append="edit(index)"></v-switch>
