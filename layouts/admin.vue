@@ -669,9 +669,9 @@
             </v-toolbar-title>
             <v-spacer />
             <div class="big-menu">
-				<!-- <v-btn text rounded>
-					Soporte <v-icon>headset_mic</v-icon>
-				</v-btn> -->
+				<v-btn text rounded @click="support_dialog = true">
+					Soporte<v-icon right>headset_mic</v-icon>
+				</v-btn>
 				<v-btn icon>
 					<v-icon>date_range</v-icon>
 				</v-btn>
@@ -758,6 +758,28 @@
                 </v-list-item>
             </v-list>
         </v-navigation-drawer> -->
+        <v-dialog v-model="support_dialog" width="400">
+            <v-card>
+                <v-card-title>
+                    Enviar Ticket a soporte
+                    <v-spacer></v-spacer>
+					<v-btn icon @click="support_dialog = false"><v-icon>close</v-icon></v-btn>
+                </v-card-title>
+                <v-card-text>
+                    <v-container fluid>
+                        <v-row justify="center">
+                            <v-col cols="12" sm="12">
+                                <Support v-on:closeSupport="closeSupport($event)"></Support>
+                            </v-col>    
+                        </v-row>
+                    </v-container>
+                </v-card-text>
+                <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn @click="support_dialog = false">Cerrar</v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
         <v-footer
             clipped
             style="position: relative"
@@ -775,7 +797,9 @@
 <script>
 import axios from 'axios'
 import store from '@/store/index'
+import Support from '@/components/Support'
 export default {
+    components:{Support},
 	data () {
 		return {
             drawer: true,
@@ -789,7 +813,8 @@ export default {
 			dark:false,
             expand: false,
             user_image: '',
-            avatar_img:''
+            avatar_img:'',
+            support_dialog:false
 		}
     },
 
@@ -839,6 +864,10 @@ export default {
             .then(res => {
                 this.$router.push('/');
             })
+        },
+
+        closeSupport(){
+            this.support_dialog = false;
         }
     }
 }

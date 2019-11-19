@@ -1,7 +1,7 @@
 <template>
     <div>
         <v-dialog v-model="billing_dialog" fullscreen transition="dialog-bottom-transition" scrollable>
-			<v-form @submit.prevent="Save">
+			<v-form>
 				<v-card>
 					<v-card-title class="primary white--text">
 						Agregar Factura/Recibo
@@ -35,40 +35,222 @@
                                     <v-textarea v-model="comments" outlined label="Comentarios"></v-textarea>
                                 </v-col>
                             </v-row>
+                            <v-row v-if="customer_id">
+                                <v-col sm="12" lg="12">
+                                    <v-spacer></v-spacer>
+                                    <v-btn large icon @click="Refresh"><v-icon>sync</v-icon></v-btn>
+                                </v-col>
+                            </v-row>
+                            <v-card v-if="customer_id" class="elevation-1" :loading="loading_services">
+                                <v-card-text>
+                                    <v-simple-table class="elevation-4" >
+                                        <thead>
+                                            <tr>
+                                                <th class="text-left" style="width:12%;">Fecha</th>
+                                                <th class="text-left" style="width:28%;">Servicio</th>
+                                                <th class="text-left" style="width:5%;">Resp</th>
+                                                <th class="text-center" style="width:10%;">Cobranza</th>
+                                                <th class="text-center" style="width:10%;">Trámite</th>
+                                                <th class="text-right" style="width:10%;">Pendiente</th>
+                                                <th class="text-right" style="width:10%;">Monto</th>
+                                                <th style="width:15%;"></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                           <template v-if="billed_services.length > 0">
+                                                <tr v-for="(service, index) in billed_services" :key="index">
+                                                    <td title="service.id">{{ service.date }}</td>
+                                                    <td>{{ service.code }}<span v-if="service.brand"> - {{ service.brand }}</span><span v-if="service.class"> {{service.class}}</span></td>
+                                                    <td>{{ service.resp }}</td>
+                                                    <td v-if="service.status < 2" class="text-center">
+                                                        <v-chip label small v-if="service.is_payed == 0" class="warning">Pendiente</v-chip>
+                                                        <v-chip label small v-if="service.is_payed == 1" :title="service.date_payed" class="success">Pagado</v-chip>
+                                                    </td>
+                                                    <td v-else class="text-center">
+                                                        <v-chip label small v-if="service.status == 2" class="error">Cancelado</v-chip>
+                                                        <v-chip label small v-if="service.status == 3" class="error">No Registro</v-chip>
+                                                        <v-chip label small v-if="service.status == 4" class="orange darken-1">Repetido</v-chip>
+                                                    </td>
+                                                    <!-- Div -->
+                                                    <td class="text-center">
+                                                        <v-chip label small v-if="service.status == 0" class="warning">Pendiente</v-chip>
+                                                        <v-chip label small v-if="service.status == 1" class="success" :title="service.date_registered">Terminado</v-chip>
+                                                        <v-chip label small v-if="service.status == 2" color="error">Cancelado</v-chip>
+                                                        <v-chip label small v-if="service.status == 3" class="error">No Registro</v-chip>
+                                                        <v-chip label small v-if="service.status == 4" color="orange darken-1">Repetido</v-chip>
+                                                    </td>
+                                                    <!-- Status -->
+                                                    <td class="text-right">{{ service.pending_biller }}</td>
+                                                    <td class="text-right">
+                                                        <v-edit-dialog :return-value.sync="service.biller" large persistent>
+                                                            <div><b>{{ service.biller }}</b></div>
+                                                            <template v-slot:input>
+                                                                <v-text-field v-model="service.biller" label="Editar monto" single-line autofocus max="service.biller" type="number" step="any"></v-text-field>
+                                                            </template>
+                                                        </v-edit-dialog>
+                                                    </td>
+                                                    <td class="text-right">
+                                                        <v-btn fab dark x-small color="green">
+                                                            <v-icon>save</v-icon>
+                                                        </v-btn>
+                                                        <v-btn fab dark x-small color="error">
+                                                            <v-icon @click="Delete(index)">close</v-icon>
+                                                        </v-btn>
+                                                    </td>
+                                                </tr>
+                                           </template>
+                                           <template v-if="services.length > 0">
+                                                <tr v-for="(service, index) in services" :key="index">
+                                                    <td title="service.id">{{ service.date }}</td>
+                                                    <td>{{ service.code }}<span v-if="service.brand"> - {{ service.brand }}</span><span v-if="service.class"> {{service.class}}</span></td>
+                                                    <td>{{ service.resp }}</td>
+                                                    <td v-if="service.status < 2" class="text-center">
+                                                        <v-chip label small v-if="service.is_payed == 0" class="warning">Pendiente</v-chip>
+                                                        <v-chip label small v-if="service.is_payed == 1" :title="service.date_payed" class="success">Pagado</v-chip>
+                                                    </td>
+                                                    <td v-else class="text-center">
+                                                        <v-chip label small v-if="service.status == 2" class="error">Cancelado</v-chip>
+                                                        <v-chip label small v-if="service.status == 3" class="error">No Registro</v-chip>
+                                                        <v-chip label small v-if="service.status == 4" class="orange darken-1">Repetido</v-chip>
+                                                    </td>
+                                                    <!-- Div -->
+                                                    <td class="text-center">
+                                                        <v-chip label small v-if="service.status == 0" class="warning">Pendiente</v-chip>
+                                                        <v-chip label small v-if="service.status == 1" class="success" :title="service.date_registered">Terminado</v-chip>
+                                                        <v-chip label small v-if="service.status == 2" color="error">Cancelado</v-chip>
+                                                        <v-chip label small v-if="service.status == 3" class="error">No Registro</v-chip>
+                                                        <v-chip label small v-if="service.status == 4" color="orange darken-1">Repetido</v-chip>
+                                                    </td>
+                                                    <!-- Status -->
+                                                    <td class="text-right">{{ service.pending_biller }}</td>
+                                                    <td class="text-right">
+                                                        <v-edit-dialog :return-value.sync="service.biller" large persistent>
+                                                            <div><b>{{ service.biller }}</b></div>
+                                                            <template v-slot:input>
+                                                                <v-text-field v-model="service.biller" label="Editar monto" single-line autofocus max="service.biller" type="number" step="any"></v-text-field>
+                                                            </template>
+                                                        </v-edit-dialog>
+                                                    </td>
+                                                    <td class="text-right">
+                                                        <v-btn fab x-small dark color="primary" v-if="bill_id">
+                                                            <v-icon>add</v-icon>
+                                                        </v-btn>
+                                                        <v-btn fab dark x-small color="error">
+                                                            <v-icon @click="Delete(index)">close</v-icon>
+                                                        </v-btn>
+                                                    </td>
+                                                </tr>
+                                           </template>
+                                        </tbody>
+                                    </v-simple-table>
+                                </v-card-text>
+                            </v-card>
+                            <div class="pa-1"></div>
                             <v-row>
-								<v-btn large color="success" :loading="loading" @click="Save">Guardar<v-icon right>save</v-icon></v-btn>
+								<v-col>
+                                    <v-btn color="success" class="mx-1" :loading="loading" @click="Save">Guardar<v-icon right>save</v-icon></v-btn>
+                                    <v-btn v-if="bill_id" color="warning" class="mx-1" :loading="loading_free" @click="Free">Liberar Factura<v-icon right>settings_backup_restore</v-icon></v-btn>
+                                    <v-btn v-if="bill_id" color="error" class="mx-1" :loading="loading_cancel" @click="Cancel">Cancelar Factura <v-icon right>block</v-icon></v-btn>
+                                </v-col>
 							</v-row>
-                            <br>
-                            <v-simple-table class="elevation-4">
-                                <thead>
-                                    <tr>
-                                        <th class="text-left" style="width:15%;">Fecha</th>
-                                        <th class="text-left" style="width:30%;">Servicio</th>
-                                        <th class="text-left" style="width:20%;">Cliente</th>
-                                        <th class="text-left" style="width:5%;">Resp</th>
-                                        <th class="text-right" style="width:10%;">Precio</th>
-                                        <th class="text-right" style="width:10%;">Monto</th>
-                                        <th style="width:10%;"></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr v-for="(service, index) in services" :key="index">
-                                        <td title="service.id">{{ service.date }}</td>
-                                        <td>{{ service.code }}<span v-if="service.brand"> - {{ service.brand }}</span><span v-if="service.class"> {{service.class}}</span></td>
-                                        <td>{{service.customer}}</td>
-                                        <td>{{ service.resp }}</td>
-                                        <td class="text-right">{{ service.final_price }}</td>
-                                        <td class="text-right" contenteditable>{{ service.biller }}</td>
-                                        <td class="text-right">
-                                            <v-btn fab x-small color="primary">
-                                                <v-icon>add</v-icon>
-                                            </v-btn>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </v-simple-table>
-                            <div class="pt-4"></div>
 						</v-container>
+                        <v-container>
+                            <v-row class="d-flex flex-row-reverse">
+                                <v-col cols="12" sm="12" md="6" lg="3">
+                                    <v-simple-table class="elevation-4">
+                                        <tbody>
+                                            <tr>
+                                                <td><h4>Subtotal</h4></td>
+                                                <td class="text-right" v-if="!bill_id"><h4>$ {{formatPrice(calculated)}}</h4></td>
+                                                <td class="text-right" v-if="bill_id"><h4>$ {{formatPrice(subtotal)}}</h4></td>
+                                            </tr>
+                                            <tr>
+                                                <td><v-checkbox label="%IVA" color="primary" v-model="has_tax" :readonly="has_tax_readonly" @change="updateTAX"></v-checkbox></td>
+                                                <td class="text-right"><h4>{{tax_percent}}</h4></td>
+                                            </tr>
+                                            <tr>
+                                                <td><h4>IVA</h4></td>
+                                                <td class="text-right" v-if="!bill_id"><h4>$ {{formatPrice(taxCalc)}}</h4></td>
+                                                <td class="text-right" v-if="bill_id"><h4>$ {{formatPrice(tax)}}</h4></td>
+                                            </tr>
+                                            <tr>
+                                                <td><h4>Total</h4></td>
+                                                <td class="text-right" v-if="!bill_id"><h4>$ {{formatPrice(totalCalc)}}</h4></td>
+                                                <td class="text-right" v-if="bill_id"><h4>$ {{formatPrice(total)}}</h4></td>
+                                            </tr>
+                                        </tbody>
+                                    </v-simple-table>
+                                </v-col>
+                            </v-row>
+                        </v-container>
+                        <hr v-if="bill_id">
+                        <v-container v-if="bill_id">
+                            <v-row>
+                                <v-col cols="12" sm="12" md="12" lg="12">
+                                    <h2>Capturar ingresos del cliente</h2>
+                                </v-col>
+                            </v-row>
+                            <v-row>
+                                <v-col cols="12" sm="12" md="6" lg="3">
+                                    <v-text-field v-model="ammount" label="Monto" type="number" step="any" min="0" outlined></v-text-field>
+                                </v-col>
+                                <v-col cols="12" sm="12" md="6" lg="3">
+                                    <v-menu v-model="date_payed_menu" :close-on-content-click="false" :nudge-right="40" transition="scale-transition" offset-y full-width min-width="290px">
+                                        <template v-slot:activator="{ on }">
+                                            <v-text-field v-model="date_payed" label="Fecha" append-icon="event" outlined readonly v-on="on" @click:append="date_payed_menu = true"></v-text-field>
+                                        </template>
+                                        <v-date-picker v-model="date_payed" locale="es" color="light-blue darken-3" @input="date_payed_menu = false" :error-messages="errors.date_payed"></v-date-picker>
+                                    </v-menu>
+                                </v-col>
+                                <v-col cols="12" sm="12" md="6" lg="3">
+                                    <v-text-field v-model="movement" label="# Movimiento" outlined></v-text-field>
+                                </v-col>
+                                <v-col cols="12" sm="12" md="6" lg="3">
+                                    <v-text-field v-model="check" label="Cheque" outlined></v-text-field>
+                                </v-col>
+                            </v-row>
+                            <v-row>
+                                <v-col cols="12" sm="12" md="6" lg="3">
+                                    <v-select v-model="account_id" @change="setPaymentMethod" outlined label="Cuenta *" :items="accounts" item-value="id" item-text="alias" append-icon="close" @click:append="account_id = ''"></v-select>
+                                </v-col>
+                                <v-col cols="12" sm="12" md="6" lg="4">
+                                    <v-select v-model="paying_method_id" outlined label="Forma de pago *" :items="paying_methods" item-value="id" item-text="paying_method"></v-select>
+                                </v-col>
+                            </v-row>
+                            <v-row>
+                                <v-col cols="12" sm="12">
+                                    <v-textarea v-model="paying_comments" label="Comentarios (opcional)" outlined></v-textarea>
+                                </v-col>
+                            </v-row>
+                            <v-row>
+                                <v-col cols="12" sm="12">
+                                    <v-btn color="primary">Generar Ingreso<v-icon right>money</v-icon></v-btn>
+                                </v-col>
+                            </v-row>
+                        </v-container>
+                        <hr v-if="bill_id">
+                        <v-container v-if="bill_id">
+                            <v-row>
+                                <v-col cols="12" sm="12" md="12" lg="12">
+                                    <h2>Pago de Factura/Recibo</h2>
+                                </v-col>
+                            </v-row>
+                            <v-row>
+                                <v-col cols="12" sm="12" md="6" lg="3">
+                                    <v-text-field v-model="customers_balance" label="Saldo del cliente" type="number" readonly step="any" min="0" filled></v-text-field>
+                                </v-col>
+                                <v-col cols="12" sm="12" md="6" lg="3">
+                                    <v-text-field v-model="balance" label="Monto pendiente de factura" readonly type="number" step="any" min="0" filled></v-text-field>
+                                </v-col>
+                                <v-col cols="12" sm="12" md="6" lg="3">
+                                    <v-text-field v-model="payed_ammount" label="Monto a pagar *" type="number" step="any" min="0" outlined></v-text-field>
+                                </v-col>
+                                <v-col cols="12" sm="12" md="6" lg="3">
+                                    <v-btn color="green" dark block large>Pagar Factura<v-icon right>check</v-icon></v-btn>
+                                </v-col>
+                            </v-row>
+                        </v-container>
+                        <div class="pt-4"></div>
 					</v-card-text>
 					<v-card-actions style="background-color:rgba(0,0,0,0.1); color: white; position:absolute; bottom: 0; width:100%;">
 						<v-spacer></v-spacer>
@@ -106,6 +288,8 @@ export default {
             customer_id:'',
             //Date
             loading: false,
+            loading_free: false,
+            loading_cancel: false,
             date: new Date().toISOString().substr(0, 10),
             date_menu:false,
             //Folio type
@@ -117,8 +301,32 @@ export default {
             folio:'',
             comments:'',
             services:[],
+            billed_services:[],
+            loading_services:false,
             has_tax:false,
+            has_tax_readonly:false,
             tax_percent:0,
+            tax:0,
+            subtotal:0,
+            balance:0,
+            total:0,
+            calculated_subtotal:0,
+            service_selected:'',
+            //Payment
+            ammount:0,
+            date_payed:new Date().toISOString().substr(0, 10),
+            date_payed_menu:false,
+            movement:'',
+            check:'',
+            account_id:'',
+            accounts:[],
+            paying_method_id:'',
+            paying_methods:[],
+            paying_comments:'',
+            //Pay Bill
+            customers_balance:0,
+            payed_ammount:0,
+
             //snackbar
             snackbar: false,
             snackColor: '',
@@ -141,6 +349,50 @@ export default {
         },
     },
 
+    computed:{
+        calculated: function(){
+            if(this.services.length > 0){
+                return this.services.reduce(function(total, item){
+                    return (total * 1) + (item.biller * 1);
+                }, 0);
+            }
+            else{
+                return 0;
+            }
+        },
+
+        taxCalc: function(){
+            const tax_percent = this.tax_percent;
+            if(this.services.length > 0 && this.has_tax){
+                return this.services.reduce(function(tax, item){
+                    return (tax * 1) + (((item.biller * 1) * ((tax_percent * 1) / 100)) * 1);
+                }, 0);
+            }
+            else{
+                return 0;
+            }
+        },
+
+        totalCalc: function(){
+            const tax_percent = this.tax_percent;
+            if(this.services.length > 0){
+                if(this.has_tax){
+                    return this.services.reduce(function(total, item){
+                        return (total * 1) + (((item.biller * 1) * (1 + ((tax_percent * 1) / 100))) * 1);
+                    }, 0);
+                }
+                else{
+                    return this.services.reduce(function(total, item){
+                        return (total * 1) + ((item.biller * 1));
+                    }, 0);
+                }
+            }
+            else{
+                return 0;
+            }
+        },
+    },
+
     methods:{
         addBill()
         {
@@ -148,12 +400,84 @@ export default {
             this.clearData();
             this.getTax();
         },
+        
+        addBillAlready(customer_id, customer, type){
+            this.billing_dialog = true;
+            this.customer_disabled = true;
+            this.customer_id = customer_id;
+            this.customer_name = customer;
+            this.type = type;
+            this.errors = {};
+            this.billed_services = {};
+            this.bill_id = '';
+            this.folio = '';
+            this.date = new Date().toISOString().substr(0, 10);
+            this.customers = {};
+            this.customer = null;
+            this.getTax();
+            if(type == 'Factura'){
+                this.has_tax = true;
+                this.has_tax_readonly = true;
+            }
+            else if(type == 'Recibo'){
+                this.has_tax = false;
+                this.has_tax_readonly = false;
+            }
+            this.getPendingServices();
+            this.getCustomersBalance();
+        },
 
+        async editBill(bill_id){
+            this.bill_id = bill_id;
+            if(bill_id){
+                await this.$axios.get(`/api/bill/edit/${bill_id}`)
+                .then(res => {
+                    this.billing_dialog = true;
+                    this.customer_disabled = true;
+                    this.customer_id = res.data.customer_id;
+                    this.customer_name = res.data.customer;
+                    this.type = res.data.type;
+                    this.folio = res.data.folio;
+                    this.date = res.data.date;
+                    this.tax_percent = res.data.tax_percent;
+                    this.subtotal = res.data.subtotal;
+                    this.tax = res.data.tax;
+                    this.total = res.data.total;
+                    this.is_payed = res.data.is_payed;
+                    this.balance = res.data.balance;
+                    this.payed_ammount = res.data.payed_ammount;
+                    this.errors = {};
+                    this.customers = {};
+                    this.customer = null;
+                    if(res.data.type == 'Factura'){
+                        this.has_tax = true;
+                        this.has_tax_readonly = true;
+                    }
+                    else if(res.data.type == 'Recibo'){
+                        this.has_tax = false;
+                        this.has_tax_readonly = false;
+                    }
+                    this.getBillServices();
+                    this.getAccounts();
+                    this.getCustomersBalance();
+                })
+            }
+        },
+        
         async getTax(){
             await this.$axios.get('/api/tax')
             .then(res => {
-                this.tax_percent = res.data;
+                this.tax_percent = res.data.tax_percent;
             })
+        },
+
+        Refresh(){
+            if(this.bill_id){
+                this.getBillServices();
+            }
+            else{
+                this.getPendingServices();
+            }
         },
 
         clearData(){
@@ -166,6 +490,7 @@ export default {
             this.date = new Date().toISOString().substr(0, 10);
             this.customers = {};
             this.services = {};
+            this.billed_services = {};
             this.customer_id = '';
             this.customer = null;
         },
@@ -176,6 +501,9 @@ export default {
 			.then(res => {
 				this.customers = res.data.data;
                 this.customer_id = this.customer.id;
+                this.customer_name = this.customer.customer;
+                this.getPendingServices();
+                this.getCustomersBalance();
                 this.customerLoading = false;
                 this.errors = {};
 			})
@@ -191,23 +519,49 @@ export default {
             this.customer = null;
             this.brand_id = '';
             this.brands = [];
+            this.services = [];
+        },
+
+        async getCustomersBalance(){
+            if(this.customer_id){
+                await this.$axios.get(`/api/customers-balance/${this.customer_id}`)
+                .then(res => {
+                    this.customers_balance = res.data.balance;
+                })
+            }
         },
 
         hasTax(){
             if(this.type == 'Factura'){
                 this.has_tax = 1;
+                this.has_tax_readonly = true;
             }
             else if(this.type == 'Recibo'){
                 this.has_tax = 0;
+                this.has_tax_readonly = false;
             }
             else{
                 this.has_tax = 0;
+                this.has_tax_readonly = false;
+            }
+        },
+
+        updateTAX(){
+            console.log(this.has_tax)
+            if(this.has_tax && this.bill_id){
+                this.$axios.put(`/api/bill/update-tax/${this.bill_id}`, {has_tax:this.has_tax, tax_percent:this.tax_percent})
+                .then(res => {
+
+                })
+                .catch(error => {
+                    console.log(error)
+                })
             }
         },
 
         async CheckFolio(){
-            if(this.type == 'Factura'){
-                await this.$axios.post('/api/bill-verify', {folio_bill:this.folio, type:this.type})
+            if(this.type){
+                await this.$axios.post('/api/bill-verify', {folio:this.folio, type:this.type})
                 .then(res => {
                     this.errors = {};
                     this.snackbar = true;
@@ -217,21 +571,7 @@ export default {
                 })
                 .catch(error => {
                     this.errors = error.response.data.errors;
-                    this.errors.folio = error.response.data.errors.folio_bill;
-                })
-            }
-            else if(this.type == 'Recibo'){
-                await this.$axios.post('/api/receipt-verify', {folio_receipt:this.folio, type:this.type})
-                .then(res => {
-                    this.errors = {};
-                    this.snackbar = true;
-                    this.snackColor = 'success';
-                    this.snackText = 'El folio está disponible';
-                    this.timeout = 1500;
-                })
-                .catch(error => {
-                    this.errors = error.response.data.errors;
-                    this.errors.folio = error.response.data.errors.folio_receipt;
+                    this.errors.folio = error.response.data.errors.folio;
                 })
             }
             else if(!this.type){
@@ -245,52 +585,120 @@ export default {
 
         async Save(){
             this.loading = true;
-            if(this.type == 'Factura'){
-                await this.$axios.post('/api/bill/store', {customer_id:this.customer_id, type:this.type, folio_bill:this.folio, date:this.date, tax_percent:this.tax_percent})
-                .then(res => {
-                    
-                    this.getPendingServices();
+            if(this.bill_id){
+
+            }
+            else{
+                await this.$axios.post('/api/bill/store', {customer_id:this.customer_id, type:this.type, folio:this.folio, date:this.date, tax_percent:this.tax_percent, has_tax:this.has_tax, services:this.services, services_length:this.services.length})
+                .then(success => {
+                    this.bill_id = success.data.id;
+                    this.customer_disabled = true;
+                    this.customer_name = success.data.customer;
+                    this.tax_percent = success.data.tax_percent;
+                    this.subtotal = success.data.subtotal;
+                    this.tax = success.data.tax;
+                    this.total = success.data.total;
+                    this.is_payed = success.data.is_payed;
+                    this.balance = success.data.balance;
+                    this.payed_ammount = success.data.payed_ammount;
+                    this.errors = {};
+                    this.customers = {};
+                    this.customer = null;
+                    this.getBillServices();
+                    this.$emit('updateServices');
+                    this.getAccounts();
                     this.loading = false;
+                    this.snackbar = true;
+                    this.snackColor = 'success';
+                    this.snackText = 'Se guardó el registro exitosamente.';
+                    this.timeout = 1300;
                 })
                 .catch(error => {
-                    this.errors = error.response.data.errors;
-                    this.snackColor = 'error';
-                    this.snackText = 'No se pudo guardar el registro, revise los errores en el formulario.';
-                    this.timeout = 1300;
-                    this.loading = false;
-                })
-            }
-            else if(this.type == 'Recibo'){
-                await this.$axios.post('/api/receipt/store', {customer_id:this.customer_id, type:this.type, folio_receipt:this.folio, date:this.date})
-                .then(res => {
+                    if(error.response.data.success == false){
+                        this.snackbar = true;
+                        this.snackColor = 'error';
+                        this.snackText = error.response.data.msg;
+                        this.timeout = 5000;
+                        this.loading = false;
+                    }else{
+                        this.errors = error.response.data.errors;
+                        this.snackbar = true;
+                        this.snackColor = 'error';
+                        this.snackText = 'No se pudo guardar el registro, revise los errores en el formulario.';
+                        this.timeout = 1300;
+                        this.loading = false;
+                    }
                     
-                    this.getPendingServices();
-                    this.loading = false;
                 })
-                .catch(error => {
-                    this.errors = error.response.data.errors;
-                    this.snackColor = 'error';
-                    this.snackText = 'No se pudo guardar el registro, revise los errores en el formulario.';
-                    this.timeout = 1300;
-                    this.loading = false;
-                })
-            }
-            else if(!this.type){
-                this.snackbar = true;
-                this.snackColor = 'error';
-                this.snackText = 'Selecciona el tipo de movimiento';
-                this.errors.type = 'Selecciona el tipo de movimiento';
-                this.timeout = 1300;
-                this.loading = false;
             }
         },
 
         async getPendingServices(){
-            await this.$axios.post('/api/services/pending-bills', {customer_id:this.customer_id})
-            .then(res => {
-                this.services = res.data;
-            })
+            this.loading_services = true;
+            if(this.customer_id){
+                await this.$axios.post('/api/services/pending-bills', {customer_id:this.customer_id})
+                .then(res => {
+                    this.services = res.data;
+                    this.loading_services = false;
+                })
+            }
         },
+
+        async getBillServices(){
+            this.loading_services = true;
+            if(this.customer_id){
+                await this.$axios.get(`/api/bill/services/${this.bill_id}/${this.customer_id}`)
+                .then(res => {
+                    this.billed_services = res.data.billed_services;
+                    this.services = res.data.services;
+                    this.loading_services = false;
+                })
+            }
+        },
+
+        formatPrice(value) {
+			let val = (value/1).toFixed(2).replace('.,', '.')
+			return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+        },
+
+        async getAccounts(){
+            if(this.bill_id){
+                await this.$axios.get('/api/accounts-list')
+                .then(res => {
+                    this.accounts = res.data.accounts;
+                    this.paying_methods = res.data.paying_methods;
+                })
+            }
+        },
+
+        setPaymentMethod(){
+            if(this.account_id){
+                if(this.account_id == 1){
+                    this.paying_method_id = 1;
+                }
+                else{
+                    this.paying_method_id = 3;
+                }
+            }
+        },
+        
+        Free(){
+
+        },
+
+        Cancel(){
+
+        },
+
+        Delete(index){
+            if(this.bill_id){
+
+            }
+            else{
+                // const service = this.services[index];
+                this.services.splice(index, 1);
+            }
+        }
     }
 }
 </script>

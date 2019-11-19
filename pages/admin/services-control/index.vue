@@ -67,30 +67,30 @@
 									<td>{{ service.customer }}</td>
 									<td class="text-center">
 										<ul class="list-style: none;" v-for="(bill, index) in service.bills" :key="index">
-											<a v-if="service.is_payed == 0 && (service.status != 2 || service.status != 4)">{{bill.folio_bill}}</a>
-											<li v-else>{{bill.folio_bill}}</li>
+											<a color="green" @click="editFolio(bill.id)" v-if="service.is_payed == 0 && (service.status != 2 || service.status != 4)">{{bill.folio}}</a>
+											<a v-else @click="editFolio(bill.id)">{{bill.folio}}</a>
 										</ul>
-										<v-icon v-if="service.is_payed == 0 && (service.status != 2 || service.status != 4)" color="blue">add</v-icon>
+										<v-icon @click="createBill(index, 'Factura')" v-if="service.billed == 0 && (service.status != 2 || service.status != 4)" color="blue">add</v-icon>
 									</td>
 									<td class="text-center">
 										<ul class="list-style: none;" v-for="(receipt, index) in service.receipts" :key="index">
-											<a v-if="service.is_payed == 0 && (service.status != 2 || service.status != 4)">{{receipt.folio_receipt}}</a>
-											<li v-else>{{receipt.folio_receipt}}</li>
+											<a color="green" @click="editFolio(receipt.id)" v-if="service.is_payed == 0 && (service.status != 2 || service.status != 4)">{{receipt.folio}}</a>
+											<a @click="editFolio(receipt.id)" v-else>{{receipt.folio}}</a>
 										</ul>
-										<v-icon v-if="service.is_payed == 0 && (service.status != 2 || service.status != 4)" color="blue">add</v-icon>
+										<v-icon @click="createReceipt(index, 'Recibo')" v-if="service.billed == 0 && (service.status != 2 || service.status != 4)" color="blue">add</v-icon>
 									</td>
 									<td class="text-right">{{ formatPrice(service.final_price) }}</td>
 									<td class="text-center">{{ service.resp }}</td>
 									<!-- Payments -->
-										<td v-if="service.status < 2" class="text-center">
-											<v-chip label small v-if="service.is_payed == 0" class="warning">Pendiente</v-chip>
-											<v-chip label small v-if="service.is_payed == 1" :title="service.date_payed" class="success">Pagado</v-chip>
-										</td>
-										<td v-else class="text-center">
-											<v-chip label small v-if="service.status == 2" class="error">Cancelado</v-chip>
-											<v-chip label small v-if="service.status == 3" class="error">No Registro</v-chip>
-											<v-chip label small v-if="service.status == 4" class="orange darken-1">Repetido</v-chip>
-										</td>
+									<td v-if="service.status < 2" class="text-center">
+										<v-chip label small v-if="service.is_payed == 0" class="warning">Pendiente</v-chip>
+										<v-chip label small v-if="service.is_payed == 1" :title="service.date_payed" class="success">Pagado</v-chip>
+									</td>
+									<td v-else class="text-center">
+										<v-chip label small v-if="service.status == 2" class="error">Cancelado</v-chip>
+										<v-chip label small v-if="service.status == 3" class="error">No Registro</v-chip>
+										<v-chip label small v-if="service.status == 4" class="orange darken-1">Repetido</v-chip>
+									</td>
 									<!-- Div -->
 									<td class="text-center">
 										<v-chip label small v-if="service.status == 0" class="warning">Pendiente</v-chip>
@@ -215,14 +215,14 @@
 										<v-flex xs4 sm4 md4 lg1 xl1>
 											<small>Facturas</small><br>
 											<ul class="list-style: none;" v-for="(bill, index) in service.bills" :key="index">
-												<li>{{bill.folio_bill}}</li>
+												<li>{{bill.folio}}</li>
 											</ul>
 											<v-icon v-if="service.is_payed == 0 && (service.status != 2 || service.status != 4)" color="blue">add</v-icon>
 										</v-flex>
 										<v-flex xs4 sm4 md4 lg1 xl1>
 											<small>Recibos</small><br>
 											<ul class="list-style: none;" v-for="(receipt, index) in service.receipts" :key="index">
-												<li>{{receipt.folio_receipt}}</li>
+												<li>{{receipt.folio}}</li>
 											</ul>
 											<v-icon v-if="service.is_payed == 0 && (service.status != 2 || service.status != 4)" color="blue">add</v-icon>
 										</v-flex>
@@ -280,7 +280,7 @@
 		</v-layout>
 		<Customer :customer_dialog="1" ref="customer_form"></Customer>
 		<Services :service_dialog="1" ref="services_form" v-on:addService="newService($event)"></Services>
-		<Bills :billing_dialog="1" ref="bills_form"></Bills>
+		<Bills :billing_dialog="1" ref="bills_form" v-on:updateServices="Reload()"></Bills>
 	</div>
 </template>
 
@@ -424,6 +424,24 @@ export default {
 		addBill(){
 			this.$refs.bills_form.addBill();
 		},
+		
+		createBill(index, type){
+			const bill = this.services[index];
+			let customer_id = bill.customer_id;
+			let customer = bill.customer;
+			this.$refs.bills_form.addBillAlready(customer_id, customer, type);
+		},
+		
+		createReceipt(index, type){
+			const receipt = this.services[index];
+			let customer_id = receipt.customer_id;
+			let customer = receipt.customer;
+			this.$refs.bills_form.addBillAlready(customer_id, customer, type);
+		},
+
+		editFolio(id){
+			this.$refs.bills_form.editBill(id);
+		},
 
 		formatPrice(value) {
 			let val = (value/1).toFixed(2).replace('.,', '.')
@@ -441,7 +459,8 @@ export default {
 
 		newService(data){
 			this.services.unshift(data);
-		}
+		}, 
+
 	}
 }
 </script>	

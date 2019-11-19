@@ -139,21 +139,35 @@
 								<v-btn large color="success" :loading="loading" @click="StoreService">Guardar<v-icon right>save</v-icon></v-btn>
 							</v-row>
                             <br>
-                            <v-simple-table class="elevation-4">
+                            <v-simple-table class="elevation-4" v-if="customer_id">
                                 <thead>
                                     <tr>
-                                        <th class="text-left">Fecha</th>
-                                        <th class="text-left">Servicio</th>
-                                        <th class="text-left">Precio</th>
-                                        <th class="text-left">Resp</th>
+                                        <th class="text-left" style="width:15%">Fecha</th>
+                                        <th class="text-left" style="width:30%">Servicio</th>
+                                        <th class="text-center" style="width:15%">Facturas</th>
+                                        <th class="text-center" style="width:15%">Recibos</th>
+                                        <th class="text-right" style="width:15%">Precio</th>
+                                        <th class="text-center" style="width:10%">Resp</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="(service, index) in services_collection" :key="index">
+                                    <tr v-for="(service, index) in servicesCollection" :key="index">
                                         <td title="service.id">{{ service.date }}</td>
                                         <td>{{ service.code }} - {{ service.brand }}<span v-if="service.class"> {{service.class}}</span></td>
-                                        <td>{{ service.final_price }}</td>
-                                        <td>{{ service.resp }}</td>
+                                        <td class="text-center">
+                                            <ul class="list-style: none;" v-for="(bill, index) in service.bills" :key="index">
+                                                <a v-if="service.is_payed == 0 && (service.status != 2 || service.status != 4)">{{bill.folio}}</a>
+                                                <li v-else>{{bill.folio}}</li>
+                                            </ul>
+                                        </td>
+                                        <td class="text-center">
+                                            <ul class="list-style: none;" v-for="(receipt, index) in service.receipts" :key="index">
+                                                <a v-if="service.is_payed == 0 && (service.status != 2 || service.status != 4)">{{receipt.folio}}</a>
+                                                <li v-else>{{receipt.folio}}</li>
+                                            </ul>
+                                        </td>
+                                        <td class="text-right">$ {{ formatPrice(service.final_price) }}</td>
+                                        <td class="text-center">{{ service.resp }}</td>
                                     </tr>
                                 </tbody>
                             </v-simple-table>
@@ -249,7 +263,7 @@ export default {
             loading: false,
             date: new Date().toISOString().substr(0, 10),
             date_menu:false,
-            services_collection:[],
+            servicesCollection:[],
 			//snackbar
             snackbar: false,
             snackColor: '',
@@ -302,6 +316,7 @@ export default {
 				this.customers = res.data.data;
                 this.customer_id = this.customer.id;
                 this.getBrands();
+                this.getPendingServices();
                 this.customerLoading = false;
                 this.errors = {};
 			})
@@ -317,6 +332,7 @@ export default {
             this.customer = null;
             this.brand_id = '';
             this.brands = [];
+            this.servicesCollection = {};
         },
 
         serviceSelect(val){
@@ -344,6 +360,15 @@ export default {
             .catch(error => {
                 this.errors = error.response.data.errors;
             })
+        },
+
+        async getPendingServices(){
+            if(this.customer_id){
+                await this.$axios.get(`/api/customer/pending-services/${this.customer_id}`)
+                .then(res => {
+                    this.servicesCollection = res.data;
+                })
+            }
         },
 
         changeCoin(){
@@ -690,7 +715,7 @@ export default {
             this.total_advance = 0;
             this.status_category_id = '';
             this.status_subcategory_id = '';
-            this.services_collection = {};
+            this.servicesCollection = {};
         },
 
         ReloadService(){
@@ -739,6 +764,11 @@ export default {
                 })
             }
         },
+
+        formatPrice(value) {
+			let val = (value/1).toFixed(2).replace('.,', '.')
+			return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+		},
 
         async getResponsables(){
             await this.$axios.get('/api/responsables')
@@ -827,14 +857,15 @@ export default {
                 this.snackbar = true;
                 this.snackColor = 'success';
                 this.snackText = 'Se creó el servicio exitosamente';
-                this.timeout = 2000;
-                this.$emit('addService', res.data);
-                this.services_collection.unshift(res.data)
-                this.ReloadService();
+                this.timeout = 3000;
+                const data = res.data;
+                this.servicesCollection.unshift(data);
+                this.$emit('addService', data);
                 this.loading = false;
-                console.clear();
+                this.ReloadService();
             })
             .catch(error => {
+                // console.clear();
                 this.errors = error.response.data.errors;
                 this.snackbar = true;
                 this.snackColor = 'error';
