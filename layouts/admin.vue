@@ -30,7 +30,7 @@
                     </v-list-item-content>
                 </v-list-item>
 
-                <v-list-group prepend-icon="event_seat" no-action>
+                <!-- <v-list-group prepend-icon="event_seat" no-action>
                     <template v-slot:activator>
                         <v-list-item-content>
                             <v-list-item-title>Dirección</v-list-item-title>
@@ -84,7 +84,7 @@
                             <v-icon>touch_app</v-icon>
                         </v-list-item-action>
                     </v-list-item>
-                </v-list-group>
+                </v-list-group> -->
 
                 <v-divider></v-divider>
                 <v-subheader>Servicios</v-subheader>
@@ -135,7 +135,7 @@
                             <v-icon>money</v-icon>
                         </v-list-item-action>
                     </v-list-item>
-                    <v-list-item>
+                    <!-- <v-list-item>
                         <v-list-item-content router exact>
                             <v-list-item-title>Descuentos</v-list-item-title>
                         </v-list-item-content>
@@ -158,7 +158,7 @@
                         <v-list-item-action>
                             <v-icon>attach_money</v-icon>
                         </v-list-item-action>
-                    </v-list-item>
+                    </v-list-item> -->
                 </v-list-group>
 
                 <v-list-group prepend-icon="people" no-action>
@@ -202,7 +202,7 @@
                     </v-list-item-content>
                 </v-list-item>
 
-                <v-list-group prepend-icon="bookmarks" no-action>
+                <!-- <v-list-group prepend-icon="bookmarks" no-action>
                     <template v-slot:activator>
                         <v-list-item-content>
                             <v-list-item-title>Bitácoras</v-list-item-title>
@@ -345,9 +345,9 @@
                     <v-list-item-content>
                         <v-list-item-title>Comisiones</v-list-item-title>
                     </v-list-item-content>
-                </v-list-item>
+                </v-list-item> -->
 
-                <v-divider></v-divider>
+                 <v-divider></v-divider>
 				<v-subheader>Adminstración</v-subheader>
 
                 <v-list-group prepend-icon="insert_drive_file" no-action>
@@ -396,8 +396,8 @@
                             <v-icon style="color:green">money</v-icon>
                         </v-list-item-action>
                     </v-list-item>
-                    <v-list-item>
-                        <v-list-item-content router exact>
+                    <v-list-item router exact to="/admin/finance/expenses">
+                        <v-list-item-content>
                             <v-list-item-title>Egresos</v-list-item-title>
                         </v-list-item-content>
                         <v-list-item-action>
@@ -439,7 +439,7 @@
                     </v-list-item-content>
                 </v-list-item>
 
-                <v-divider></v-divider>
+                <!--<v-divider></v-divider>
 				<v-subheader>Aplicaciones</v-subheader>
 
                 <v-list-item router exact>
@@ -634,7 +634,7 @@
                             <v-icon></v-icon>
                         </v-list-item-action>
                     </v-list-item>
-                </v-list-group>
+                </v-list-group> -->
 
                 <v-divider></v-divider>
 

@@ -4,7 +4,7 @@
 			<v-form>
 				<v-card>
 					<v-card-title class="primary white--text">
-						Agregar cliente
+						{{title}}
 						<v-spacer></v-spacer>
 						<v-btn icon @click="service_dialog = false"><v-icon color="white">close</v-icon></v-btn>
 					</v-card-title>
@@ -12,7 +12,8 @@
 						<v-container fluid>
 							<v-row>
 								<v-col cols="12" sm="12" md="7" lg="6">
-									<v-autocomplete v-model="customer" :items="customers" outlined :loading="customerLoading" :search-input.sync="sync_customer" hide-no-data hide-selected item-text="customer" item-value="id" placeholder="Buscar cliente..." return-object :error-messages="errors.customer_id" label="Cliente" append-icon="clear" @click:append="ClearCustomer"></v-autocomplete>
+									<v-autocomplete v-if="!service_id" v-model="customer" :items="customers" outlined :loading="customerLoading" :search-input.sync="sync_customer" hide-no-data hide-selected item-text="customer" item-value="id" placeholder="Buscar cliente..." return-object :error-messages="errors.customer_id" label="Cliente" append-icon="clear" @click:append="ClearCustomer"></v-autocomplete>
+                                    <v-text-field v-if="service_id" v-model="customer" outlined label="Cliente" readonly></v-text-field>
 								</v-col>
                                 <v-spacer></v-spacer>
                                 <v-col cols="12" sm="12" md="4" lg="2">
@@ -35,7 +36,8 @@
                             </v-row>
 							<v-row>
 								<v-col cols="12" sm="12" md="10" lg="10">
-                                    <v-autocomplete v-model="service" :items="services" outlined :loading="serviceLoading" :search-input.sync="sync_service" hide-no-data hide-selected item-text="service" item-value="id" placeholder="Buscar servicio..." return-object :error-messages="errors.services_catalog_id" label="Servicio" append-outer-icon="refresh" append-icon="clear" @click:append="ClearData" @click:append-outer="getServiceData"></v-autocomplete>
+                                    <v-autocomplete v-if="service_select" v-model="service" :items="services" outlined :loading="serviceLoading" :search-input.sync="sync_service" hide-no-data hide-selected item-text="service" item-value="id" placeholder="Buscar servicio..." return-object :error-messages="errors.services_catalog_id" label="Servicio" append-outer-icon="refresh" append-icon="clear" @click:append="ClearData" @click:append-outer="getServiceData"></v-autocomplete>
+                                    <v-text-field v-if="!service_select" v-model="service" outlined label="Servicio" readonly append-icon="edit" @click:append="service_select = true"></v-text-field>
                                 </v-col>
 							</v-row>
                             <v-row>
@@ -59,11 +61,14 @@
                                     <v-select v-model="coin_id" :items="coins" item-value="id" item-text="coin" outlined label="Moneda" @change="changeCoin" readonly></v-select>
                                 </v-col>
                                 <v-col cols="12" sm="6" md="3" lg="2">
-                                    <v-text-field v-model="cost" type="number" step="any" outlined label="Costo Emporio" append-icon="refresh" :error-messages="errors.cost" v-on:keyup="editCost" @click:append="editCost"></v-text-field>
-                                </v-col>
-                                <v-col cols="12" sm="6" md="3" lg="2">
                                     <v-text-field v-model="price_desc" filled label="Precio base" readonly></v-text-field>
                                 </v-col>
+                                <v-col cols="12" sm="6" md="3" lg="2">
+                                    <v-text-field v-model="cost" type="number" step="any" outlined label="Pago de Derechos" append-icon="refresh" :error-messages="errors.cost" v-on:keyup="editCost" @click:append="editCost"></v-text-field>
+                                </v-col>
+                                <!-- <v-col cols="12" sm="6" md="3" lg="2">
+                                    <v-text-field v-model="external_fee" type="number" step="any" outlined label="Pago de Honorarios" append-icon="add" :error-messages="errors.external_fee" @click:append="addExternalFee"></v-text-field>
+                                </v-col> -->
                                 <!-- <v-col cols="12" sm="6" md="3" lg="2">
                                     <v-text-field v-model="fee" readonly type="number" step="any" outlined label="Honorarios"></v-text-field>
                                 </v-col> -->
@@ -81,6 +86,43 @@
                                 </v-col>
                                 <v-col cols="12" sm="6" md="3" lg="2">
                                     <v-text-field v-model="final_price" type="number" step="any" outlined label="Precio sin IVA*" append-icon="refresh" :error-messages="errors.final_price" @click:append="FinalCut" v-on:keyup="FinalCut"></v-text-field>
+                                </v-col>
+                            </v-row>
+                            <v-row v-if="show_related">
+                                <v-col cols="12" xs="12" sm="12" md="7" lg="5" xl="5">
+                                    <v-select v-model="select_related" outlined label="Seleccionar servicio extra" :items="related_services" item-value="id" item-text="service"  append-icon="clear" @click:append="select_related = ''" :error-messages="errors.select_related"></v-select>
+                                </v-col>
+                                <v-col cols="12" xs="12" sm="12" md="3" lg="2" xl="2">
+                                    <v-text-field v-model="related_ammount" type="number" step="any" min="0" outlined label="Monto de honorarios" append-icon="refresh" :error-messages="errors.related_ammount" append-outer-icon="add" @click:append-outer="getRelatedServiceData"></v-text-field>
+                                </v-col>
+                            </v-row>
+                            <v-row v-if="show_related && related.length > 0">
+                                <v-col cols="12" xs="12">
+                                    <v-simple-table class="elevation-2">
+                                        <thead>
+                                            <tr>
+                                                <th class="text-left" style="width:70%">Servicio</th>
+                                                <th class="text-right" style="width:15%">Monto</th>
+                                                <th class="text-right" style="width:15%"></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr v-for="(service, i) in related" :key="i">
+                                                <td>{{ service.service }}</td>
+                                                <td class="text-right">
+                                                    <v-edit-dialog :return-value.sync="service.related_ammount" large persistent>
+                                                        <div><b>{{ service.related_ammount }}</b></div>
+                                                        <template v-slot:input>
+                                                            <v-text-field v-model="service.related_ammount" label="Editar monto" single-line autofocus max="service.related_ammount" type="number" step="any"></v-text-field>
+                                                        </template>
+                                                    </v-edit-dialog>    
+                                                </td>
+                                                <td class="text-right">
+                                                    <v-btn fab icon small color="error" @click="deleteRelated(i)"><v-icon>close</v-icon></v-btn>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </v-simple-table>
                                 </v-col>
                             </v-row>
                             <hr>
@@ -136,10 +178,10 @@
                                 </v-col>
 							</v-row>
                             <v-row>
-								<v-btn large color="success" :loading="loading" @click="StoreService">Guardar<v-icon right>save</v-icon></v-btn>
+								<v-btn large color="success" :loading="loading" @click="SaveService">Guardar<v-icon right>save</v-icon></v-btn>
 							</v-row>
                             <br>
-                            <v-simple-table class="elevation-4" v-if="customer_id">
+                            <v-simple-table class="elevation-4" v-if="customer_id && servicesCollection">
                                 <thead>
                                     <tr>
                                         <th class="text-left" style="width:15%">Fecha</th>
@@ -197,6 +239,7 @@
 export default {
     data(){
         return{
+            title:'',
             service_dialog:false,
             errors:{},
             //Customer
@@ -211,6 +254,7 @@ export default {
             serviceLoading:false,
             sync_service:'',
             service_id:'',
+            service_select:true,
             //Data
             brand_id:'',
             brands:[],
@@ -222,9 +266,9 @@ export default {
             coins:'',
             coin_id:'',
             cost:0,
+            external_fee:0,
             price:0,
             price_desc:'',
-            final_price:0,
             conversion:0,
             conversion_base:0,
             service_discount:0,
@@ -238,7 +282,12 @@ export default {
             status_subcategory_id:'',
             status_categories:[],
             status_subcategories:[],
-
+            //Related services
+            show_related:false,
+            related:[],
+            select_related:'',
+            related_services:[],
+            related_ammount:0,
             //Comisions
             sales_comission:0,
             management_comission:0,
@@ -253,7 +302,7 @@ export default {
             sales_check:true,
             management_check:false,
             operations_check:true,
-            //
+            //lists
             binnacles:[],
             binnacle_id:'',
             responsables:[],
@@ -290,7 +339,7 @@ export default {
 			}
 			else{
 				this.services = [];
-				this.service_id = '';
+				this.services_catalog_id = '';
 				this.service = null;
 			}
 		}
@@ -300,6 +349,7 @@ export default {
         addService()
         {
             this.service_dialog = true;
+            this.title = 'Agregar Servicio'
             this.getClasses();
             this.getBinnacles();
             this.getResponsables();
@@ -307,6 +357,50 @@ export default {
             this.getEstatus();
             this.ClearService();
             this.ClearData();
+        },
+
+        editService(service_id){
+            this.service_dialog = true;
+            this.service_select = false;
+            this.title = 'Editar Servicio: #' + service_id;
+            this.service_id = service_id;
+            this.getClasses();
+            this.getBinnacles();
+            this.getResponsables();
+            this.getCoins();
+            this.getEstatus();
+            this.$axios.get(`/api/service/edit/${service_id}`)
+            .then(res =>{
+                this.customer_id = res.data.customer_id;
+                this.customer = res.data.customer;
+                this.date = res.data.date;
+                this.getBrands();
+                this.brand_id = res.data.brand_id;
+                this.class_id = res.data.class_id;
+                this.services_catalog_id = res.data.services_catalog_id;
+                this.service = res.data.service;
+                this.responsable_id = res.data.responsable_id;
+                this.binnacle_id = res.data.binnacle_id;
+                this.status_category_id = res.data.status_category_id;
+                this.status_subcategory_id = res.data.status_subcategory_id;
+                this.coin_id = res.data.money_exchange_id;
+                this.price_desc = res.data.price_desc;
+                this.cost = res.data.cost;
+                this.external_fee = res.data.external_fee;
+                this.conversion = res.data.money_exchange;
+                this.discount = res.data.discount;
+                this.discount_percent = res.data.discount_percent;
+                this.final_price = res.data.final_price;
+                this.comment = res.data.comment;
+                this.show_related = false;
+                this.related = [];
+                this.select_related = '';
+                this.related_services = [];
+                this.related_ammount = 0;
+            })
+            .catch(error => {
+                console.log(error);
+            })
         },
         
         customerSelect(val){
@@ -340,7 +434,7 @@ export default {
 			this.$axios.post('/api/services/list', {search:val})
 			.then(res => {
 				this.services = res.data;
-                this.service_id = this.service.id;
+                this.services_catalog_id = this.service.id;
                 this.getServiceData();
                 this.getRequirements();
                 this.serviceLoading = false;
@@ -434,8 +528,8 @@ export default {
         },
 
         async getServiceData(){
-            if(this.service_id){
-                await this.$axios.post('/api/services/data', {id:this.service_id, customer_id:this.customer_id})
+            if(this.services_catalog_id){
+                await this.$axios.post('/api/services/data', {id:this.services_catalog_id, customer_id:this.customer_id})
                 .then(res => {
                     this.errors = {};
                     const conversion = res.data.service.conversion;
@@ -456,14 +550,15 @@ export default {
                     //Discounts
                     const discount = (res.data.service.price * conversion) * ((res.data.discount * conversion) / 100);
                     this.discount_percent = res.data.discount;
-                    this.discount = discount;
+                    this.discount = Math.round(discount * 100) / 100;
 
                     //Totals
+                    this.external_fee = res.data.service.external_fee;
                     this.conversion = conversion;
                     this.conversion_base = conversion;
                     this.cost = res.data.service.cost * conversion;
-                    this.final_price = (res.data.service.price * conversion) - discount;
-                    this.const_price = (res.data.service.price * conversion) - discount;
+                    this.final_price = Math.round(((res.data.service.price * conversion) - discount) * 100) / 100;
+                    this.const_price = Math.round(((res.data.service.price * conversion) - discount) * 100) / 100;
                     this.fee = Math.round(((res.data.service.price * conversion) - (res.data.service.cost * conversion) - discount) * 100)/100;
 
                     //Comissions
@@ -526,7 +621,7 @@ export default {
                 })
             }
             else{
-                this.errors.service_id = 'Seleccione un servicio';
+                this.errors.services_catalog_id = 'Seleccione un servicio';
             }
         },
 
@@ -669,6 +764,7 @@ export default {
         },
 
         ClearData(){
+            this.service_select = true;
             this.services = {};
             this.service_id = '';
             this.service = null;
@@ -677,6 +773,7 @@ export default {
             this.price = 0;
             this.price_desc = 0;
             this.fee = 0;
+            this.external_fee = 0;
             this.conversion = 0;
             this.conversion_base = 0;
             this.discount = 0;
@@ -695,6 +792,12 @@ export default {
             this.total_advance = 0;
             this.status_category_id = '';
             this.status_subcategory_id = '';
+            //Related
+            this.show_related = false;
+            this.related = [];
+            this.select_related = '';
+            this.related_services = [];
+            this.related_ammount = 0;
         },
 
         ClearService(){
@@ -778,8 +881,8 @@ export default {
         },
 
         async getRequirements(){
-            if(this.service_id){
-                await this.$axios.get(`/api/services/requirements/${this.service_id}`)
+            if(this.services_catalog_id){
+                await this.$axios.get(`/api/services/requirements/${this.services_catalog_id}`)
                 .then(res => {
                     this.process = res.data;
                     this.total_advance = this.process.length;
@@ -836,7 +939,7 @@ export default {
                 await this.$axios.get(`/api/show-class-description/${this.class_id}`)
                 .then(res => {
                     this.snackbar = true;
-                    this.snackColor = 'info';
+                    this.snackColor = 'purple';
                     this.snackText = res.data.description;
                     this.timeout = 10000;
                 })
@@ -849,30 +952,89 @@ export default {
             }
         },
 
-        async StoreService(){
-            this.loading = true;
-            await this.$axios.post('/api/store/service', {comment:this.comment, date:this.date, cost:this.cost, price:this.price, money_exchange:this.conversion, discount:this.discount, discount_percent:this.discount_percent, final_price:this.final_price, advance_total:this.total_advance, money_exchange_id:this.coin_id, customer_id:this.customer_id, brand_id:this.brand_id, services_catalog_id:this.service_id, responsable_id:this.responsable_id, binnacle_id:this.binnacle_id, class_id:this.class_id, sales:this.sales, management:this.management, operations:this.operations, sales_comission:this.sales_comission, operations_comission:this.operations_comission, management_comission:this.management_comission, process:this.process, sales_check:this.sales_check, operations_check:this.operations_check, management_check:this.management_check, sales_value:this.sales_value, operations_value:this.operations_value, management_value:this.management_value, status_category_id:this.status_category_id, status_subcategory_id:this.status_subcategory_id})
-            .then(res => {
+        async addExternalFee(){
+            if(this.services_catalog_id){
+                this.show_related = true;
+                await this.$axios.get('/api/services-additional')
+                .then(res => {
+                    this.related_ammount = this.external_fee;
+                    this.related_services = res.data;
+                })
+            }
+        },
+
+        async getRelatedServiceData(){
+            await this.$axios.post('/api/service-additional/data', {related_ammount:this.related_ammount, select_related:this.select_related})
+            .then(res=> {
+                this.related.unshift(res.data);
                 this.errors = {};
-                this.snackbar = true;
-                this.snackColor = 'success';
-                this.snackText = 'Se creó el servicio exitosamente';
-                this.timeout = 3000;
-                const data = res.data;
-                this.servicesCollection.unshift(data);
-                this.$emit('addService', data);
-                this.loading = false;
-                this.ReloadService();
+                this.related_ammount = 0;
+                this.select_related = '';
             })
             .catch(error => {
-                // console.clear();
                 this.errors = error.response.data.errors;
-                this.snackbar = true;
-                this.snackColor = 'error';
-                this.snackText = 'No se pudo generar el servicio, revise los errores en el formulario.';
-                this.timeout = 2000;
-                this.loading = false;
             })
+        },
+
+        deleteRelated: function(index){
+            if(this.service_id){
+                
+            }
+            else{
+                this.related.splice(index,1);
+            }
+        },
+
+        async SaveService(){
+            if(this.service_id){
+                this.loading = true;
+                await this.$axios.put(`/api/service/update/${this.service_id}`, {comment:this.comment, date:this.date, cost:this.cost, price:this.price, money_exchange:this.conversion, discount:this.discount, discount_percent:this.discount_percent, final_price:this.final_price, advance_total:this.total_advance, money_exchange_id:this.coin_id, customer_id:this.customer_id, brand_id:this.brand_id, services_catalog_id:this.services_catalog_id, responsable_id:this.responsable_id, binnacle_id:this.binnacle_id, class_id:this.class_id, sales:this.sales, management:this.management, operations:this.operations, sales_comission:this.sales_comission, operations_comission:this.operations_comission, management_comission:this.management_comission, process:this.process, sales_check:this.sales_check, operations_check:this.operations_check, management_check:this.management_check, sales_value:this.sales_value, operations_value:this.operations_value, management_value:this.management_value, status_category_id:this.status_category_id, status_subcategory_id:this.status_subcategory_id, external_fee:this.external_fee, utility:this.fee})
+                .then(res => {
+                    this.errors = {};
+                    this.snackbar = true;
+                    this.snackColor = 'success';
+                    this.snackText = 'Se editó el servicio exitosamente';
+                    this.timeout = 3000;
+                    this.$emit('updateService', res.data);
+                    this.loading = false;
+                    this.ReloadService();
+                    this.service_dialog = false;
+                })
+                .catch(error => {
+                    // console.clear();
+                    this.errors = error.response.data.errors;
+                    this.snackbar = true;
+                    this.snackColor = 'error';
+                    this.snackText = 'No se pudo actualizar el servicio, revise los errores en el formulario.';
+                    this.timeout = 2000;
+                    this.loading = false;
+                })
+            }
+            else{
+                this.loading = true;
+                await this.$axios.post('/api/service/store', {comment:this.comment, date:this.date, cost:this.cost, price:this.price, money_exchange:this.conversion, discount:this.discount, discount_percent:this.discount_percent, final_price:this.final_price, advance_total:this.total_advance, money_exchange_id:this.coin_id, customer_id:this.customer_id, brand_id:this.brand_id, services_catalog_id:this.services_catalog_id, responsable_id:this.responsable_id, binnacle_id:this.binnacle_id, class_id:this.class_id, sales:this.sales, management:this.management, operations:this.operations, sales_comission:this.sales_comission, operations_comission:this.operations_comission, management_comission:this.management_comission, process:this.process, sales_check:this.sales_check, operations_check:this.operations_check, management_check:this.management_check, sales_value:this.sales_value, operations_value:this.operations_value, management_value:this.management_value, status_category_id:this.status_category_id, status_subcategory_id:this.status_subcategory_id, external_fee:this.external_fee, utility:this.fee})
+                .then(res => {
+                    this.errors = {};
+                    this.snackbar = true;
+                    this.snackColor = 'success';
+                    this.snackText = 'Se creó el servicio exitosamente';
+                    this.timeout = 3000;
+                    const data = res.data;
+                    this.servicesCollection.unshift(data);
+                    this.$emit('addService', data);
+                    this.loading = false;
+                    this.ReloadService();
+                })
+                .catch(error => {
+                    // console.clear();
+                    this.errors = error.response.data.errors;
+                    this.snackbar = true;
+                    this.snackColor = 'error';
+                    this.snackText = 'No se pudo generar el servicio, revise los errores en el formulario.';
+                    this.timeout = 2000;
+                    this.loading = false;
+                })
+            }
         }
     }
 }

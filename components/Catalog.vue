@@ -44,13 +44,24 @@
                                     <v-select v-model="money_exchange_id" :items="coins" item-value="id" item-text="coin" outlined label="Tipo de Moneda" :error-messages="errors.money_exchange_id"></v-select>
                                 </v-col>
                                 <v-col cols="12" sm="12" md="3" lg="2">
-                                    <v-text-field v-model="cost" v-on:keyup="CalculateValues" outlined label="Costo Emporio *" type="number" step="any" min="0" :error-messages="errors.cost"></v-text-field>
+                                    <v-text-field v-model="cost" v-on:keyup="CalculateValues" outlined label="Pago de Derechos *" type="number" step="any" min="0" :error-messages="errors.cost"></v-text-field>
+                                </v-col>
+                                <v-col cols="12" sm="12" md="3" lg="2">
+                                    <v-text-field v-model="external_fee" outlined label="Pago de Honorarios *" type="number" step="any" min="0" :error-messages="errors.external_fee"></v-text-field>
                                 </v-col>
                                 <v-col cols="12" sm="12" md="3" lg="2">
                                     <v-text-field v-model="price" outlined label="Precio (Sin IVA) *" type="number" step="any" min="0" v-on:keyup="CalculateValues" :error-messages="errors.price"></v-text-field>
                                 </v-col>
-                                <v-col cols="12" sm="12" md="3" lg="2">
-                                    <v-checkbox v-model="authorize" color="primary" label="Autorizar precio 0" :error-messages="errors.authorize"></v-checkbox>
+                                <v-col cols="12" sm="12" md="3" lg="3">
+                                    <v-checkbox v-model="authorize" color="primary" label="Por proyecto" :error-messages="errors.authorize"></v-checkbox>
+                                </v-col>
+                            </v-row>
+                            <v-row>
+                                <v-col cols="12" sm="12" md="3" lg="3">
+                                    <v-checkbox v-model="additional_service" color="primary" label="Aplica en cargos adicionales?" :error-messages="errors.additional_service"></v-checkbox>
+                                </v-col>
+                                <v-col cols="12" sm="12" md="3" lg="3">
+                                    <v-checkbox v-model="allow_finance" color="primary" label="Aplica financiamiento mensual?" :error-messages="errors.allow_finance"></v-checkbox>
                                 </v-col>
                             </v-row>
                             <v-row>
@@ -171,8 +182,11 @@ export default {
             comments:'',
             money_exchange_id:'',
             cost:0,
+            external_fee:0,
             price:0,
             authorize:0,
+            additional_service:0,
+            allow_finance:0,
             //sales
             sales:0,
             sales_percent:0,
@@ -222,7 +236,10 @@ export default {
             this.comments = '';
             this.money_exchange_id = '';
             this.authorize = 0;
+            this.additional_service = 0;
+            this.allow_finance = 0;
             this.cost = 0;
+            this.external_fee = 0;
             this.price = 0;
             this.sales = 0;
             this.sales_comission = 0;
@@ -257,7 +274,10 @@ export default {
                 this.comments = res.data.comments;
                 this.money_exchange_id = res.data.money_exchange_id;
                 this.authorize = res.data.authorize;
+                this.additional_service = res.data.additional_service;
+                this.allow_finance = res.data.allow_finance;
                 this.cost = (res.data.cost) * 1;
+                this.external_fee = (res.data.external_fee) * 1;
                 this.price = (res.data.price) * 1;
                 this.sales = (res.data.sales) * 1;
                 this.sales_comission = (res.data.sales_comission) * 1;
@@ -456,7 +476,7 @@ export default {
 
         async Save(){
             if(this.service_catalog_id){
-                await this.$axios.put(`/api/catalog/update/${this.service_catalog_id}`, {code:this.code, service:this.service, comments:this.comments, price:this.price, cost:this.cost, fee:this.fee, utility:this.utility, utility_percent:this.utility_percent, sales_comission:this.sales_comission, management_comission:this.management_comission, operations_comission:this.operations_comission, sales:this.sales, operations:this.operations, management:this.management, authorize:this.authorize, money_exchange_id:this.money_exchange_id, services_category_id:this.services_category_id, binnacle_id:this.binnacle_id, status_category_id:this.status_category_id, status_subcategory_id:this.status_subcategory_id})
+                await this.$axios.put(`/api/catalog/update/${this.service_catalog_id}`, {code:this.code, service:this.service, comments:this.comments, price:this.price, cost:this.cost, fee:this.fee, utility:this.utility, utility_percent:this.utility_percent, sales_comission:this.sales_comission, management_comission:this.management_comission, operations_comission:this.operations_comission, sales:this.sales, operations:this.operations, management:this.management, authorize:this.authorize, money_exchange_id:this.money_exchange_id, services_category_id:this.services_category_id, binnacle_id:this.binnacle_id, status_category_id:this.status_category_id, status_subcategory_id:this.status_subcategory_id, external_fee:this.external_fee, additional_service:this.additional_service, allow_finance:this.allow_finance})
                 .then(res => {
                     this.$emit('updateService', res.data);
                     this.snackbar = true;
@@ -479,7 +499,7 @@ export default {
                 })
             }
             else{
-                await this.$axios.post('/api/catalog/store', {code:this.code, service:this.service, comments:this.comments, price:this.price, cost:this.cost, fee:this.fee, utility:this.utility, utility_percent:this.utility_percent, sales_comission:this.sales_comission, management_comission:this.management_comission, operations_comission:this.operations_comission, sales:this.sales, operations:this.operations, management:this.management, authorize:this.authorize, money_exchange_id:this.money_exchange_id, services_category_id:this.services_category_id, binnacle_id:this.binnacle_id, status_category_id:this.status_category_id, status_subcategory_id:this.status_subcategory_id})
+                await this.$axios.post('/api/catalog/store', {code:this.code, service:this.service, comments:this.comments, price:this.price, cost:this.cost, fee:this.fee, utility:this.utility, utility_percent:this.utility_percent, sales_comission:this.sales_comission, management_comission:this.management_comission, operations_comission:this.operations_comission, sales:this.sales, operations:this.operations, management:this.management, authorize:this.authorize, money_exchange_id:this.money_exchange_id, services_category_id:this.services_category_id, binnacle_id:this.binnacle_id, status_category_id:this.status_category_id, status_subcategory_id:this.status_subcategory_id, external_fee:this.external_fee, additional_service:this.additional_service, allow_finance:this.allow_finance})
                 .then(res => {
                     this.$emit('newService', res.data);
                     this.snackbar = true;

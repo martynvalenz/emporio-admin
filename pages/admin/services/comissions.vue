@@ -27,8 +27,8 @@
 									<th class="text-center" style="width:5%">Moneda</th>
 									<th class="text-center" style="width:13%">Precio</th>
 									<th class="text-center" style="width:6%">Venta</th>
-									<th class="text-center" style="width:6%">Operativa</th>
 									<th class="text-center" style="width:6%">Gestión</th>
+									<th class="text-center" style="width:6%">Operativa</th>
 									<th class="text-center" style="width:7%">Status</th>
 									<th class="text-right" style="width:12%"></th>
 								</tr>

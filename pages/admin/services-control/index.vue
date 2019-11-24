@@ -108,7 +108,7 @@
 												</v-btn>
 											</template>
 											<v-list>
-												<v-list-item>
+												<v-list-item @click="EditService(index)">
 													<v-list-item-content>
 														<v-list-item-title>Editar</v-list-item-title>
 													</v-list-item-content>
@@ -279,7 +279,7 @@
 			</v-flex>
 		</v-layout>
 		<Customer :customer_dialog="1" ref="customer_form"></Customer>
-		<Services :service_dialog="1" ref="services_form" v-on:addService="newService($event)"></Services>
+		<Services :service_dialog="1" ref="services_form" v-on:addService="newService($event)" v-on:updateService="updateService($event)"></Services>
 		<Bills :billing_dialog="1" ref="bills_form" v-on:updateServices="Reload()"></Bills>
 	</div>
 </template>
@@ -304,6 +304,7 @@ export default {
 			services_loading:false,
 			search_table:'',
 			search_invoice:'',
+			selected_service:'',
 			status:'todo',
 			statuses:[],
 			payed_status:'todo',
@@ -460,6 +461,18 @@ export default {
 		newService(data){
 			this.services.unshift(data);
 		}, 
+
+		EditService(index){
+			const service = this.services[index];
+			this.selected_service = index;
+			let service_id = service.id;
+			this.$refs.services_form.editService(service_id);
+		},
+
+		updateService(data){
+			this.services[this.selected_service] = data;
+			this.selected_service = '';
+		}
 
 	}
 }

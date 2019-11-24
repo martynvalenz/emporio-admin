@@ -192,7 +192,7 @@
                             </v-row>
                             <v-row>
                                 <v-col cols="12" sm="12" md="6" lg="3">
-                                    <v-text-field v-model="ammount" label="Monto" type="number" step="any" min="0" outlined></v-text-field>
+                                    <v-text-field v-model="ammount" label="Monto" type="number" step="any" min="0" outlined :error-messages="errors.deposit"></v-text-field>
                                 </v-col>
                                 <v-col cols="12" sm="12" md="6" lg="3">
                                     <v-menu v-model="date_payed_menu" :close-on-content-click="false" :nudge-right="40" transition="scale-transition" offset-y full-width min-width="290px">
@@ -224,7 +224,7 @@
                             </v-row>
                             <v-row>
                                 <v-col cols="12" sm="12">
-                                    <v-btn color="primary">Generar Ingreso<v-icon right>money</v-icon></v-btn>
+                                    <v-btn color="primary" @click="Income">Generar Ingreso<v-icon right>money</v-icon></v-btn>
                                 </v-col>
                             </v-row>
                         </v-container>
@@ -243,7 +243,7 @@
                                     <v-text-field v-model="balance" label="Monto pendiente de factura" readonly type="number" step="any" min="0" filled></v-text-field>
                                 </v-col>
                                 <v-col cols="12" sm="12" md="6" lg="3">
-                                    <v-text-field v-model="payed_ammount" label="Monto a pagar *" type="number" step="any" min="0" outlined></v-text-field>
+                                    <v-text-field v-model="bill_pending" label="Monto a pagar *" type="number" step="any" min="0" outlined></v-text-field>
                                 </v-col>
                                 <v-col cols="12" sm="12" md="6" lg="3">
                                     <v-btn color="green" dark block large>Pagar Factura<v-icon right>check</v-icon></v-btn>
@@ -312,6 +312,7 @@ export default {
             total:0,
             calculated_subtotal:0,
             service_selected:'',
+            payed_ammount:0,
             //Payment
             ammount:0,
             date_payed:new Date().toISOString().substr(0, 10),
@@ -325,7 +326,8 @@ export default {
             paying_comments:'',
             //Pay Bill
             customers_balance:0,
-            payed_ammount:0,
+            customer_payment:0,
+            bill_pending:0,
 
             //snackbar
             snackbar: false,
@@ -446,15 +448,21 @@ export default {
                     this.is_payed = res.data.is_payed;
                     this.balance = res.data.balance;
                     this.payed_ammount = res.data.payed_ammount;
+                    this.ammount = res.data.total;
+                    this.bill_pending = res.data.total;
                     this.errors = {};
                     this.customers = {};
                     this.customer = null;
-                    if(res.data.type == 'Factura'){
+                    if(res.data.has_tax == 1){
                         this.has_tax = true;
+                    }
+                    else if(res.data.has_tax == 0){
+                        this.has_tax = false;
+                    }
+                    if(res.data.type == 'Factura'){
                         this.has_tax_readonly = true;
                     }
                     else if(res.data.type == 'Recibo'){
-                        this.has_tax = false;
                         this.has_tax_readonly = false;
                     }
                     this.getBillServices();
@@ -535,26 +543,32 @@ export default {
             if(this.type == 'Factura'){
                 this.has_tax = 1;
                 this.has_tax_readonly = true;
+                this.updateTAX();
             }
             else if(this.type == 'Recibo'){
                 this.has_tax = 0;
                 this.has_tax_readonly = false;
+                this.updateTAX();
             }
             else{
                 this.has_tax = 0;
                 this.has_tax_readonly = false;
+                this.updateTAX();
             }
         },
 
         updateTAX(){
-            console.log(this.has_tax)
-            if(this.has_tax && this.bill_id){
+            if(this.bill_id){
                 this.$axios.put(`/api/bill/update-tax/${this.bill_id}`, {has_tax:this.has_tax, tax_percent:this.tax_percent})
                 .then(res => {
-
-                })
-                .catch(error => {
-                    console.log(error)
+                    this.subtotal = res.data.subtotal;
+                    this.tax = res.data.tax;
+                    this.total = res.data.total;
+                    this.is_payed = res.data.is_payed;
+                    this.balance = res.data.balance;
+                    this.payed_ammount = res.data.payed_ammount;
+                    this.ammount = res.data.total;
+                    this.bill_pending = res.data.total;
                 })
             }
         },
@@ -600,7 +614,9 @@ export default {
                     this.total = success.data.total;
                     this.is_payed = success.data.is_payed;
                     this.balance = success.data.balance;
+                    this.ammount = success.data.total;
                     this.payed_ammount = success.data.payed_ammount;
+                    this.bill_pending = res.data.total;
                     this.errors = {};
                     this.customers = {};
                     this.customer = null;
@@ -690,13 +706,25 @@ export default {
 
         },
 
-        Delete(index){
+        Delete: function(index){
             if(this.bill_id){
 
             }
             else{
                 // const service = this.services[index];
                 this.services.splice(index, 1);
+            }
+        }, 
+
+        async Income(){
+            if(this.bill_id){
+                await this.$axios.post('/api/account-statement/income', {customer_id:this.customer_id, comment:this.paying_comments, date_payed:this.date_payed, cheque:this.check, movimiento:this.movement, deposit:this.ammount, tax_percent:this.tax_percent, has_tax:this.has_tax, paying_method_id:this.paying_method_id, account_id:this.account_id})
+                .then(res => {
+                    this.customers_balance = res.data.balance;
+                })
+                .catch(error => {
+
+                })
             }
         }
     }
