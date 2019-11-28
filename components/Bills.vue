@@ -211,10 +211,10 @@
                             </v-row>
                             <v-row>
                                 <v-col cols="12" sm="12" md="6" lg="3">
-                                    <v-select v-model="account_id" @change="setPaymentMethod" outlined label="Cuenta *" :items="accounts" item-value="id" item-text="alias" append-icon="close" @click:append="account_id = ''"></v-select>
+                                    <v-select v-model="account_id" @change="setPaymentMethod" outlined label="Cuenta *" :items="accounts" item-value="id" item-text="alias" append-icon="close" @click:append="account_id = ''" :error-messages="errors.account_id"></v-select>
                                 </v-col>
                                 <v-col cols="12" sm="12" md="6" lg="4">
-                                    <v-select v-model="paying_method_id" outlined label="Forma de pago *" :items="paying_methods" item-value="id" item-text="paying_method"></v-select>
+                                    <v-select v-model="paying_method_id" outlined label="Forma de pago *" :items="paying_methods" item-value="id" item-text="paying_method" :error-messages="errors.paying_method_id"></v-select>
                                 </v-col>
                             </v-row>
                             <v-row>

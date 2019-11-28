@@ -5,7 +5,7 @@
 			<v-flex xs12>
 				<v-card :loading="loading_table">
 					<v-card-title>
-						<v-btn color="primary" class="mx-1">Agregar Egreso<v-icon right>add</v-icon></v-btn>
+						<v-btn color="primary" class="mx-1" @click="createExpense">Agregar Egreso<v-icon right>add</v-icon></v-btn>
 						<v-btn color="info" class="mx-1" >Nómina<v-icon right>person</v-icon></v-btn>
 						<v-btn color="info" class="mx-1" >Comisión<v-icon right>person</v-icon></v-btn>
 						<v-btn color="secondary" class="mx-1" >Traspaso<v-icon right>sync_alt</v-icon></v-btn>
@@ -16,35 +16,35 @@
                     <v-card-title>
                         <v-row>
                             <v-col cols="6" sm="6" md="4" lg="2">
-                                <v-menu v-model="date_menu" :close-on-content-click="false" :nudge-right="40" transition="scale-transition" offset-y full-width min-width="290px">
+                                <v-menu v-model="date_menu1" :close-on-content-click="false" :nudge-right="40" transition="scale-transition" offset-y full-width min-width="290px">
                                     <template v-slot:activator="{ on }">
-                                        <v-text-field v-model="date" label="Fecha" append-icon="event" outlined readonly v-on="on" @click:append="date_menu = true"></v-text-field>
+                                        <v-text-field v-model="date1" label="Fecha inicial" append-icon="event" outlined readonly v-on="on" @click:append="date_menu1 = true"></v-text-field>
                                     </template>
-                                    <v-date-picker v-model="date" locale="es" color="light-blue darken-3" @input="date_menu = false" :error-messages="errors.date"></v-date-picker>
+                                    <v-date-picker v-model="date1" locale="es" color="light-blue darken-3" @input="date_menu1 = false" :error-messages="errors.date1"></v-date-picker>
                                 </v-menu>
                             </v-col>
-                            <v-col cols="6" sm="6" md="4" lg="2">
+                            <v-col cols="6" sm="6" md="4" lg="3">
                                 <v-menu v-model="date_menu2" :close-on-content-click="false" :nudge-right="40" transition="scale-transition" offset-y full-width min-width="290px">
                                     <template v-slot:activator="{ on }">
-                                        <v-text-field v-model="date2" label="Fecha" append-icon="event" outlined readonly v-on="on" @click:append="date_menu2 = true"></v-text-field>
+                                        <v-text-field v-model="date2" label="Fecha final" append-icon="event" outlined readonly v-on="on" @click:append="date_menu2 = true" append-outer-icon="search" @click:append-outer="Reload"></v-text-field>
                                     </template>
                                     <v-date-picker v-model="date2" locale="es" color="light-blue darken-3" @input="date_menu2 = false" :error-messages="errors.date2"></v-date-picker>
                                 </v-menu>
                             </v-col>
                             <v-col cols="6" sm="6" md="4" lg="2">
-                                <v-select v-model="is_payed" :items="payed_status" outlined label="Estatus de Pago" item-value="value" item-text="status"></v-select>
+                                <v-select v-model="is_payed" @change="Reload" :items="payed_status" outlined label="Estatus de Pago" item-value="value" item-text="status"></v-select>
                             </v-col>
                             <v-col cols="6" sm="6" md="4" lg="2">
-                                <v-select v-model="expense_type" :items="expense_types" outlined label="Tipo de Egreso" item-value="expense" item-text="type"></v-select>
+                                <v-select v-model="expense_type" @change="Reload" :items="expense_types" outlined label="Tipo de Egreso" item-value="expense" item-text="type"></v-select>
                             </v-col>
                             <v-col cols="6" sm="6" md="4" lg="3">
-                                <v-select v-model="account_id" :items="accounts" outlined label="Cuenta" item-value="id" item-text="alias"></v-select>
+                                <v-select v-model="account_id" @change="Reload" :items="accounts" outlined label="Cuenta" item-value="id" item-text="alias" clearable></v-select>
                             </v-col>
                             <v-col cols="6" sm="6" md="4" lg="4">
-                                <v-select v-model="paying_method_id" :items="paying_methods" outlined label="Forma de pago" item-value="id" item-text="paying_method"></v-select>
+                                <v-select v-model="paying_method_id" @change="Reload" :items="paying_methods" outlined label="Forma de pago" item-value="id" item-text="paying_method" clearable></v-select>
                             </v-col>
                             <v-col cols="12" xs="12" sm="12" md="5">
-                                <v-text-field  outlined color="light-blue darken-2" prepend-icon="search" v-model="search_table" v-on:keyup.enter="Reload" @click:clear="clearSearch" label="Buscar" type="text" clearable></v-text-field>
+                                <v-text-field outlined color="light-blue darken-2" append-icon="search" v-model="search_table" v-on:keyup.enter="Reload" @click:clear="clearSearch" label="Buscar" type="text" clearable></v-text-field>
                             </v-col>
                         </v-row>
 					</v-card-title>
@@ -56,50 +56,90 @@
 						<v-simple-table class="elevation-1" fixed-header height="650px"> 
 							<thead>
 								<tr>
-									<th class="text-left" style="width:10%">Clave</th>
-									<th class="text-left" style="width:25%">Servicio</th>
-									<th class="text-left" style="width:20%">Bitácora</th>
-									<th class="text-center" style="width:5%">Moneda</th>
-									<th class="text-center" style="width:12%">Precio</th>
-									<th class="text-center" style="width:5%">Servicios</th>
-									<th class="text-center" style="width:10%">Status</th>
-									<th class="text-right" style="width:13%"></th>
+									<th class="text-left" style="width:15%">Fecha</th>
+									<th class="text-left" style="width:15%">Concepto</th>
+									<th class="text-left" style="width:15%">Proveedor</th>
+									<th class="text-center" style="width:5%">Cuenta</th>
+									<th class="text-center" style="width:5%">Factura?</th>
+									<th class="text-center" style="width:5%">Pago</th>
+									<th class="text-right" style="width:10%">Monto</th>
+									<th class="text-center" style="width:10%">Usuario</th>
+									<th class="text-center" style="width:10%">Estatus</th>
+									<th class="text-right" style="width:10%"></th>
 								</tr>
 							</thead>
 							<tbody>
-								<tr v-for="(reg, index) in services" :key="index">
-									<td>{{ reg.code }}</td>
-									<td>{{ reg.service }}</td>
-									<td>{{ reg.binnacle }}</td>
-									<td class="text-center">{{ reg.money_code }}</td>
-									<td class="text-right">{{ formatPrice(reg.price) }}</td>
-									<td class="text-center">{{ reg.services }}</td>
+								<tr v-for="(reg, index) in expenses" :key="index">
+									<td>{{ reg.date }}</td>
+									<td>
+										<div v-if="reg.comment" style="padding-top:3px;"></div>
+										<v-chip v-if="reg.type == 1" color="green" dark label small>Despacho</v-chip>
+										<v-chip v-if="reg.type == 2" color="blue" dark label small>Hogar</v-chip>
+										<v-chip v-if="reg.type == 3" color="purple darken-4" dark label small>Personal</v-chip>
+										<v-chip v-if="reg.type == 4" color="cyan" dark label small>Traspaso</v-chip>
+										<v-chip v-if="reg.type == 5" color="orange darken-4" dark label small>Nómina</v-chip>
+										<v-chip v-if="reg.type == 6" color="lime darken-4" dark label small>Comisión</v-chip>
+										<v-chip v-if="reg.type == 8" color="lime darken-4" dark label small>Tarjeta Crédito</v-chip>
+										<p v-if="reg.comment">{{reg.comment}}</p>
+									</td>
+									<td>
+										<div v-if="reg.type == 'comision'">({{reg.comissioner_initials}}) {{reg.comissioner}}</div>
+										<div v-else>{{reg.provider}}</div>
+									</td>
 									<td class="text-center">
-										<v-chip v-if="reg.status == 1" color="green" dark>Activo</v-chip>
-										<v-chip v-else dark color="red">Inactivo</v-chip>
+										<v-chip v-if="reg.account_id == 1" color="green" dark label small>{{reg.alias}}</v-chip>
+										<v-chip v-else style="background-color:transparent" label>{{reg.alias}}</v-chip>
+									</td>
+									<td class="text-center">
+										<v-chip v-if="reg.has_tax == 1" color="green" dark label small>SI</v-chip>
+										<v-chip v-if="reg.has_tax == 0" color="warning" dark label small>NO</v-chip>
+									</td>
+									<td class="text-center" :title="reg.paying_method">{{ reg.code }}</td>
+									<td class="text-right">{{ formatPrice(reg.withdraw) }}</td>
+									<td class="text-center">{{ reg.initials }}</td>
+									<td class="text-center">
+										<v-chip v-if="reg.status == 1" color="green" dark label small>Pagado</v-chip>
+										<v-chip v-if="reg.status == 0" color="warning" dark label small>Pendiente</v-chip>
+										<v-chip v-if="reg.status == 2" dark label small color="error">Cancelado</v-chip>
 									</td>
 									<td class="text-right">
-										<span @click="openProcess(index)">
-											<v-badge color="primary" overlap v-if="reg.requisites > 0">
-												<template v-slot:badge>
-													<span>{{reg.requisites}}</span>
-												</template>
-												<v-icon color="warning" @click="openProcess(index)">list</v-icon>
-											</v-badge>
-											<v-badge color="error" overlap v-if="reg.requisites == 0">
-												<template v-slot:badge >
-													<span>{{reg.requisites}}</span>
-												</template>
-												<v-icon color="warning" @click="openProcess(index)">list</v-icon>
-											</v-badge>
-										</span>
-										<v-icon color="warning" @click="editService(index)">edit</v-icon>
-										<v-icon color="error" v-if="reg.status == 1" @click="editStatus(index, reg.status)">block</v-icon>
-										<v-icon color="success" v-else @click="editStatus(index, reg.status)">check</v-icon>
+										<v-menu offset-y class="text-center">
+											<template v-slot:activator="{on}">
+												<v-btn v-on="on">
+													<v-icon>menu</v-icon>
+												</v-btn>
+											</template>
+											<v-list>
+												<v-list-item>
+													<v-list-item-content>
+														<v-list-item-title>Info</v-list-item-title>
+													</v-list-item-content>
+													<v-list-item-action>
+														<v-icon color="primary">list</v-icon>
+													</v-list-item-action>
+												</v-list-item>
+												<v-list-item>
+													<v-list-item-content>
+														<v-list-item-title>Editar</v-list-item-title>
+													</v-list-item-content>
+													<v-list-item-action>
+														<v-icon color="warning">edit</v-icon>
+													</v-list-item-action>
+												</v-list-item>
+												<v-list-item>
+													<v-list-item-content>
+														<v-list-item-title>Cancelar</v-list-item-title>
+													</v-list-item-content>
+													<v-list-item-action>
+														<v-icon color="error">block</v-icon>
+													</v-list-item-action>
+												</v-list-item>
+											</v-list>
+										</v-menu>
 									</td>
 								</tr>
 								<tr>
-									<td style="width:100%" colspan="8">
+									<td style="width:100%" colspan="10">
 										<infinite-loading class="text-center" spinner="spiral" @infinite="infiniteScroll" ref="infiniteLoading">
 											<div slot="no-more">Ya no hay más registros</div>
 											<div slot="no-results">Se llegó al final de los resultados</div>
@@ -113,8 +153,7 @@
 			</v-flex>
 		</v-layout>
 
-		<Catalog :service_dialog="1" ref="services_form" v-on:newService="newService($event)" v-on:updateService="updateService($event)"></Catalog>
-		<Process ref="process_form"></Process>
+		<Expense ref="expenses_form" v-on:newExpense="newExpense($event)" v-on:updateExpense="updateExpense($event)"></Expense>
 
 		<v-dialog v-model="status_dialog" width="400">
 			<v-form>
@@ -138,52 +177,64 @@
 				</v-card>
 			</v-form>
 		</v-dialog>
+		<v-snackbar
+            v-model="snackbar"
+            :timeout="timeout"
+            top
+            center
+            :color="snackColor"
+            >
+            {{ snackText }}
+        </v-snackbar>
     </div>
 </template>
 
 <script>
 import axios from 'axios'
-import Catalog from '@/components/Catalog'
-import Process from '@/components/Process'
+import Expense from '@/components/Expense'
 export default {
     layout: 'admin',
 	middleware: 'auth',
 	head:{
-        title: 'Catálogo de servicios'
+        title: 'Egresos'
 	},
-	components:{Catalog, Process},
+	components:{Expense},
     data(){
         return{
             //Date menu
-            date:'',
+            date1:'',
             date2:'',
-            date_menu:false,
+            date_menu1:false,
             date_menu2:false,
             //Filters
             payed_status:[
                 {value:'todos', status:'Todo'},
                 {value:0, status:'Pendiente'},
-                {value:1, status:'Pagado'}
-                // {value:'todos', status:'Todos'},
+                {value:1, status:'Pagado'},
+                {value:2, status:'Cancelado'}
             ],
             is_payed:'',
             expense_types:[
-                {expense:'todos', type:'Todos'},
-                {expense:'despacho', type:'Despacho'},
-                {expense:'hogar', type:'Hogar'},
-                {expense:'personal', type:'Personal'},
-                {expense:'traspaso', type:'Traspaso'},
-                {expense:'nomina', type:'Nómina'},
-                {expense:'comision', type:'Comisión'},
+                {expense:0, type:'Todos'},
+                {expense:1, type:'Despacho'},
+                {expense:2, type:'Hogar'},
+                {expense:3, type:'Personal'},
+                {expense:4, type:'Traspasos'},
+                {expense:5, type:'Nómina'},
+                {expense:6, type:'Comisiones'},
+                // {expense:7, type:'Ingresos'},
+                {expense:8, type:'Tarjeta de crédito'},
+                {expense:9, type:'Préstamo'},
             ],
-            expense_type:'',
+            expense_type:0,
             account_id:'',
             accounts:[],
             paying_method_id:'',
-            paying_methods:[],
+			paying_methods:[],
+			searcher:0,
             // dates: [],
             errors:[],
-            services:[],
+            expenses:[],
 			loading_table:false,
 			loading:false,
 			search_table:'',
@@ -199,78 +250,100 @@ export default {
             snackText: '',
 			timeout: 6000,
         }
-    },
+	},
 	
 	computed: {
 		url(){
-			return `${process.env.api}/api/catalogs?page=${this.page}`
+			return `${process.env.api}/api/balance?page=${this.page}`
         },
 	},
 
 	created(){
         this.loadInit();
-        this.is_payed = 1;
-        this.expense_type = 'despacho';
-        this.account_id = '';
-        this.paying_method_id = '';
-        this.Load();
 	},
 
     methods:{
         async loadInit(){
-            await this.$axios.get('/api/finances-init-data')
+			this.page = 1;
+			this.is_payed = 1;
+			this.expense_type = 0;
+			this.account_id = '';
+			this.paying_method_id = '';
+            await this.$axios.post('/api/finances-init-data', {movement:1, status:1})
             .then(res => {
-                this.date = res.data.date1;
+                this.date1 = res.data.date1;
                 this.date2 = res.data.date2;
                 this.paying_methods = res.data.paying_methods;
-                this.accounts = res.data.accounts;
+				this.accounts = res.data.accounts;
+				this.expenses = res.data.balance.data;
             })
         },
 
         async Load(){
 			this.loading_table = true;
-			await this.$axios.post(this.url, {search:this.search_table})
-			.then(res => {
-				this.services = res.data.data;
-				this.loading_table = false;
-			})
-			.catch(error => {
-				this.loading_table = false;
-			})
+			if(this.date1 && this.date2){
+				if(this.date1 > this.date2){
+					this.snackbar = true;
+					this.snackColor = 'error';
+					this.snackText = 'La fecha final no puede ser menor a la fecha inicial.';
+					this.timeout = 2500;
+					this.loading_table = false;
+					this.date1 = new Date().toISOString().substr(0, 10);
+					this.date2 = new Date().toISOString().substr(0, 10); 
+					this.Reload();
+				}
+				else{
+					await this.$axios.post(this.url, {date1:this.date1, date2:this.date2, status:this.is_payed, type:this.expense_type, movement:1, account:this.account_id, paying_method:this.paying_method_id, search:this.search_table})
+					.then(res => {
+						this.expenses = res.data.data;
+						this.errors = {};
+						this.loading_table = false;
+					})
+					.catch(error => {
+						this.errors = error.response.data.errors;
+						this.loading_table = false;
+					})
+				}
+			}
 		},
 
 		infiniteScroll($state){
 			setTimeout(() => {
 				this.page++
-				this.$axios.post(this.url, {search:this.search_table})
+				this.$axios.post(this.url, {date1:this.date1, date2:this.date2, status:this.is_payed, type:this.expense_type, movement:1, account:this.account_id, paying_method:this.paying_method_id, search:this.search_table})
 				.then( res => {
 
-					let services = res.data.data;
+					let expenses = res.data.data;
 
-					if(services.length > 0){
-						this.services = this.services.concat(services);
+					if(expenses.length > 0){
+						this.expenses = this.expenses.concat(expenses);
 						$state.loaded()
+						this.loading_table = false;
 					}
 					else{
 						$state.complete()
+						this.loading_table = false;
 					}
+
+					this.errors = {};
 				})
 				.catch(error => {
-
+					this.errors = error.response.data.errors;
+					this.loading_table = false;
 				})
 			}, 500);
 		},
 
 		clearSearch(){
 			this.search_table = '';
-			this.services = {};
+			this.expenses = {};
 			this.page = 1;
 			this.$refs.infiniteLoading.stateChanger.reset();
 			this.Load();
 		},
 
 		Reload(){
-			this.services = {};
+			this.expenses = {};
 			this.page = 1;
 			this.$refs.infiniteLoading.stateChanger.reset();
 			this.Load();
@@ -281,7 +354,13 @@ export default {
 			return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
 		},
 
-		
+		createExpense(){
+			this.$refs.expenses_form.createExpense();
+		},
+
+		newExpense(data){
+			this.expenses.unshift(data);
+		}
     } 
 }
 </script>
