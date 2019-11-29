@@ -11,12 +11,15 @@
 					<v-card-text>
 						<v-container>
 							<v-row>
-								<v-col cols="12" sm="12" md="6" lg="6" xl="6">
+								<v-col cols="12" sm="12" md="6" lg="6" xl="6" v-if="!employee">
                                     <v-autocomplete v-model="provider" v-if="!new_provider" :items="providers" outlined :loading="providerLoading" :search-input.sync="sync_provider" hide-no-data hide-selected item-text="provider" item-value="id" placeholder="Buscar proveedor..." return-object :error-messages="errors.provider_id" label="Proveedor" append-icon="clear" @click:append="clearProvider" append-outer-icon="add" @click:append-outer="addProvider"></v-autocomplete>
                                     <v-text-field v-if="new_provider" outlined v-model="provider_name" :readonly="!new_provider" prepend-icon="close" @click:prepend="clearProvider" append-icon="save" @click:append="saveProvider" label="Agregar Proveedor" :error-messages="errors.provider" :loading="providerLoading"></v-text-field>
 								</v-col>
+                                <v-col cols="12" xs="12" sm="12" md="8" lg="6" xl="6" v-if="employee && type != 5">
+                                    <v-select v-model="employee_id" :items="employees" item-value="id" item-text="employee" outlined clearable append-outer-icon="sync" @click:append-outer="getEmployees" label="Seleccionar usuario"></v-select>
+                                </v-col>
                                 <v-col cols="12" sm="12" md="3" lg="3" xl="3">
-                                    <v-select v-model="type" :items="types" item-value="value" item-text="text" color="primary" outlined label="Tipo de Egreso *" :error-messages="errors.type"></v-select>
+                                    <v-select v-model="type" :items="types" item-value="value" item-text="text" color="primary" outlined label="Tipo de Egreso *" :error-messages="errors.type" @change="setType"></v-select>
 								</v-col>
                                 <v-col cols="12" sm="12" md="3" lg="3" xl="3">
                                     <v-menu v-model="date_menu" :close-on-content-click="false" :nudge-right="40" transition="scale-transition" offset-y full-width min-width="290px">
@@ -24,6 +27,14 @@
                                             <v-text-field v-model="date" label="Fecha *" append-icon="event" outlined readonly v-on="on" @click:append="date_menu = true" :error-messages="errors.date"></v-text-field>
                                         </template>
                                         <v-date-picker v-model="date" locale="es" color="light-blue darken-3" @input="date_menu = false"></v-date-picker>
+                                    </v-menu>
+								</v-col>
+                                <v-col cols="12" sm="12" md="3" lg="3" xl="3" v-if="type == 5">
+                                    <v-menu v-model="date_menu2" :close-on-content-click="false" :nudge-right="40" transition="scale-transition" offset-y full-width min-width="290px">
+                                        <template v-slot:activator="{ on }">
+                                            <v-text-field v-model="date2" label="Fecha 2 *" append-icon="event" outlined readonly v-on="on" @click:append="date_menu2 = true" :error-messages="errors.date2"></v-text-field>
+                                        </template>
+                                        <v-date-picker v-model="date2" locale="es" color="light-blue darken-3" @input="date_menu2 = false"></v-date-picker>
                                     </v-menu>
 								</v-col>
 							</v-row>
@@ -37,12 +48,12 @@
                                 </v-col>
                             </v-row>
 
-                            <v-row>
+                            <v-row v-if="!employee">
 								<v-col cols="12" sm="12" md="6" lg="6" xl="6">
                                     <v-checkbox v-model="service_payments" label="Aplicar egreso a servicio" color="primary"></v-checkbox>
 								</v-col>
 							</v-row>
-                            <v-row>
+                            <v-row v-if="!employee">
                                 <v-col cols="12" xs="12">
                                     <v-autocomplete v-model="service" v-if="service_payments" :items="services" outlined :loading="serviceLoading" :search-input.sync="sync_service" hide-no-data hide-selected item-text="service" item-value="id" placeholder="Buscar servicio..." return-object :error-messages="errors.service_id" label="Servicio" append-icon="clear" @click:append="clearService"></v-autocomplete>
                                 </v-col>
@@ -50,20 +61,104 @@
                             <hr>
 
                             <v-row>
-                                <v-col cols="12" sm="12" md="6" lg="2">
+                                <v-col cols="12" sm="12" md="6" lg="2" v-if="!employee">
                                     <v-checkbox v-model="has_tax" color="primary" label="Con IVA"></v-checkbox>
                                 </v-col>
                                 <v-col cols="12" sm="12" md="6" lg="2">
                                     <v-text-field v-model="tax_percent" filled color="primary" label="%IVA" type="number" step="any" min="0" readonly></v-text-field>
                                 </v-col>
-                                <v-col cols="12" sm="12" md="6" lg="2">
+                                <v-col cols="12" sm="12" md="6" lg="2" v-if="type < 5 || type > 6">
                                     <v-text-field v-model="withdraw" outlined color="primary" label="Monto *" type="number" step="any" min="0"></v-text-field>
+                                </v-col>
+                                <v-col cols="12" sm="12" md="6" lg="2" v-else>
+                                    <v-text-field v-model="withdraw_total" readonly filled color="primary" label="Monto *" type="number" step="any" min="0"></v-text-field>
                                 </v-col>
                                 <v-col cols="12" sm="12" md="6" lg="3">
                                     <v-text-field v-model="cheque" outlined color="primary" label="Cheque"></v-text-field>
                                 </v-col>
                                 <v-col cols="12" sm="12" md="6" lg="3">
                                     <v-text-field v-model="movimiento" outlined color="primary" label="Movimiento"></v-text-field>
+                                </v-col>
+                            </v-row>
+                            <v-row v-if="type == 5">
+                                <v-col cols="12" xs="12">
+                                    <v-card class="elevation-1" :loading="loading_wage">
+                                        <v-card-title>
+                                            <h4>Usuarios</h4>
+                                            <v-spacer></v-spacer>
+                                            <v-btn fab icon @click="getEmployees"><v-icon>sync</v-icon></v-btn>
+                                        </v-card-title>
+                                        <v-card-text>
+                                            <v-simple-table class="elevation-4" >
+                                                <thead>
+                                                    <tr>
+                                                        <th class="text-left" style="width:25%;">Usuario</th>
+                                                        <th class="text-right" style="width:15%; color:red;">IMSS</th>
+                                                        <th class="text-right" style="width:15%; color:red;">Préstamos</th>
+                                                        <th class="text-right" style="width:15%; color:red;">Error en cobro</th>
+                                                        <th class="text-right" style="width:15%; color:green;">Monto</th>
+                                                        <th style="width:15%;"></th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr v-for="(employee, index) in employees_wage" :key="index">
+                                                        <td>{{employee.initials}} - {{employee.name}} {{employee.last_name}}</td>
+                                                        <td class="text-right">
+                                                            <v-edit-dialog :return-value.sync="employee.imss_ammount" large persistent>
+                                                                <div>{{ employee.imss_ammount }}</div>
+                                                                <template v-slot:input>
+                                                                    <v-text-field v-model="employee.imss_ammount" label="Editar monto" single-line autofocus type="number" step="any"></v-text-field>
+                                                                </template>
+                                                            </v-edit-dialog>
+                                                        </td>
+                                                        <td class="text-right">
+                                                            <v-edit-dialog :return-value.sync="employee.loans" large persistent>
+                                                                <div>{{ employee.loans }}</div>
+                                                                <template v-slot:input>
+                                                                    <v-text-field v-model="employee.loans" label="Editar monto" single-line autofocus type="number" step="any"></v-text-field>
+                                                                </template>
+                                                            </v-edit-dialog>
+                                                        </td>
+                                                        <td class="text-right">
+                                                            <v-edit-dialog :return-value.sync="employee.billing_errors" large persistent>
+                                                                <div>{{ employee.billing_errors }}</div>
+                                                                <template v-slot:input>
+                                                                    <v-text-field v-model="employee.billing_errors" label="Editar monto" single-line autofocus type="number" step="any"></v-text-field>
+                                                                </template>
+                                                            </v-edit-dialog>
+                                                        </td>
+                                                        <td class="text-right">
+                                                            <v-edit-dialog :return-value.sync="employee.biweekly_salary" large persistent>
+                                                                <div>{{ employee.biweekly_salary }}</div>
+                                                                <template v-slot:input>
+                                                                    <v-text-field v-model="employee.biweekly_salary" label="Editar monto" single-line autofocus type="number" step="any"></v-text-field>
+                                                                </template>
+                                                            </v-edit-dialog>
+                                                        </td>
+                                                        
+                                                        <td class="text-right">
+                                                            <v-btn fab dark x-small color="green" v-if="expense_id">
+                                                                <v-icon>save</v-icon>
+                                                            </v-btn>
+                                                            <v-btn fab dark x-small color="error">
+                                                                <v-icon @click="Delete(index)">close</v-icon>
+                                                            </v-btn>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                                <tfoot>
+                                                    <tr>
+                                                        <td colspan="1"></td>
+                                                        <td class="text-right"><h4>$ {{formatPrice(imss_total)}}</h4></td>
+                                                        <td class="text-right"><h4>$ {{formatPrice(loans_total)}}</h4></td>
+                                                        <td class="text-right"><h4>$ {{formatPrice(billing_errors_total)}}</h4></td>
+                                                        <td class="text-right"><h4>$ {{formatPrice(withdraw_total)}}</h4></td>
+                                                        <td class="text-right"><h4>$ {{formatPrice(total_wage)}}</h4></td>
+                                                    </tr>
+                                                </tfoot>
+                                            </v-simple-table>
+                                        </v-card-text>
+                                    </v-card>
                                 </v-col>
                             </v-row>
                             <v-row>
@@ -98,6 +193,7 @@ import axios from 'axios'
 export default {
     data(){
         return{
+            expense_id:'',
             expense_dialog:false,
             title:'',
             //Provider
@@ -131,11 +227,11 @@ export default {
                 {value:2, text:'Hogar'},
                 {value:3, text:'Personal'},
                 // {value:4, text:'Traspaso'},
-                // {value:5, text:'Nómina'},
-                // {value:6, text:'Comisión'},
+                {value:5, text:'Nómina'},
+                {value:6, text:'Comisión'},
                 // {value:7, text:'Ingreso'},
-                {value:8, text:'Tarjeta de crédito'},
-                // {value:9, text:'Préstamo'}
+                // {value:8, text:'Tarjeta de crédito'},
+                {value:9, text:'Préstamo'}
             ],
             //withdraws
             tax_percent:0,
@@ -143,12 +239,77 @@ export default {
             withdraw:0,
             cheque:'',
             movimiento:'',
+            //Employees
+            employee:false,
+            employee_id:'',
+            employees:[],
+            employees_wage:[],
+            loading_wage:false,
+            date2:'',
+            date_menu2:false,
             //Snackbar
             snackbar: false,
             snackColor: '',
             snackText: '',
 			timeout: 6000,
         }
+    },
+
+    computed: {
+        withdraw_total: function(){
+            if(this.employees_wage.length > 0){
+                return this.employees_wage.reduce(function(total, item){
+                    return (total * 1) + (item.biweekly_salary * 1);
+                }, 0);
+            }
+            else{
+                return 0;
+            }
+        },
+
+        imss_total: function(){
+            if(this.employees_wage.length > 0){
+                return this.employees_wage.reduce(function(total, item){
+                    return (total * 1) + (item.imss_ammount * 1);
+                }, 0);
+            }
+            else{
+                return 0;
+            }
+        },
+
+        billing_errors_total: function(){
+            if(this.employees_wage.length > 0){
+                return this.employees_wage.reduce(function(total, item){
+                    return (total * 1) + (item.billing_errors * 1);
+                }, 0);
+            }
+            else{
+                return 0;
+            }
+        },
+
+        loans_total: function(){
+            if(this.employees_wage.length > 0){
+                return this.employees_wage.reduce(function(total, item){
+                    return (total * 1) + (item.loans * 1);
+                }, 0);
+            }
+            else{
+                return 0;
+            }
+        },
+
+        total_wage: function(){
+            if(this.employees_wage.length > 0){
+                return this.employees_wage.reduce(function(total, item){
+                    return (total * 1) + (item.biweekly_salary * 1) - (item.loans * 1) - (item.imss_ammount * 1) - (item.billing_errors * 1);
+                }, 0);
+            }
+            else{
+                return 0;
+            }
+        },
     },
 
     watch: {
@@ -184,7 +345,66 @@ export default {
             this.getTax();
         },
 
+        createSalary(){
+            this.expense_dialog = true;
+            this.title = 'Crear Nómina';
+            this.type = 5;
+            this.clearData();
+            this.getAccounts();
+            this.employee = true;
+            this.date2 = new Date().toISOString().substr(0, 10);
+            this.employees = [];
+            this.getEmployees();
+            this.service_payments = 0;
+        },
+
+        editExpense(id, type){
+            this.expense_dialog = true;
+            this.title = 'Editar egreso ' + id;
+            this.expense_id = id;
+            this.type = type;
+            this.getAccounts();
+            this.getTax();
+            this.getExpenseData();
+        },
+
+        async getExpenseData(){
+            await this.$axios.get(`/api/account-statement/expense/edit/${this.expense_id}`)
+            .then(res => {
+                //Provider
+                this.provider_id = res.data.expense.provider_id;
+                this.provider = res.data.expense.provider;
+                this.providers = res.data.expense.provider;
+                this.service_payments = res.data.expense.service_payment;
+                //Servicios
+                // this.service_id = res.data.service.id;
+                // this.service = res.data.service.service;
+                //Form
+                this.date = res.data.expense.date;
+                this.account_id = res.data.expense.account_id;
+                this.paying_method_id = res.data.expense.paying_method_id;
+                this.comment = res.data.expense.comment;
+                //withdraws
+                // tax_percent:0,
+                this.has_tax = res.data.expense.has_tax;
+                this.withdraw = res.data.expense.withdraw;
+                this.cheque = res.data.expense.cheque;
+                this.movimiento = res.data.expense.movimiento;
+                //Employees
+                // employee:false,
+                // employee_id:'',
+                // employees:[],
+                // employees_wage:[],
+                // loading_wage:false,
+                date2 = res.data.expense.date2;
+            })
+            .catch(error => {
+                console.log(error);
+            })
+        },
+
         clearDataInit(){
+            this.expense_id = '';
             //Servicios
             this.service_id = '';
             this.services = [];
@@ -207,6 +427,10 @@ export default {
             this.paying_method_id = '';
             this.comment = '';
             this.type = '';
+            //Employees
+            this.employee = false;
+            this.employee_id = '';
+            this.employees = [];
             //withdraws
             this.has_tax = 0;
             this.withdraw = 0;
@@ -215,6 +439,13 @@ export default {
         },
 
         clearData(){
+            this.expense_id = '';
+            //Provider
+            this.provider_id = '';
+            this.providers = [];
+            this.provider = '';
+            this.provider_name = '';
+            this.service_payments = 0;
             //Servicios
             this.service_id = '';
             this.services = [];
@@ -329,27 +560,151 @@ export default {
             }
         },
 
-        async saveExpense(){
+        saveExpense(){
             this.loading = true;
-            await this.$axios.post('/api/account-statement/expense', {type:this.type, comment:this.comment, date:this.date, cheque:this.cheque, movimiento:this.movimiento, withdraw:this.withdraw, has_tax:this.has_tax, tax_percent:this.tax_percent, paying_method_id:this.paying_method_id, account_id:this.account_id, provider_id:this.provider_id})
-            .then(res =>{
-                this.$emit('newExpense', res.data);
-                this.clearData();
-                this.snackbar = true;
-                this.snackColor = 'success';
-                this.snackText = 'Se agregó el registro exitosamente';
-                this.timeout = 2000;
-                this.loading = false;
-            })
-            .catch(error => {
-                this.errors = error.response.data.errors;
-                this.snackbar = true;
-                this.snackColor = 'error';
-                this.snackText = 'No se pudo agregar el registro, revise los errores en el formulario';
-                this.timeout = 3000;
-                this.loading = false;
-            })
-        }
+            var formData = {};
+
+            if(this.type == 1 || this.type == 2 || this.type == 3){
+                formData = {type:this.type, comment:this.comment, date:this.date, cheque:this.cheque, movimiento:this.movimiento, withdraw:this.withdraw, has_tax:this.has_tax, tax_percent:this.tax_percent, paying_method_id:this.paying_method_id, account_id:this.account_id, provider_id:this.provider_id};
+            }
+            else if(this.type == 4){
+
+            }
+            else if(this.type == 5){
+                
+            }
+            else if(this.type == 6){
+                
+            }
+            else if(this.type == 8){
+                
+            }
+            else if(this.type == 9){
+                
+            }
+
+            if(this.expense_id){
+                this.$axios.put(`/api/account-statement/expense/update/${this.expense_id}`, formData)
+                .then(res =>{
+                    this.clearData();
+                    this.expense_dialog = false;
+                    this.snackbar = true;
+                    this.snackColor = 'success';
+                    this.snackText = 'Se agregó el registro exitosamente';
+                    this.timeout = 2000;
+                    this.loading = false;
+                    this.$emit('updateExpense', res.data);
+                })
+                .catch(error => {
+                    this.errors = error.response.data.errors;
+                    this.snackbar = true;
+                    this.snackColor = 'error';
+                    this.snackText = 'No se pudo agregar el registro, revise los errores en el formulario';
+                    this.timeout = 3000;
+                    this.loading = false;
+                })
+            }
+            else{
+                this.$axios.post('/api/account-statement/expense', data)
+                .then(res =>{
+                    this.$emit('newExpense', res.data);
+                    this.clearData();
+                    this.snackbar = true;
+                    this.snackColor = 'success';
+                    this.snackText = 'Se agregó el registro exitosamente';
+                    this.timeout = 2000;
+                    this.loading = false;
+                })
+                .catch(error => {
+                    this.errors = error.response.data.errors;
+                    this.snackbar = true;
+                    this.snackColor = 'error';
+                    this.snackText = 'No se pudo agregar el registro, revise los errores en el formulario';
+                    this.timeout = 3000;
+                    this.loading = false;
+                })
+            }
+        },
+
+        setType(){
+            if(this.type === 1){
+                this.employee = false;
+                this.employees = [];
+                this.employees_wage = [];
+                this.service_payments = 0;
+            }
+            else if(this.type === 2){
+                this.employee = false;
+                this.employees = [];
+                this.employees_wage = [];
+                this.service_payments = 0;
+            }
+            else if(this.type === 3){
+                this.employee = false;
+                this.employees = [];
+                this.employees_wage = [];
+                this.service_payments = 0;
+            }
+            else if(this.type === 5){
+                this.employee = true;
+                this.date2 = new Date().toISOString().substr(0, 10);
+                this.employees = [];
+                this.getEmployees();
+                this.service_payments = 0;
+            }
+            else if(this.type === 6){
+                this.employee = true;
+                this.date2 = new Date().toISOString().substr(0, 10);
+                this.employees_wage = [];
+                this.getEmployees();
+                this.service_payments = 0;
+            }
+            else if(this.type === 9){
+                this.employee = true;
+                this.employees_wage = [];
+                this.getEmployees();
+                this.service_payments = 0;
+            }
+
+        },
+
+        async getEmployees(){
+            if(this.type == 6 || this.type == 9){
+                await this.$axios.post('/api/users-list', {type:this.type})
+                .then(res => {
+                    this.employees = res.data;
+                })
+                .catch(error => {
+                    console.log(error);
+                })
+            }
+            else if(this.type === 5){
+                this.loading_wage = true;
+                await this.$axios.get('/api/users-wage')
+                .then(res => {
+                    this.loading_wage = false;
+                    this.employees_wage = res.data;
+                })
+                .catch(error => {
+                    this.loading_wage = false;
+                    console.log(error);
+                })
+            }
+        },
+
+        Delete(index){
+            if(this.expense_id){
+
+            }
+            else{
+                this.employees_wage.splice(index, 1);
+            }
+        },
+
+        formatPrice(value) {
+			let val = (value/1).toFixed(2).replace('.,', '.')
+			return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+        },
     }
 }
 </script>

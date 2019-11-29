@@ -6,7 +6,7 @@
 				<v-card :loading="loading_table">
 					<v-card-title>
 						<v-btn color="primary" class="mx-1" @click="createExpense">Agregar Egreso<v-icon right>add</v-icon></v-btn>
-						<v-btn color="info" class="mx-1" >Nómina<v-icon right>person</v-icon></v-btn>
+						<v-btn color="info" class="mx-1" @click="createSalary">Nómina<v-icon right>person</v-icon></v-btn>
 						<v-btn color="info" class="mx-1" >Comisión<v-icon right>person</v-icon></v-btn>
 						<v-btn color="secondary" class="mx-1" >Traspaso<v-icon right>sync_alt</v-icon></v-btn>
 						<v-btn color="green" dark class="mx-1" to="/admin/services/comissions" router exact>Exportar<v-icon right>arrow_downward</v-icon></v-btn>
@@ -48,9 +48,9 @@
                             </v-col>
                         </v-row>
 					</v-card-title>
-                    <v-card-title>
+                    <!-- <v-card-title>
                         <v-btn text color="primary" small><v-icon left>add</v-icon> Egreso</v-btn>
-                    </v-card-title>
+                    </v-card-title> -->
 					<v-divider></v-divider>
 					<v-card-text>
 						<v-simple-table class="elevation-1" fixed-header height="650px"> 
@@ -83,7 +83,7 @@
 										<p v-if="reg.comment">{{reg.comment}}</p>
 									</td>
 									<td>
-										<div v-if="reg.type == 'comision'">({{reg.comissioner_initials}}) {{reg.comissioner}}</div>
+										<div v-if="reg.type == 6">({{reg.comissioner_initials}}) {{reg.comissioner}}</div>
 										<div v-else>{{reg.provider}}</div>
 									</td>
 									<td class="text-center">
@@ -118,7 +118,7 @@
 														<v-icon color="primary">list</v-icon>
 													</v-list-item-action>
 												</v-list-item>
-												<v-list-item>
+												<v-list-item @click="editExpense(index)">
 													<v-list-item-content>
 														<v-list-item-title>Editar</v-list-item-title>
 													</v-list-item-content>
@@ -244,6 +244,7 @@ export default {
 			services_catalog_id:'',
 			status_dialog:false,
 			service_status:'',
+			selected_expense:'',
 			//snackbar
             snackbar: false,
             snackColor: '',
@@ -269,14 +270,15 @@ export default {
 			this.expense_type = 0;
 			this.account_id = '';
 			this.paying_method_id = '';
-            await this.$axios.post('/api/finances-init-data', {movement:1, status:1})
+            this.$axios.post('/api/finances-init-data', {movement:1, status:1})
             .then(res => {
                 this.date1 = res.data.date1;
                 this.date2 = res.data.date2;
                 this.paying_methods = res.data.paying_methods;
 				this.accounts = res.data.accounts;
-				this.expenses = res.data.balance.data;
-            })
+				// this.expenses = res.data.balance.data;
+				this.Load();
+			})
         },
 
         async Load(){
@@ -358,8 +360,32 @@ export default {
 			this.$refs.expenses_form.createExpense();
 		},
 
+		createSalary(){
+			this.$refs.expenses_form.createSalary();
+		},
+
 		newExpense(data){
 			this.expenses.unshift(data);
+		},
+
+		editExpense(index){
+			const expense = this.expenses[index];
+			this.selected_expense = index;
+			let expense_id = expense.id;
+			let expense_type = expense.type;
+			this.$refs.expenses_form.editExpense(expense_id, expense_type);
+		},
+
+		async updateExpense(data){
+			const index = this.selected_expense
+			await this.$axios.get(`/api/balance/view/${data}`)
+			.then(res => {
+				this.expenses[index] = res.data;
+				this.selected_expense = '';
+			})
+			.catch(error => {
+				console.log(error);
+			})
 		}
     } 
 }
