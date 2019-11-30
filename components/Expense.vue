@@ -11,11 +11,11 @@
 					<v-card-text>
 						<v-container>
 							<v-row>
-								<v-col cols="12" sm="12" md="6" lg="6" xl="6" v-if="!employee">
+								<v-col cols="12" sm="12" md="6" lg="6" xl="6" v-if="type <= 3">
                                     <v-autocomplete v-model="provider" v-if="!new_provider" :items="providers" outlined :loading="providerLoading" :search-input.sync="sync_provider" hide-no-data hide-selected item-text="provider" item-value="id" placeholder="Buscar proveedor..." return-object :error-messages="errors.provider_id" label="Proveedor" append-icon="clear" @click:append="clearProvider" append-outer-icon="add" @click:append-outer="addProvider"></v-autocomplete>
-                                    <v-text-field v-if="new_provider" outlined v-model="provider_name" :readonly="!new_provider" prepend-icon="close" @click:prepend="clearProvider" append-icon="save" @click:append="saveProvider" label="Agregar Proveedor" :error-messages="errors.provider" :loading="providerLoading"></v-text-field>
+                                    <v-text-field v-if="new_provider && type <= 3" outlined v-model="provider_name" :readonly="!new_provider" prepend-icon="close" @click:prepend="clearProvider" append-icon="save" @click:append="saveProvider" label="Agregar Proveedor" :error-messages="errors.provider" :loading="providerLoading"></v-text-field>
 								</v-col>
-                                <v-col cols="12" xs="12" sm="12" md="8" lg="6" xl="6" v-if="employee && type != 5">
+                                <v-col cols="12" xs="12" sm="12" md="8" lg="6" xl="6" v-if="type == 6 || type == 9">
                                     <v-select v-model="employee_id" :items="employees" item-value="id" item-text="employee" outlined clearable append-outer-icon="sync" @click:append-outer="getEmployees" label="Seleccionar usuario"></v-select>
                                 </v-col>
                                 <v-col cols="12" sm="12" md="3" lg="3" xl="3">
@@ -48,12 +48,18 @@
                                 </v-col>
                             </v-row>
 
-                            <v-row v-if="!employee">
+                            <v-row v-if="type === 4">
+                                <v-col cols="12" sm="12" md="6" lg="3">
+                                    <v-select v-model="received_account_id" outlined label="Cuenta Receptora *" :items="accounts" item-value="id" item-text="alias" append-icon="close" @click:append="received_account_id = ''" :error-messages="errors.received_account_id"></v-select>
+                                </v-col>
+                            </v-row>
+
+                            <v-row v-if="type == 1">
 								<v-col cols="12" sm="12" md="6" lg="6" xl="6">
                                     <v-checkbox v-model="service_payments" label="Aplicar egreso a servicio" color="primary"></v-checkbox>
 								</v-col>
 							</v-row>
-                            <v-row v-if="!employee">
+                            <v-row v-if="type == 1">
                                 <v-col cols="12" xs="12">
                                     <v-autocomplete v-model="service" v-if="service_payments" :items="services" outlined :loading="serviceLoading" :search-input.sync="sync_service" hide-no-data hide-selected item-text="service" item-value="id" placeholder="Buscar servicio..." return-object :error-messages="errors.service_id" label="Servicio" append-icon="clear" @click:append="clearService"></v-autocomplete>
                                 </v-col>
@@ -211,12 +217,15 @@ export default {
             service:'',
             serviceLoading:false,
             sync_service:'',
+            brand_id:'',
             //Form
             errors:[],
             loading:false,
             date_menu:false,
             date:new Date().toISOString().substr(0, 10),
             account_id:'',
+            received_account_id:'',
+            received_expense_id:'',
             accounts:[],
             paying_method_id:'',
             paying_methods:[],
@@ -226,7 +235,7 @@ export default {
                 {value:1, text:'Despacho'},
                 {value:2, text:'Hogar'},
                 {value:3, text:'Personal'},
-                // {value:4, text:'Traspaso'},
+                {value:4, text:'Traspaso'},
                 {value:5, text:'Nómina'},
                 {value:6, text:'Comisión'},
                 // {value:7, text:'Ingreso'},
@@ -363,6 +372,7 @@ export default {
             this.title = 'Editar egreso ' + id;
             this.expense_id = id;
             this.type = type;
+            this.errors = {};
             this.getAccounts();
             this.getTax();
             this.getExpenseData();
@@ -382,6 +392,8 @@ export default {
                 //Form
                 this.date = res.data.expense.date;
                 this.account_id = res.data.expense.account_id;
+                this.received_account_id = res.data.expense.received_account_id;
+                this.received_expense_id = res.data.received.id;
                 this.paying_method_id = res.data.expense.paying_method_id;
                 this.comment = res.data.expense.comment;
                 //withdraws
@@ -411,6 +423,7 @@ export default {
             this.service = '';
             this.serviceLoading = false;
             this.sync_service = '';
+            this.brand_id = '';
             //Provider
             this.provider_id = '';
             this.providers = [];
@@ -424,6 +437,7 @@ export default {
             this.errors = [];
             this.date = new Date().toISOString().substr(0, 10);
             this.account_id = '';
+            this.received_account_id = '';
             this.paying_method_id = '';
             this.comment = '';
             this.type = '';
@@ -452,6 +466,7 @@ export default {
             this.service = '';
             this.serviceLoading = false;
             this.sync_service = '';
+            this.brand_id = '';
             //Form
             this.errors = [];
             // this.date = new Date().toISOString().substr(0, 10);
@@ -502,7 +517,8 @@ export default {
             this.$axios.post('/api/service-pending', {search:val})
             .then(res => {
                 this.services = res.data.data;
-                this.service_id = this.services.id;
+                this.service_id = this.service.id;
+                this.brand_id = this.service.brand_id;
                 this.serviceLoading = false;
             })
         },
@@ -565,10 +581,10 @@ export default {
             var formData = {};
 
             if(this.type == 1 || this.type == 2 || this.type == 3){
-                formData = {type:this.type, comment:this.comment, date:this.date, cheque:this.cheque, movimiento:this.movimiento, withdraw:this.withdraw, has_tax:this.has_tax, tax_percent:this.tax_percent, paying_method_id:this.paying_method_id, account_id:this.account_id, provider_id:this.provider_id};
+                formData = {type:this.type, comment:this.comment, date:this.date, cheque:this.cheque, movimiento:this.movimiento, withdraw:this.withdraw, has_tax:this.has_tax, tax_percent:this.tax_percent, paying_method_id:this.paying_method_id, account_id:this.account_id, provider_id:this.provider_id, service_payments:this.service_payments, service_id:this.service_id, brand_id:this.brand_id};
             }
             else if(this.type == 4){
-
+                formData = {type:this.type, comment:this.comment, date:this.date, cheque:this.cheque, movimiento:this.movimiento, withdraw:this.withdraw, has_tax:0, tax_percent:this.tax_percent, paying_method_id:this.paying_method_id, account_id:this.account_id, received_account_id:this.received_account_id, received_expense_id:this.received_expense_id};
             }
             else if(this.type == 5){
                 
@@ -590,7 +606,7 @@ export default {
                     this.expense_dialog = false;
                     this.snackbar = true;
                     this.snackColor = 'success';
-                    this.snackText = 'Se agregó el registro exitosamente';
+                    this.snackText = 'Se actualizó el registro exitosamente';
                     this.timeout = 2000;
                     this.loading = false;
                     this.$emit('updateExpense', res.data);
@@ -605,7 +621,7 @@ export default {
                 })
             }
             else{
-                this.$axios.post('/api/account-statement/expense', data)
+                this.$axios.post('/api/account-statement/expense', formData)
                 .then(res =>{
                     this.$emit('newExpense', res.data);
                     this.clearData();

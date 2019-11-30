@@ -12,11 +12,11 @@
             <v-list dense nav>
                 <v-list-item router exact to="/admin/profile">
                     <v-list-item-avatar class="elevation-4">
-                        <v-img :src="user.avatar_img"></v-img>
+                        <v-img :src="user.user.avatar_img"></v-img>
                     </v-list-item-avatar>
                     <v-list-item-content>
-                        <h4>{{ user.name }} {{ user.last_name }}</h4>
-                        <small>{{ user.role }}</small>
+                        <h4>{{ user.user.name }} {{ user.user.last_name }}</h4>
+                        <small>{{ user.user.role }}</small>
                     </v-list-item-content>
                 </v-list-item>
                 <v-divider></v-divider>
@@ -702,7 +702,7 @@
                                 color="grey lighten-1"
                                 v-on="on"
                                 >
-                                <img :src="user.avatar_img" alt="">
+                                <img :src="user.user.avatar_img" alt="">
                                 <!-- <span class="white--text headline">C</span> -->
                             </v-avatar>
                         </template>
@@ -829,7 +829,7 @@ export default {
     
     methods:{
         async darkMode(){
-            if(this.user.dark == 1){
+            if(this.user.user.dark == 1){
                 // this.dark = true;
                 this.$vuetify.theme.dark = true;
             }

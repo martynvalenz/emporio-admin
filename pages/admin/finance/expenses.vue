@@ -20,21 +20,21 @@
                                     <template v-slot:activator="{ on }">
                                         <v-text-field v-model="date1" label="Fecha inicial" append-icon="event" outlined readonly v-on="on" @click:append="date_menu1 = true"></v-text-field>
                                     </template>
-                                    <v-date-picker v-model="date1" locale="es" color="light-blue darken-3" @input="date_menu1 = false" :error-messages="errors.date1"></v-date-picker>
+                                    <v-date-picker v-model="date1" locale="es" color="light-blue darken-3" @input="date_menu1 = false" :error-messages="errors.date1" @change="Reload"></v-date-picker>
                                 </v-menu>
                             </v-col>
-                            <v-col cols="6" sm="6" md="4" lg="3">
+                            <v-col cols="6" sm="6" md="4" lg="2">
                                 <v-menu v-model="date_menu2" :close-on-content-click="false" :nudge-right="40" transition="scale-transition" offset-y full-width min-width="290px">
                                     <template v-slot:activator="{ on }">
-                                        <v-text-field v-model="date2" label="Fecha final" append-icon="event" outlined readonly v-on="on" @click:append="date_menu2 = true" append-outer-icon="search" @click:append-outer="Reload"></v-text-field>
+                                        <v-text-field v-model="date2" label="Fecha final" append-icon="event" outlined readonly v-on="on" @click:append="date_menu2 = true"></v-text-field>
                                     </template>
-                                    <v-date-picker v-model="date2" locale="es" color="light-blue darken-3" @input="date_menu2 = false" :error-messages="errors.date2"></v-date-picker>
+                                    <v-date-picker v-model="date2" locale="es" color="light-blue darken-3" @input="date_menu2 = false" :error-messages="errors.date2"  @change="Reload"></v-date-picker>
                                 </v-menu>
                             </v-col>
                             <v-col cols="6" sm="6" md="4" lg="2">
                                 <v-select v-model="is_payed" @change="Reload" :items="payed_status" outlined label="Estatus de Pago" item-value="value" item-text="status"></v-select>
                             </v-col>
-                            <v-col cols="6" sm="6" md="4" lg="2">
+                            <v-col cols="6" sm="6" md="4" lg="3">
                                 <v-select v-model="expense_type" @change="Reload" :items="expense_types" outlined label="Tipo de Egreso" item-value="expense" item-text="type"></v-select>
                             </v-col>
                             <v-col cols="6" sm="6" md="4" lg="3">
@@ -81,6 +81,10 @@
 										<v-chip v-if="reg.type == 6" color="lime darken-4" dark label small>Comisión</v-chip>
 										<v-chip v-if="reg.type == 8" color="lime darken-4" dark label small>Tarjeta Crédito</v-chip>
 										<p v-if="reg.comment">{{reg.comment}}</p>
+										<p>
+											<span v-if="reg.type == 4"><v-icon left color="red">arrow_forward</v-icon>{{reg.transfer}}</span>
+											<span v-if="reg.type == 4"><v-icon left color="green">arrow_forward</v-icon>{{reg.received}}</span>
+										</p>
 									</td>
 									<td>
 										<div v-if="reg.type == 6">({{reg.comissioner_initials}}) {{reg.comissioner}}</div>
@@ -203,7 +207,9 @@ export default {
         return{
             //Date menu
             date1:'',
-            date2:'',
+			date2:'',
+			// date1:new Date().toISOString().substr(0, 10),
+			// date2:new Date().toISOString().substr(0, 10),
             date_menu1:false,
             date_menu2:false,
             //Filters
@@ -215,7 +221,7 @@ export default {
             ],
             is_payed:'',
             expense_types:[
-                {expense:0, type:'Todos'},
+                {expense:'', type:'Todos'},
                 {expense:1, type:'Despacho'},
                 {expense:2, type:'Hogar'},
                 {expense:3, type:'Personal'},
@@ -226,7 +232,7 @@ export default {
                 {expense:8, type:'Tarjeta de crédito'},
                 {expense:9, type:'Préstamo'},
             ],
-            expense_type:0,
+            expense_type:'',
             account_id:'',
             accounts:[],
             paying_method_id:'',
@@ -266,17 +272,16 @@ export default {
     methods:{
         async loadInit(){
 			this.page = 1;
+			this.date1 = this.user.session.original.date1;
+			this.date2 = this.user.session.original.date2;
 			this.is_payed = 1;
-			this.expense_type = 0;
+			this.expense_type = '';
 			this.account_id = '';
 			this.paying_method_id = '';
             this.$axios.post('/api/finances-init-data', {movement:1, status:1})
             .then(res => {
-                this.date1 = res.data.date1;
-                this.date2 = res.data.date2;
                 this.paying_methods = res.data.paying_methods;
 				this.accounts = res.data.accounts;
-				// this.expenses = res.data.balance.data;
 				this.Load();
 			})
         },
@@ -290,8 +295,8 @@ export default {
 					this.snackText = 'La fecha final no puede ser menor a la fecha inicial.';
 					this.timeout = 2500;
 					this.loading_table = false;
-					this.date1 = new Date().toISOString().substr(0, 10);
-					this.date2 = new Date().toISOString().substr(0, 10); 
+					this.date1 = this.user.session.original.date1;
+					this.date2 = this.user.session.original.date2; 
 					this.Reload();
 				}
 				else{
@@ -377,15 +382,18 @@ export default {
 		},
 
 		async updateExpense(data){
-			const index = this.selected_expense
-			await this.$axios.get(`/api/balance/view/${data}`)
-			.then(res => {
-				this.expenses[index] = res.data;
-				this.selected_expense = '';
-			})
-			.catch(error => {
-				console.log(error);
-			})
+			const index = this.selected_expense;
+			this.expenses.splice(index, 1, data)
+			this.selected_expense = '';
+			// await this.$axios.get(`/api/balance/view/${data}`)
+			// .then(res => {
+			// 	// this.expenses[index] = res.data;
+			// 	this.expenses.splice(index, 1, data)
+			// 	this.selected_expense = '';
+			// })
+			// .catch(error => {
+			// 	console.log(error);
+			// })
 		}
     } 
 }
