@@ -21,20 +21,20 @@
                                 <v-col cols="12" sm="12" md="3" lg="3" xl="3">
                                     <v-select v-model="type" :items="types" item-value="value" item-text="text" color="primary" outlined label="Tipo de Egreso *" :error-messages="errors.type" @change="setType"></v-select>
 								</v-col>
+                                <v-col cols="12" sm="12" md="3" lg="3" xl="3" v-if="type == 5">
+                                    <v-menu v-model="date_menu_ini" :close-on-content-click="false" :nudge-right="40" transition="scale-transition" offset-y full-width min-width="290px">
+                                        <template v-slot:activator="{ on }">
+                                            <v-text-field v-model="date_ini" label="Fecha inicial *" append-icon="event" outlined readonly v-on="on" @click:append="date_menu_ini = true" :error-messages="errors.date_ini"></v-text-field>
+                                        </template>
+                                        <v-date-picker v-model="date_ini" locale="es" color="light-blue darken-3" @input="date_menu_ini = false"></v-date-picker>
+                                    </v-menu>
+								</v-col>
                                 <v-col cols="12" sm="12" md="3" lg="3" xl="3">
                                     <v-menu v-model="date_menu" :close-on-content-click="false" :nudge-right="40" transition="scale-transition" offset-y full-width min-width="290px">
                                         <template v-slot:activator="{ on }">
                                             <v-text-field v-model="date" label="Fecha *" append-icon="event" outlined readonly v-on="on" @click:append="date_menu = true" :error-messages="errors.date"></v-text-field>
                                         </template>
                                         <v-date-picker v-model="date" locale="es" color="light-blue darken-3" @input="date_menu = false"></v-date-picker>
-                                    </v-menu>
-								</v-col>
-                                <v-col cols="12" sm="12" md="3" lg="3" xl="3" v-if="type == 5">
-                                    <v-menu v-model="date_menu2" :close-on-content-click="false" :nudge-right="40" transition="scale-transition" offset-y full-width min-width="290px">
-                                        <template v-slot:activator="{ on }">
-                                            <v-text-field v-model="date2" label="Fecha 2 *" append-icon="event" outlined readonly v-on="on" @click:append="date_menu2 = true" :error-messages="errors.date2"></v-text-field>
-                                        </template>
-                                        <v-date-picker v-model="date2" locale="es" color="light-blue darken-3" @input="date_menu2 = false"></v-date-picker>
                                     </v-menu>
 								</v-col>
 							</v-row>
@@ -77,7 +77,7 @@
                                     <v-text-field v-model="withdraw" outlined color="primary" label="Monto *" type="number" step="any" min="0"></v-text-field>
                                 </v-col>
                                 <v-col cols="12" sm="12" md="6" lg="2" v-else>
-                                    <v-text-field v-model="withdraw_total" readonly filled color="primary" label="Monto *" type="number" step="any" min="0"></v-text-field>
+                                    <v-text-field v-model="total_wage" readonly filled color="primary" label="Monto *" type="number" step="any" min="0"></v-text-field>
                                 </v-col>
                                 <v-col cols="12" sm="12" md="6" lg="3">
                                     <v-text-field v-model="cheque" outlined color="primary" label="Cheque"></v-text-field>
@@ -90,9 +90,12 @@
                                 <v-col cols="12" xs="12">
                                     <v-card class="elevation-1" :loading="loading_wage">
                                         <v-card-title>
-                                            <h4>Usuarios</h4>
+                                            <h4>Empleados</h4>
                                             <v-spacer></v-spacer>
                                             <v-btn fab icon @click="getEmployees"><v-icon>sync</v-icon></v-btn>
+                                        </v-card-title>
+                                        <v-card-title v-if="errors.employees_length">
+                                            <v-alert text prominent type="error" icon="mdi-cloud-alert">{{errors.employees_length}}</v-alert>
                                         </v-card-title>
                                         <v-card-text>
                                             <v-simple-table class="elevation-4" >
@@ -110,26 +113,26 @@
                                                     <tr v-for="(employee, index) in employees_wage" :key="index">
                                                         <td>{{employee.initials}} - {{employee.name}} {{employee.last_name}}</td>
                                                         <td class="text-right">
-                                                            <v-edit-dialog :return-value.sync="employee.imss_ammount" large persistent>
-                                                                <div>{{ employee.imss_ammount }}</div>
+                                                            <v-edit-dialog :return-value.sync="employee.imss" large persistent>
+                                                                <div>{{ employee.imss }}</div>
                                                                 <template v-slot:input>
-                                                                    <v-text-field v-model="employee.imss_ammount" label="Editar monto" single-line autofocus type="number" step="any"></v-text-field>
+                                                                    <v-text-field v-model="employee.imss" label="Editar monto" single-line autofocus type="number" step="any"></v-text-field>
                                                                 </template>
                                                             </v-edit-dialog>
                                                         </td>
                                                         <td class="text-right">
-                                                            <v-edit-dialog :return-value.sync="employee.loans" large persistent>
-                                                                <div>{{ employee.loans }}</div>
+                                                            <v-edit-dialog :return-value.sync="employee.loan" large persistent>
+                                                                <div>{{ employee.loan }}</div>
                                                                 <template v-slot:input>
-                                                                    <v-text-field v-model="employee.loans" label="Editar monto" single-line autofocus type="number" step="any"></v-text-field>
+                                                                    <v-text-field v-model="employee.loan" label="Editar monto" single-line autofocus type="number" step="any"></v-text-field>
                                                                 </template>
                                                             </v-edit-dialog>
                                                         </td>
                                                         <td class="text-right">
-                                                            <v-edit-dialog :return-value.sync="employee.billing_errors" large persistent>
-                                                                <div>{{ employee.billing_errors }}</div>
+                                                            <v-edit-dialog :return-value.sync="employee.errors" large persistent>
+                                                                <div>{{ employee.errors }}</div>
                                                                 <template v-slot:input>
-                                                                    <v-text-field v-model="employee.billing_errors" label="Editar monto" single-line autofocus type="number" step="any"></v-text-field>
+                                                                    <v-text-field v-model="employee.errors" label="Editar monto" single-line autofocus type="number" step="any"></v-text-field>
                                                                 </template>
                                                             </v-edit-dialog>
                                                         </td>
@@ -210,7 +213,6 @@ export default {
             provider_name:'',
             providerLoading:false,
             sync_provider:'',
-            service_payments:0,
             //Servicios
             service_id:'',
             services:[],
@@ -218,6 +220,8 @@ export default {
             serviceLoading:false,
             sync_service:'',
             brand_id:'',
+            service_payments:0,
+            service_payment_id:'',
             //Form
             errors:[],
             loading:false,
@@ -240,7 +244,9 @@ export default {
                 {value:6, text:'Comisión'},
                 // {value:7, text:'Ingreso'},
                 // {value:8, text:'Tarjeta de crédito'},
-                {value:9, text:'Préstamo'}
+                {value:9, text:'Préstamo'},
+                {value:10, text:'Error'},
+                {value:11, text:'FEPS'}
             ],
             //withdraws
             tax_percent:0,
@@ -254,8 +260,8 @@ export default {
             employees:[],
             employees_wage:[],
             loading_wage:false,
-            date2:'',
-            date_menu2:false,
+            date_ini:'',
+            date_menu_ini:false,
             //Snackbar
             snackbar: false,
             snackColor: '',
@@ -279,7 +285,7 @@ export default {
         imss_total: function(){
             if(this.employees_wage.length > 0){
                 return this.employees_wage.reduce(function(total, item){
-                    return (total * 1) + (item.imss_ammount * 1);
+                    return (total * 1) + (item.imss * 1);
                 }, 0);
             }
             else{
@@ -290,7 +296,7 @@ export default {
         billing_errors_total: function(){
             if(this.employees_wage.length > 0){
                 return this.employees_wage.reduce(function(total, item){
-                    return (total * 1) + (item.billing_errors * 1);
+                    return (total * 1) + (item.errors * 1);
                 }, 0);
             }
             else{
@@ -301,7 +307,7 @@ export default {
         loans_total: function(){
             if(this.employees_wage.length > 0){
                 return this.employees_wage.reduce(function(total, item){
-                    return (total * 1) + (item.loans * 1);
+                    return (total * 1) + (item.loan * 1);
                 }, 0);
             }
             else{
@@ -312,7 +318,7 @@ export default {
         total_wage: function(){
             if(this.employees_wage.length > 0){
                 return this.employees_wage.reduce(function(total, item){
-                    return (total * 1) + (item.biweekly_salary * 1) - (item.loans * 1) - (item.imss_ammount * 1) - (item.billing_errors * 1);
+                    return (total * 1) + (item.biweekly_salary * 1) - (item.loan * 1) - (item.imss * 1) - (item.errors * 1);
                 }, 0);
             }
             else{
@@ -361,9 +367,21 @@ export default {
             this.clearData();
             this.getAccounts();
             this.employee = true;
-            this.date2 = new Date().toISOString().substr(0, 10);
+            this.date_ini = new Date().toISOString().substr(0, 10);
             this.employees = [];
             this.getEmployees();
+            this.service_payments = 0;
+        },
+
+        createTransfer(){
+            this.expense_dialog = true;
+            this.title = 'Crear Traspaso entre cuentas';
+            this.type = 4;
+            this.clearData();
+            this.getAccounts();
+            this.employee = false;
+            this.date = new Date().toISOString().substr(0, 10);
+            this.employees = [];
             this.service_payments = 0;
         },
 
@@ -385,15 +403,22 @@ export default {
                 this.provider_id = res.data.expense.provider_id;
                 this.provider = res.data.expense.provider;
                 this.providers = res.data.expense.provider;
-                this.service_payments = res.data.expense.service_payment;
                 //Servicios
-                // this.service_id = res.data.service.id;
-                // this.service = res.data.service.service;
+                this.service_payments = res.data.expense.service_payment;
+                if(res.data.expense.service_payment == 1){
+                    this.service_id = res.data.service_payment.id;
+                    this.service = res.data.service_payment.service;
+                    this.services = res.data.service_payment.service;
+                    this.brand_id = res.data.service_payment.brand_id;
+                    this.service_payment_id = res.data.service_payment.service_payment_id;
+                }
                 //Form
                 this.date = res.data.expense.date;
                 this.account_id = res.data.expense.account_id;
                 this.received_account_id = res.data.expense.received_account_id;
-                this.received_expense_id = res.data.received.id;
+                if(res.data.received){
+                    this.received_expense_id = res.data.received.id;
+                }
                 this.paying_method_id = res.data.expense.paying_method_id;
                 this.comment = res.data.expense.comment;
                 //withdraws
@@ -408,7 +433,7 @@ export default {
                 // employees:[],
                 // employees_wage:[],
                 // loading_wage:false,
-                date2 = res.data.expense.date2;
+                date_ini = res.data.expense.date_ini;
             })
             .catch(error => {
                 console.log(error);
@@ -424,6 +449,8 @@ export default {
             this.serviceLoading = false;
             this.sync_service = '';
             this.brand_id = '';
+            this.service_payments = 0;
+            this.service_payment_id = '';
             //Provider
             this.provider_id = '';
             this.providers = [];
@@ -432,7 +459,6 @@ export default {
             this.provider_name = '';
             this.providerLoading = false;
             this.sync_provider = '';
-            this.service_payments = 0;
             //Form
             this.errors = [];
             this.date = new Date().toISOString().substr(0, 10);
@@ -581,13 +607,13 @@ export default {
             var formData = {};
 
             if(this.type == 1 || this.type == 2 || this.type == 3){
-                formData = {type:this.type, comment:this.comment, date:this.date, cheque:this.cheque, movimiento:this.movimiento, withdraw:this.withdraw, has_tax:this.has_tax, tax_percent:this.tax_percent, paying_method_id:this.paying_method_id, account_id:this.account_id, provider_id:this.provider_id, service_payments:this.service_payments, service_id:this.service_id, brand_id:this.brand_id};
+                formData = {type:this.type, comment:this.comment, date:this.date, cheque:this.cheque, movimiento:this.movimiento, withdraw:this.withdraw, has_tax:this.has_tax, tax_percent:this.tax_percent, paying_method_id:this.paying_method_id, account_id:this.account_id, provider_id:this.provider_id, service_payments:this.service_payments, service_id:this.service_id, brand_id:this.brand_id, service_payment_id:this.service_payment_id};
             }
             else if(this.type == 4){
                 formData = {type:this.type, comment:this.comment, date:this.date, cheque:this.cheque, movimiento:this.movimiento, withdraw:this.withdraw, has_tax:0, tax_percent:this.tax_percent, paying_method_id:this.paying_method_id, account_id:this.account_id, received_account_id:this.received_account_id, received_expense_id:this.received_expense_id};
             }
             else if(this.type == 5){
-                
+                formData = {type:this.type, comment:this.comment, date:this.date, date_ini:this.date_ini, cheque:this.cheque, movimiento:this.movimiento, withdraw:this.total_wage, has_tax:0, tax_percent:this.tax_percent, paying_method_id:this.paying_method_id, account_id:this.account_id, employees_length:this.employees_wage.length, employees:this.employees_wage}
             }
             else if(this.type == 6){
                 
@@ -632,12 +658,21 @@ export default {
                     this.loading = false;
                 })
                 .catch(error => {
-                    this.errors = error.response.data.errors;
-                    this.snackbar = true;
-                    this.snackColor = 'error';
-                    this.snackText = 'No se pudo agregar el registro, revise los errores en el formulario';
-                    this.timeout = 3000;
-                    this.loading = false;
+                    if(error.response.data.success == false){
+                        this.snackbar = true;
+                        this.snackColor = 'error';
+                        this.snackText = error.response.data.msg;
+                        this.errors.employees_length = error.response.data.msg;
+                        this.timeout = 5000;
+                        this.loading = false;
+                    }else{
+                        this.errors = error.response.data.errors;
+                        this.snackbar = true;
+                        this.snackColor = 'error';
+                        this.snackText = 'No se pudo guardar el registro, revise los errores en el formulario.';
+                        this.timeout = 2000;
+                        this.loading = false;
+                    }
                 })
             }
         },
@@ -663,14 +698,14 @@ export default {
             }
             else if(this.type === 5){
                 this.employee = true;
-                this.date2 = new Date().toISOString().substr(0, 10);
+                this.date_ini = new Date().toISOString().substr(0, 10);
                 this.employees = [];
                 this.getEmployees();
                 this.service_payments = 0;
             }
             else if(this.type === 6){
                 this.employee = true;
-                this.date2 = new Date().toISOString().substr(0, 10);
+                this.date_ini = new Date().toISOString().substr(0, 10);
                 this.employees_wage = [];
                 this.getEmployees();
                 this.service_payments = 0;
@@ -685,6 +720,7 @@ export default {
         },
 
         async getEmployees(){
+            this.errors = {};
             if(this.type == 6 || this.type == 9){
                 await this.$axios.post('/api/users-list', {type:this.type})
                 .then(res => {

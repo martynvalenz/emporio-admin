@@ -644,7 +644,6 @@ export default {
                         this.timeout = 1300;
                         this.loading = false;
                     }
-                    
                 })
             }
         },

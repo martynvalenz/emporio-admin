@@ -8,10 +8,8 @@
 						<v-btn color="primary" class="mx-1" @click="createExpense">Agregar Egreso<v-icon right>add</v-icon></v-btn>
 						<v-btn color="info" class="mx-1" @click="createSalary">Nómina<v-icon right>person</v-icon></v-btn>
 						<v-btn color="info" class="mx-1" >Comisión<v-icon right>person</v-icon></v-btn>
-						<v-btn color="secondary" class="mx-1" >Traspaso<v-icon right>sync_alt</v-icon></v-btn>
+						<v-btn color="secondary" class="mx-1" @click="createTransfer">Traspaso<v-icon right>sync_alt</v-icon></v-btn>
 						<v-btn color="green" dark class="mx-1" to="/admin/services/comissions" router exact>Exportar<v-icon right>arrow_downward</v-icon></v-btn>
-						<v-spacer></v-spacer>
-						<v-btn icon @click="Reload"><v-icon>sync</v-icon></v-btn>
 					</v-card-title>
                     <v-card-title>
                         <v-row>
@@ -48,10 +46,12 @@
                             </v-col>
                         </v-row>
 					</v-card-title>
-                    <!-- <v-card-title>
-                        <v-btn text color="primary" small><v-icon left>add</v-icon> Egreso</v-btn>
-                    </v-card-title> -->
 					<v-divider></v-divider>
+					<v-card-title>
+						<v-btn text color="primary" small @click="changeOrder"><v-icon v-if="order == 'asc'">keyboard_arrow_up</v-icon><v-icon v-if="order == 'desc'">keyboard_arrow_down</v-icon>Ordenar por fecha</v-btn>
+						<v-spacer></v-spacer>
+						<v-btn icon @click="Reload"><v-icon>sync</v-icon></v-btn>
+					</v-card-title>
 					<v-card-text>
 						<v-simple-table class="elevation-1" fixed-header height="650px"> 
 							<thead>
@@ -72,19 +72,22 @@
 								<tr v-for="(reg, index) in expenses" :key="index">
 									<td>{{ reg.date }}</td>
 									<td>
-										<div v-if="reg.comment" style="padding-top:3px;"></div>
+										<div style="padding-top:3px;"></div>
 										<v-chip v-if="reg.type == 1" color="green" dark label small>Despacho</v-chip>
 										<v-chip v-if="reg.type == 2" color="blue" dark label small>Hogar</v-chip>
 										<v-chip v-if="reg.type == 3" color="purple darken-4" dark label small>Personal</v-chip>
 										<v-chip v-if="reg.type == 4" color="cyan" dark label small>Traspaso</v-chip>
 										<v-chip v-if="reg.type == 5" color="orange darken-4" dark label small>Nómina</v-chip>
 										<v-chip v-if="reg.type == 6" color="lime darken-4" dark label small>Comisión</v-chip>
-										<v-chip v-if="reg.type == 8" color="lime darken-4" dark label small>Tarjeta Crédito</v-chip>
+										<v-chip v-if="reg.type == 8" color="teal darken-1" dark label small>Tarjeta Crédito</v-chip>
+										<v-chip v-if="reg.type == 9" color="purple accent-4" dark label small>Préstamo</v-chip>
+										<v-chip v-if="reg.type == 10" color="red accent-4" dark label small>Error</v-chip>
+										<v-chip v-if="reg.type == 11" color="pink darken-2" dark label small>FEPS</v-chip>
 										<p v-if="reg.comment">{{reg.comment}}</p>
-										<p>
-											<span v-if="reg.type == 4"><v-icon left color="red">arrow_forward</v-icon>{{reg.transfer}}</span>
-											<span v-if="reg.type == 4"><v-icon left color="green">arrow_forward</v-icon>{{reg.received}}</span>
-										</p>
+										<span>
+											<div v-if="reg.type == 4"><v-icon left color="red">arrow_forward</v-icon>{{reg.transfer}}</div>
+											<div v-if="reg.type == 4"><v-icon left color="green">arrow_forward</v-icon>{{reg.received}}</div>
+										</span>
 									</td>
 									<td>
 										<div v-if="reg.type == 6">({{reg.comissioner_initials}}) {{reg.comissioner}}</div>
@@ -212,6 +215,7 @@ export default {
 			// date2:new Date().toISOString().substr(0, 10),
             date_menu1:false,
             date_menu2:false,
+			order:'asc',
             //Filters
             payed_status:[
                 {value:'todos', status:'Todo'},
@@ -300,7 +304,7 @@ export default {
 					this.Reload();
 				}
 				else{
-					await this.$axios.post(this.url, {date1:this.date1, date2:this.date2, status:this.is_payed, type:this.expense_type, movement:1, account:this.account_id, paying_method:this.paying_method_id, search:this.search_table})
+					await this.$axios.post(this.url, {date1:this.date1, date2:this.date2, status:this.is_payed, type:this.expense_type, movement:1, account:this.account_id, paying_method:this.paying_method_id, search:this.search_table, order:this.order})
 					.then(res => {
 						this.expenses = res.data.data;
 						this.errors = {};
@@ -317,7 +321,7 @@ export default {
 		infiniteScroll($state){
 			setTimeout(() => {
 				this.page++
-				this.$axios.post(this.url, {date1:this.date1, date2:this.date2, status:this.is_payed, type:this.expense_type, movement:1, account:this.account_id, paying_method:this.paying_method_id, search:this.search_table})
+				this.$axios.post(this.url, {date1:this.date1, date2:this.date2, status:this.is_payed, type:this.expense_type, movement:1, account:this.account_id, paying_method:this.paying_method_id, search:this.search_table, order:this.order})
 				.then( res => {
 
 					let expenses = res.data.data;
@@ -355,6 +359,17 @@ export default {
 			this.$refs.infiniteLoading.stateChanger.reset();
 			this.Load();
 		},
+
+		changeOrder(){
+			if(this.order == 'asc'){
+				this.order = 'desc';
+			}
+			else{
+				this.order = 'asc';
+			}
+
+			this.Reload();
+		},
 		
 		formatPrice(value) {
 			let val = (value/1).toFixed(2).replace('.,', '.')
@@ -367,6 +382,10 @@ export default {
 
 		createSalary(){
 			this.$refs.expenses_form.createSalary();
+		},
+
+		createTransfer(){
+			this.$refs.expenses_form.createTransfer();
 		},
 
 		newExpense(data){
