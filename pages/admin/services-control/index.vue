@@ -6,9 +6,10 @@
 				<v-card :loading="services_loading">
 					<v-card-title>
 						<v-btn color="primary" class="mx-1" @click="addService">Servicio<v-icon right>add</v-icon></v-btn>
+						<v-btn color="primary" class="mx-1" @click="addPackage">Paquete<v-icon right>add</v-icon></v-btn>
 						<v-btn color="info" class="mx-1" @click="addCustomer">Cliente<v-icon right>person_add</v-icon></v-btn>
 						<v-btn color="secondary" class="mx-1" @click="addBill">Factura/Recibo<v-icon right>add</v-icon></v-btn>
-						<v-btn color="secondary" class="mx-1">Ingreso<v-icon right>add</v-icon></v-btn>
+						<!-- <v-btn color="secondary" class="mx-1">Ingreso<v-icon right>add</v-icon></v-btn> -->
 						<v-spacer></v-spacer>
 						<v-btn-toggle mandatory v-model="service_control_view">
 							<v-btn :value="0" @click="changeView(0)"><v-icon>list</v-icon></v-btn>
@@ -42,7 +43,7 @@
 							</v-row>
 						</v-container>
 					</v-card-title>
-					<v-card-text v-if="user.service_control == 0">
+					<v-card-text v-if="service_control_view == 0">
 						<v-simple-table class="elevation-3" fixed-header height="700px">
 							<thead>
 								<tr>
@@ -171,7 +172,7 @@
 							</tbody>
 						</v-simple-table>
 					</v-card-text>
-					<v-card-text v-if="user.service_control == 1">
+					<v-card-text v-if="service_control_view == 1">
 						<v-expansion-panels class="elevation-4">
 							<v-expansion-panel v-for="(service, index) in services" :key="index">
 								<v-expansion-panel-header v-slot="{ open }">
@@ -288,6 +289,7 @@
 import Customer from '@/components/Customer'
 import Services from '@/components/Services'
 import Bills from '@/components/Bills'
+import Quotes from '@/components/Quotes'
 import axios from 'axios'
 export default {
 	layout: 'admin',
@@ -295,7 +297,7 @@ export default {
 	head:{
         title: 'Control de Servicios'
 	},
-	components:{Customer, Services, Bills},
+	components:{Customer, Services, Bills, Quotes},
 
 	data(){
 		return{
@@ -422,6 +424,10 @@ export default {
 			this.$refs.services_form.addService();
 		},
 
+		addPackage(){
+			this.$refs.services_form.addPackage();
+		},
+
 		addBill(){
 			this.$refs.bills_form.addBill();
 		},
@@ -471,6 +477,7 @@ export default {
 
 		updateService(data){
 			this.services[this.selected_service] = data;
+			this.services.splice(index, 1, data);
 			this.selected_service = '';
 		}
 

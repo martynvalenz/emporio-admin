@@ -433,7 +433,10 @@ export default {
                 // employees:[],
                 // employees_wage:[],
                 // loading_wage:false,
-                date_ini = res.data.expense.date_ini;
+                this.date_ini = res.data.expense.date_ini;
+                if(res.data.wage){
+                    this.employees_wage = res.data.wage;
+                }
             })
             .catch(error => {
                 console.log(error);
@@ -700,7 +703,9 @@ export default {
                 this.employee = true;
                 this.date_ini = new Date().toISOString().substr(0, 10);
                 this.employees = [];
-                this.getEmployees();
+                if(!this.expense_id){
+                    this.getEmployees();
+                }
                 this.service_payments = 0;
             }
             else if(this.type === 6){
@@ -731,16 +736,30 @@ export default {
                 })
             }
             else if(this.type === 5){
-                this.loading_wage = true;
-                await this.$axios.get('/api/users-wage')
-                .then(res => {
-                    this.loading_wage = false;
-                    this.employees_wage = res.data;
-                })
-                .catch(error => {
-                    this.loading_wage = false;
-                    console.log(error);
-                })
+                if(this.expense_id){
+                    this.loading_wage = true;
+                    await this.$axios.get(`/api/users-wage-edit/${this.expense_id}`)
+                    .then(res => {
+                        this.loading_wage = false;
+                        this.employees_wage = res.data;
+                    })
+                    .catch(error => {
+                        this.loading_wage = false;
+                        console.log(error);
+                    })
+                }
+                else{
+                    this.loading_wage = true;
+                    await this.$axios.get('/api/users-wage')
+                    .then(res => {
+                        this.loading_wage = false;
+                        this.employees_wage = res.data;
+                    })
+                    .catch(error => {
+                        this.loading_wage = false;
+                        console.log(error);
+                    })
+                }
             }
         },
 

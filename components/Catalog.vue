@@ -3,11 +3,11 @@
         <v-dialog v-model="service_dialog" fullscreen transition="dialog-bottom-transition" scrollable>
 			<v-form>
 				<v-card>
-					<v-card-title class="primary white--text">
-						{{title}}
-						<v-spacer></v-spacer>
-						<v-btn icon @click="service_dialog = false"><v-icon color="white">close</v-icon></v-btn>
-					</v-card-title>
+                    <v-system-bar color="primary" dark height="60px;">
+                        <h2>{{title}}</h2>
+                        <v-spacer></v-spacer>
+                        <v-btn icon small @click="service_dialog = false"><v-icon color="white">close</v-icon></v-btn>
+                    </v-system-bar>
 					<v-card-text class="mb-4">
 						<v-container fluid>
 							<v-row>
@@ -184,9 +184,9 @@ export default {
             cost:0,
             external_fee:0,
             price:0,
-            authorize:0,
-            additional_service:0,
-            allow_finance:0,
+            authorize:false,
+            additional_service:false,
+            allow_finance:false,
             //sales
             sales:0,
             sales_percent:0,
@@ -218,7 +218,7 @@ export default {
         addService(){
             this.service_dialog = true;
             this.service_catalog_id = '';
-            this.title = 'Agregar servicio';
+            this.title = 'Agregar servicio al catálogo';
             this.getCatalogCategories();
             this.setComission();
             this.ClearData();
@@ -226,7 +226,6 @@ export default {
 
         ClearData(){
             this.service_catalog_id = '';
-            this.title = '';
             this.code = '';
             this.service = '';
             this.services_category_id = '';
@@ -235,9 +234,9 @@ export default {
             this.status_subcategory_id = '';
             this.comments = '';
             this.money_exchange_id = '';
-            this.authorize = 0;
-            this.additional_service = 0;
-            this.allow_finance = 0;
+            this.authorize = false;
+            this.additional_service = false;
+            this.allow_finance = false;
             this.cost = 0;
             this.external_fee = 0;
             this.price = 0;
@@ -273,9 +272,24 @@ export default {
                 this.status_subcategory_id = res.data.status_subcategory_id;
                 this.comments = res.data.comments;
                 this.money_exchange_id = res.data.money_exchange_id;
-                this.authorize = res.data.authorize;
-                this.additional_service = res.data.additional_service;
-                this.allow_finance = res.data.allow_finance;
+                if(res.data.authorize == 1){
+                    this.authorize = true;
+                }
+                else{
+                    this.authorize = false;
+                }
+                if(res.data.additional_service == 1){
+                    this.additional_service = true;
+                }
+                else{
+                    this.additional_service = false;
+                }
+                if(res.data.allow_finance == 1){
+                    this.allow_finance = true;
+                }
+                else{
+                    this.allow_finance = false;
+                }
                 this.cost = (res.data.cost) * 1;
                 this.external_fee = (res.data.external_fee) * 1;
                 this.price = (res.data.price) * 1;
@@ -472,6 +486,13 @@ export default {
             else if(price > 0 && fee > 0){
                 this.Save();
             }
+            else{
+                this.snackbar = true;
+                this.snackColor = 'error';
+                this.snackText = 'No se pudo guardar el registro, inténtelo más tarde.';
+                this.timeout = 3500;
+                this.loading = false;
+            }
         },
 
         async Save(){
@@ -483,7 +504,7 @@ export default {
                     this.snackColor = 'success';
                     this.snackText = 'Se guardó el servicio: ' + this.code;
                     this.timeout = 1500;
-                    this.errors= {};
+                    this.errors = {};
                     this.loading = false;
                     this.service_dialog = false;
                     this.ClearData();

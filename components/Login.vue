@@ -28,7 +28,7 @@
                                 <v-layout wrap>
                                     <v-btn to="/auth/remember" text color="light-blue" class="router-linker my-2">¿Olvidaste tu contraseña?</v-btn>
                                     <v-spacer></v-spacer>
-                                    <v-btn type="submit" block dark color="light-blue darken-4" :loading="loading" class="my-1">Login <i style="padding-left: 0.5em" class="fas fa-lock-open"></i></v-btn>
+                                    <v-btn type="submit" block dark color="light-blue darken-4" :loading="loading" :disabled="submiter" class="my-1">Login <i style="padding-left: 0.5em" class="fas fa-lock-open"></i></v-btn>
                                 </v-layout>
                             </v-card-actions>
                         </v-card>
@@ -69,7 +69,7 @@ export default {
             snackText: '',
             timeout: 6000,
 
-
+            submiter:true,
             loading: false,
             slider: '',
             showPassword: false,
@@ -112,6 +112,7 @@ export default {
             .then(res => {
                 // console.log(res.data.image)
                 this.slider = `${this.$axios.defaults.baseURL}/images/background/${res.data.image}`;
+                this.submiter = false;
             })
         }
     },

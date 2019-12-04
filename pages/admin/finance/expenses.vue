@@ -58,7 +58,7 @@
 								<tr>
 									<th class="text-left" style="width:15%">Fecha</th>
 									<th class="text-left" style="width:15%">Concepto</th>
-									<th class="text-left" style="width:15%">Proveedor</th>
+									<th class="text-left" style="width:15%">Proveedor/Usuario</th>
 									<th class="text-center" style="width:5%">Cuenta</th>
 									<th class="text-center" style="width:5%">Factura?</th>
 									<th class="text-center" style="width:5%">Pago</th>
@@ -70,7 +70,13 @@
 							</thead>
 							<tbody>
 								<tr v-for="(reg, index) in expenses" :key="index">
-									<td>{{ reg.date }}</td>
+									<td v-if="!reg.date_ini">{{ reg.date }}</td>
+									<td v-if="reg.date_ini">
+										<span>
+											<div>{{ reg.date_ini }}</div>
+											<div>{{ reg.date }}</div>
+										</span>
+									</td>
 									<td>
 										<div style="padding-top:3px;"></div>
 										<v-chip v-if="reg.type == 1" color="green" dark label small>Despacho</v-chip>
@@ -91,7 +97,7 @@
 									</td>
 									<td>
 										<div v-if="reg.type == 6">({{reg.comissioner_initials}}) {{reg.comissioner}}</div>
-										<div v-else>{{reg.provider}}</div>
+										<div v-if="reg.type == 1 || reg.type == 2 || reg.type == 3 || reg.type == 8 || reg.type == 11">{{reg.provider}}</div>
 									</td>
 									<td class="text-center">
 										<v-chip v-if="reg.account_id == 1" color="green" dark label small>{{reg.alias}}</v-chip>
@@ -402,7 +408,7 @@ export default {
 
 		async updateExpense(data){
 			const index = this.selected_expense;
-			this.expenses.splice(index, 1, data)
+			this.expenses.splice(index, 1, data);
 			this.selected_expense = '';
 			// await this.$axios.get(`/api/balance/view/${data}`)
 			// .then(res => {

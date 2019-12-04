@@ -350,7 +350,7 @@
                  <v-divider></v-divider>
 				<v-subheader>Adminstración</v-subheader>
 
-                <v-list-group prepend-icon="insert_drive_file" no-action>
+                <!-- <v-list-group prepend-icon="insert_drive_file" no-action>
                     <template v-slot:activator>
                         <v-list-item-content>
                             <v-list-item-title>Facturación</v-list-item-title>
@@ -380,9 +380,9 @@
                             <v-icon>account_balance_wallet</v-icon>
                         </v-list-item-action>
                     </v-list-item>
-                </v-list-group>
+                </v-list-group> -->
 
-                <v-list-group prepend-icon="money" no-action>
+                <!-- <v-list-group prepend-icon="money" no-action>
                     <template v-slot:activator>
                         <v-list-item-content>
                             <v-list-item-title>Finanzas</v-list-item-title>
@@ -395,7 +395,7 @@
                         <v-list-item-action>
                             <v-icon style="color:green">money</v-icon>
                         </v-list-item-action>
-                    </v-list-item>
+                    </v-list-item> -->
                     <v-list-item router exact to="/admin/finance/expenses">
                         <v-list-item-content>
                             <v-list-item-title>Egresos</v-list-item-title>
@@ -404,7 +404,7 @@
                             <v-icon style="color:red">money</v-icon>
                         </v-list-item-action>
                     </v-list-item>
-                    <v-list-item>
+                    <!-- <v-list-item>
                         <v-list-item-content router exact>
                             <v-list-item-title>Tarjetas de Crédito</v-list-item-title>
                         </v-list-item-content>
@@ -427,17 +427,17 @@
                         <v-list-item-action>
                             <v-icon>account_balance</v-icon>
                         </v-list-item-action>
-                    </v-list-item>
-                </v-list-group>
+                    </v-list-item> 
+                </v-list-group>-->
 
-                <v-list-item router exact>
+                <!-- <v-list-item router exact>
                     <v-list-item-action>
                         <v-icon>assignment_ind</v-icon>
                     </v-list-item-action>
                     <v-list-item-content>
                         <v-list-item-title>Nómina y Comisiones</v-list-item-title>
                     </v-list-item-content>
-                </v-list-item>
+                </v-list-item> -->
 
                 <!--<v-divider></v-divider>
 				<v-subheader>Aplicaciones</v-subheader>

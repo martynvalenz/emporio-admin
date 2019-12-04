@@ -3,11 +3,11 @@
         <v-dialog v-model="billing_dialog" fullscreen transition="dialog-bottom-transition" scrollable>
 			<v-form>
 				<v-card>
-					<v-card-title class="primary white--text">
-						Agregar Factura/Recibo
-						<v-spacer></v-spacer>
-						<v-btn icon @click="billing_dialog = false"><v-icon color="white">close</v-icon></v-btn>
-					</v-card-title>
+                    <v-system-bar color="primary" dark height="60px;">
+                        <h2>Agregar Factura/Recibo</h2>
+                        <v-spacer></v-spacer>
+                        <v-btn icon small @click="billing_dialog = false"><v-icon color="white">close</v-icon></v-btn>
+                    </v-system-bar>
 					<v-card-text class="mb-4">
 						<v-container fluid>
 							<v-row>
@@ -224,7 +224,7 @@
                             </v-row>
                             <v-row>
                                 <v-col cols="12" sm="12">
-                                    <v-btn color="primary" @click="Income">Generar Ingreso<v-icon right>money</v-icon></v-btn>
+                                    <v-btn color="primary" @click="Income" :loading="income_loading">Generar Ingreso<v-icon right>money</v-icon></v-btn>
                                 </v-col>
                             </v-row>
                         </v-container>
@@ -235,6 +235,9 @@
                                     <h2>Pago de Factura/Recibo</h2>
                                 </v-col>
                             </v-row>
+                            <v-row v-if="paying_alert">
+                                <v-alert text prominent type="warning" icon="mdi-cloud-alert"><p>El monto a pagar es menor que el saldo disponible del cliente, ¿desea continuar con el pago o capturar otro ingreso del cliente?</p><v-btn class="ma-1" color="green" dark @click="ContinuePayment">Continuar</v-btn><v-btn class="ma-1" color="warning" dark @click="CancelPayment">Cancelar</v-btn></v-alert>
+                            </v-row>
                             <v-row>
                                 <v-col cols="12" sm="12" md="6" lg="3">
                                     <v-text-field v-model="customers_balance" label="Saldo del cliente" type="number" readonly step="any" min="0" filled></v-text-field>
@@ -243,10 +246,10 @@
                                     <v-text-field v-model="balance" label="Monto pendiente de factura" readonly type="number" step="any" min="0" filled></v-text-field>
                                 </v-col>
                                 <v-col cols="12" sm="12" md="6" lg="3">
-                                    <v-text-field v-model="bill_pending" label="Monto a pagar *" type="number" step="any" min="0" outlined></v-text-field>
+                                    <v-text-field v-model="bill_pending" :error-messages="errors.bill_pending" label="Monto a pagar de la factura *" type="number" step="any" min="0" outlined></v-text-field>
                                 </v-col>
                                 <v-col cols="12" sm="12" md="6" lg="3">
-                                    <v-btn color="green" dark block large>Pagar Factura<v-icon right>check</v-icon></v-btn>
+                                    <v-btn color="green" dark block large :loading="pay_load" @click="PayLoad">Pagar Factura<v-icon right>check</v-icon></v-btn>
                                 </v-col>
                             </v-row>
                         </v-container>
@@ -324,11 +327,13 @@ export default {
             paying_method_id:'',
             paying_methods:[],
             paying_comments:'',
+            income_loading:false,
             //Pay Bill
             customers_balance:0,
             customer_payment:0,
             bill_pending:0,
-
+            pay_load:false,
+            paying_alert:false,
             //snackbar
             snackbar: false,
             snackColor: '',
@@ -438,6 +443,7 @@ export default {
                     this.customer_disabled = true;
                     this.customer_id = res.data.customer_id;
                     this.customer_name = res.data.customer;
+                    this.customer_balance = res.data.customer_balance;
                     this.type = res.data.type;
                     this.folio = res.data.folio;
                     this.date = res.data.date;
@@ -448,8 +454,8 @@ export default {
                     this.is_payed = res.data.is_payed;
                     this.balance = res.data.balance;
                     this.payed_ammount = res.data.payed_ammount;
-                    this.ammount = res.data.total;
-                    this.bill_pending = res.data.total;
+                    this.ammount = res.data.balance;
+                    this.bill_pending = res.data.balance;
                     this.errors = {};
                     this.customers = {};
                     this.customer = null;
@@ -465,6 +471,7 @@ export default {
                     else if(res.data.type == 'Recibo'){
                         this.has_tax_readonly = false;
                     }
+                    this.paying_alert = false;
                     this.getBillServices();
                     this.getAccounts();
                     this.getCustomersBalance();
@@ -501,6 +508,7 @@ export default {
             this.billed_services = {};
             this.customer_id = '';
             this.customer = null;
+            this.paying_alert = false;
         },
 
         customerSelect(val){
@@ -568,7 +576,7 @@ export default {
                     this.balance = res.data.balance;
                     this.payed_ammount = res.data.payed_ammount;
                     this.ammount = res.data.total;
-                    this.bill_pending = res.data.total;
+                    this.bill_pending = res.data.balance;
                 })
             }
         },
@@ -614,9 +622,10 @@ export default {
                     this.total = success.data.total;
                     this.is_payed = success.data.is_payed;
                     this.balance = success.data.balance;
-                    this.ammount = success.data.total;
+                    this.ammount = success.data.balance;
                     this.payed_ammount = success.data.payed_ammount;
-                    this.bill_pending = res.data.total;
+                    this.bill_pending = success.data.balance;
+                    this.customer_balance = success.data.customer_balance;
                     this.errors = {};
                     this.customers = {};
                     this.customer = null;
@@ -717,14 +726,97 @@ export default {
 
         async Income(){
             if(this.bill_id){
+                this.income_loading = true;
                 await this.$axios.post('/api/account-statement/income', {customer_id:this.customer_id, comment:this.paying_comments, date_payed:this.date_payed, cheque:this.check, movimiento:this.movement, deposit:this.ammount, tax_percent:this.tax_percent, has_tax:this.has_tax, paying_method_id:this.paying_method_id, account_id:this.account_id})
                 .then(res => {
-                    this.customers_balance = res.data.balance;
+                    this.customers_balance = res.data;
+                    if(res.data >= this.balance){
+                        this.bill_pending = this.balance;
+                        this.ammount = 0;
+                    }
+                    else{
+                        this.bill_pending = res.data;
+                        this.ammount = this.balance - res.data;
+                    }
+                    this.paying_comments = '';
+                    this.check = '';
+                    this.movimiento = '';
+                    // this.ammount = 0;
+                    this.paying_method_id = '';
+                    this.account_id = '';
+                    this.date_payed = new Date().toISOString().substr(0, 10);
+                    this.snackbar = true;
+                    this.snackColor = 'success';
+                    this.snackText = 'Se generó el ingreso exitosamente';
+                    this.timeout = 2000;
+                    this.errors = {};
+                    this.income_loading = false;
                 })
                 .catch(error => {
-
+                    this.errors = error.response.data.errors;
+                    this.snackbar = true;
+                    this.snackColor = 'error';
+                    this.snackText = 'NO se pudo capturar el ingreso, revise los errores en el formulario';
+                    this.timeout = 2000;
+                    this.income_loading = false;
                 })
             }
+        }, 
+
+        PayLoad(){
+            if(this.bill_id){
+                this.pay_load = true;
+                if(this.bill_pending <= this.balance && this.bill_pending <= this.customers_balance){
+                    this.PayBill();
+                }
+                else if(this.bill_pending <= this.balance && this.bill_pending > this.customers_balance){
+                    this.paying_alert = true;
+                    this.bill_pending = this.customers_balance;
+                }
+                else if(this.bill_pending > this.balance){
+                    this.snackbar = true;
+                    this.snackColor = 'error';
+                    this.snackText = 'NO se pudo pagar la factura, revise los errores en el formulario';
+                    this.errors.bill_pending = 'El monto a pagar no puede ser mayor al monto pendiente de la factura';
+                    this.timeout = 2000;
+                    this.pay_load = false;
+                }
+            }
+        },
+
+        ContinuePayment(){
+            this.PayBill();
+            this.paying_alert = false;
+        },
+
+        CancelPayment(){
+            this.paying_alert = false;
+            this.pay_load = false;
+        },
+
+        async PayBill(){
+            await this.$axios.put(`/api/bills/paybill/${this.bill_id}`, {ammount:this.bill_pending, balance:this.balance, date_payed:this.date_payed, payed_ammount:this.payed_ammount, total:this.total, customer_id:this.customer_id})
+            .then(res => {
+                this.$emit('updateServices');
+                this.customers_balance = res.data.customer_balance;
+                this.balance = res.data.balance;
+                this.bill_pending = res.data.balance;
+                this.payed_ammount = res.data.payed_ammount;
+                this.snackbar = true;
+                this.snackColor = 'success';
+                this.snackText = 'Se pagó la factura exitosamente';
+                this.timeout = 2000;
+                this.errors = {};
+                this.pay_load = false;
+            })
+            .catch(error => {
+                this.errors = error.response.data.errors;
+                this.snackbar = true;
+                this.snackColor = 'error';
+                this.snackText = 'NO se pudo pagar la factura, revise los errores en el formulario';
+                this.timeout = 2000;
+                this.pay_load = false;
+            })
         }
     }
 }

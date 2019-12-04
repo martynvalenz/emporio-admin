@@ -3,16 +3,16 @@
         <v-dialog v-model="service_dialog" fullscreen transition="dialog-bottom-transition" scrollable>
 			<v-form>
 				<v-card>
-					<v-card-title class="primary white--text">
-						{{title}}
-						<v-spacer></v-spacer>
-						<v-btn icon @click="service_dialog = false"><v-icon color="white">close</v-icon></v-btn>
-					</v-card-title>
+                    <v-system-bar color="primary" dark height="60px;">
+                        <h2>{{title}}</h2>
+                        <v-spacer></v-spacer>
+                        <v-btn icon small @click="service_dialog = false"><v-icon color="white">close</v-icon></v-btn>
+                    </v-system-bar>
 					<v-card-text class="mb-4">
 						<v-container fluid>
 							<v-row>
 								<v-col cols="12" sm="12" md="7" lg="6">
-									<v-autocomplete v-if="!service_id" v-model="customer" :items="customers" outlined :loading="customerLoading" :search-input.sync="sync_customer" hide-no-data hide-selected item-text="customer" item-value="id" placeholder="Buscar cliente..." return-object :error-messages="errors.customer_id" label="Cliente" append-icon="clear" @click:append="ClearCustomer"></v-autocomplete>
+									<v-autocomplete v-if="!service_id" v-model="customer" :items="customers" outlined :loading="customerLoading" :search-input.sync="sync_customer" hide-no-data hide-selected item-text="customer" item-value="id" placeholder="Buscar cliente..." return-object :error-messages="errors.customer_id" label="Cliente" append-icon="clear" @click:append="ClearCustomer" append-outer-icon="sync" @click:append-outer="getCustomerData"></v-autocomplete>
                                     <v-text-field v-if="service_id" v-model="customer" outlined label="Cliente" readonly></v-text-field>
 								</v-col>
                                 <v-spacer></v-spacer>
@@ -34,6 +34,29 @@
                                     <v-select v-model="class_id" outlined :items="classes" item-value="id" item-text="class" label="Clase" :error-messages="errors.class_id" clearable append-outer-icon="help_outline" @click:append-outer="showClass"></v-select>
                                 </v-col>
                             </v-row>
+                            <v-row v-if="related.length > 0">
+                                <v-col cols="12" xs="12">
+                                    <v-simple-table class="elevation-4">
+                                        <thead>
+                                            <tr>
+                                                <th class="text-left" style="width:15%">Fecha</th>
+                                                <th class="text-left" style="width:40%">Servicio</th>
+                                                <th class="text-right" style="width:20%">Precio</th>
+                                                <th class="text-center" style="width:15%">Resp</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr v-for="(service, index) in related" :key="index">
+                                                <td title="service.id">{{ service.date }}</td>
+                                                <td>{{ service.code }} - {{ service.brand }}<span v-if="service.class"> {{service.class}}</span></td>
+                                                <td class="text-right">$ {{ formatPrice(service.final_price) }}</td>
+                                                <td class="text-center">{{ service.resp }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </v-simple-table>
+                                </v-col>
+                            </v-row>
+                            <br v-if="related.length > 0">
 							<v-row>
 								<v-col cols="12" sm="12" md="10" lg="10">
                                     <v-autocomplete v-if="service_select" v-model="service" :items="services" outlined :loading="serviceLoading" :search-input.sync="sync_service" hide-no-data hide-selected item-text="service" item-value="id" placeholder="Buscar servicio..." return-object :error-messages="errors.services_catalog_id" label="Servicio" append-outer-icon="refresh" append-icon="clear" @click:append="ClearData" @click:append-outer="getServiceData"></v-autocomplete>
@@ -66,9 +89,9 @@
                                 <v-col cols="12" sm="6" md="3" lg="2">
                                     <v-text-field v-model="cost" type="number" step="any" outlined label="Pago de Derechos" append-icon="refresh" :error-messages="errors.cost" v-on:keyup="editCost" @click:append="editCost"></v-text-field>
                                 </v-col>
-                                <!-- <v-col cols="12" sm="6" md="3" lg="2">
+                                <v-col cols="12" sm="6" md="3" lg="2">
                                     <v-text-field v-model="external_fee" type="number" step="any" outlined label="Pago de Honorarios" append-icon="add" :error-messages="errors.external_fee" @click:append="addExternalFee"></v-text-field>
-                                </v-col> -->
+                                </v-col>
                                 <!-- <v-col cols="12" sm="6" md="3" lg="2">
                                     <v-text-field v-model="fee" readonly type="number" step="any" outlined label="Honorarios"></v-text-field>
                                 </v-col> -->
@@ -93,36 +116,7 @@
                                     <v-select v-model="select_related" outlined label="Seleccionar servicio extra" :items="related_services" item-value="id" item-text="service"  append-icon="clear" @click:append="select_related = ''" :error-messages="errors.select_related"></v-select>
                                 </v-col>
                                 <v-col cols="12" xs="12" sm="12" md="3" lg="2" xl="2">
-                                    <v-text-field v-model="related_ammount" type="number" step="any" min="0" outlined label="Monto de honorarios" append-icon="refresh" :error-messages="errors.related_ammount" append-outer-icon="add" @click:append-outer="getRelatedServiceData"></v-text-field>
-                                </v-col>
-                            </v-row>
-                            <v-row v-if="show_related && related.length > 0">
-                                <v-col cols="12" xs="12">
-                                    <v-simple-table class="elevation-2">
-                                        <thead>
-                                            <tr>
-                                                <th class="text-left" style="width:70%">Servicio</th>
-                                                <th class="text-right" style="width:15%">Monto</th>
-                                                <th class="text-right" style="width:15%"></th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr v-for="(service, i) in related" :key="i">
-                                                <td>{{ service.service }}</td>
-                                                <td class="text-right">
-                                                    <v-edit-dialog :return-value.sync="service.related_ammount" large persistent>
-                                                        <div><b>{{ service.related_ammount }}</b></div>
-                                                        <template v-slot:input>
-                                                            <v-text-field v-model="service.related_ammount" label="Editar monto" single-line autofocus max="service.related_ammount" type="number" step="any"></v-text-field>
-                                                        </template>
-                                                    </v-edit-dialog>    
-                                                </td>
-                                                <td class="text-right">
-                                                    <v-btn fab icon small color="error" @click="deleteRelated(i)"><v-icon>close</v-icon></v-btn>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </v-simple-table>
+                                    <v-text-field v-model="related_ammount" type="number" step="any" min="0" outlined label="Monto de honorarios" :error-messages="errors.related_ammount"></v-text-field>
                                 </v-col>
                             </v-row>
                             <hr>
@@ -181,7 +175,7 @@
 								<v-btn large color="success" :loading="loading" @click="SaveService">Guardar<v-icon right>save</v-icon></v-btn>
 							</v-row>
                             <br>
-                            <v-simple-table class="elevation-4" v-if="customer_id && servicesCollection">
+                            <!-- <v-simple-table class="elevation-4" v-if="servicesCollection">
                                 <thead>
                                     <tr>
                                         <th class="text-left" style="width:15%">Fecha</th>
@@ -212,7 +206,7 @@
                                         <td class="text-center">{{ service.resp }}</td>
                                     </tr>
                                 </tbody>
-                            </v-simple-table>
+                            </v-simple-table> -->
                             <div class="pt-4"></div>
 						</v-container>
 					</v-card-text>
@@ -255,6 +249,10 @@ export default {
             sync_service:'',
             service_id:'',
             service_select:true,
+            //Package
+            package_id:'',
+            has_package:false,
+            package_total:0,
             //Data
             brand_id:'',
             brands:[],
@@ -349,7 +347,26 @@ export default {
         addService()
         {
             this.service_dialog = true;
-            this.title = 'Agregar Servicio'
+            this.has_package = false;
+            this.package_total = 0;
+            this.related = {};
+            this.title = 'Agregar Servicio';
+            this.getClasses();
+            this.getBinnacles();
+            this.getResponsables();
+            this.getCoins();
+            this.getEstatus();
+            this.ClearService();
+            this.ClearData();
+        },
+
+        addPackage()
+        {
+            this.service_dialog = true;
+            this.has_package = true;
+            this.package_total = 0;
+            this.title = 'Agregar Servicios';
+            this.related = {};
             this.getClasses();
             this.getBinnacles();
             this.getResponsables();
@@ -362,6 +379,7 @@ export default {
         editService(service_id){
             this.service_dialog = true;
             this.service_select = false;
+            this.has_package = true;
             this.title = 'Editar Servicio: #' + service_id;
             this.service_id = service_id;
             this.getClasses();
@@ -426,7 +444,7 @@ export default {
             this.customer = null;
             this.brand_id = '';
             this.brands = [];
-            this.servicesCollection = {};
+            this.related = {};
         },
 
         serviceSelect(val){
@@ -446,21 +464,28 @@ export default {
 			})
         },
 
+        getCustomerData(){
+            this.getBrands();
+            this.getPendingServices();
+        },
+
         async getBrands(){
-            await this.$axios.post('/api/service/customer-brands', {customer_id:this.customer_id})
-            .then(res => {
-                this.brands = res.data;
-            })
-            .catch(error => {
-                this.errors = error.response.data.errors;
-            })
+            if(this.customer_id){
+                await this.$axios.post('/api/service/customer-brands', {customer_id:this.customer_id})
+                .then(res => {
+                    this.brands = res.data;
+                })
+                .catch(error => {
+                    this.errors = error.response.data.errors;
+                })
+            }
         },
 
         async getPendingServices(){
             if(this.customer_id){
                 await this.$axios.get(`/api/customer/pending-services/${this.customer_id}`)
                 .then(res => {
-                    this.servicesCollection = res.data;
+                    this.related = res.data;
                 })
             }
         },
@@ -767,6 +792,7 @@ export default {
             this.service_select = true;
             this.services = {};
             this.service_id = '';
+            // this.package_id = '';
             this.service = null;
             this.coin_id = '';
             this.cost = 0;
@@ -794,7 +820,7 @@ export default {
             this.status_subcategory_id = '';
             //Related
             this.show_related = false;
-            this.related = [];
+            // this.related = [];
             this.select_related = '';
             this.related_services = [];
             this.related_ammount = 0;
@@ -818,7 +844,7 @@ export default {
             this.total_advance = 0;
             this.status_category_id = '';
             this.status_subcategory_id = '';
-            this.servicesCollection = {};
+            // this.related = {};
         },
 
         ReloadService(){
@@ -988,7 +1014,7 @@ export default {
         async SaveService(){
             if(this.service_id){
                 this.loading = true;
-                await this.$axios.put(`/api/service/update/${this.service_id}`, {comment:this.comment, date:this.date, cost:this.cost, price:this.price, money_exchange:this.conversion, discount:this.discount, discount_percent:this.discount_percent, final_price:this.final_price, advance_total:this.total_advance, money_exchange_id:this.coin_id, customer_id:this.customer_id, brand_id:this.brand_id, services_catalog_id:this.services_catalog_id, responsable_id:this.responsable_id, binnacle_id:this.binnacle_id, class_id:this.class_id, sales:this.sales, management:this.management, operations:this.operations, sales_comission:this.sales_comission, operations_comission:this.operations_comission, management_comission:this.management_comission, process:this.process, sales_check:this.sales_check, operations_check:this.operations_check, management_check:this.management_check, sales_value:this.sales_value, operations_value:this.operations_value, management_value:this.management_value, status_category_id:this.status_category_id, status_subcategory_id:this.status_subcategory_id, external_fee:this.external_fee, utility:this.fee})
+                await this.$axios.put(`/api/service/update/${this.service_id}`, {comment:this.comment, date:this.date, cost:this.cost, price:this.price, money_exchange:this.conversion, discount:this.discount, discount_percent:this.discount_percent, final_price:this.final_price, advance_total:this.total_advance, money_exchange_id:this.coin_id, customer_id:this.customer_id, brand_id:this.brand_id, services_catalog_id:this.services_catalog_id, responsable_id:this.responsable_id, binnacle_id:this.binnacle_id, class_id:this.class_id, sales:this.sales, management:this.management, operations:this.operations, sales_comission:this.sales_comission, operations_comission:this.operations_comission, management_comission:this.management_comission, process:this.process, sales_check:this.sales_check, operations_check:this.operations_check, management_check:this.management_check, sales_value:this.sales_value, operations_value:this.operations_value, management_value:this.management_value, status_category_id:this.status_category_id, status_subcategory_id:this.status_subcategory_id, external_fee:this.external_fee, utility:this.fee, has_package:this.has_package, package_id:this.package_id, package_total:this.package_total})
                 .then(res => {
                     this.errors = {};
                     this.snackbar = true;
@@ -1012,18 +1038,24 @@ export default {
             }
             else{
                 this.loading = true;
-                await this.$axios.post('/api/service/store', {comment:this.comment, date:this.date, cost:this.cost, price:this.price, money_exchange:this.conversion, discount:this.discount, discount_percent:this.discount_percent, final_price:this.final_price, advance_total:this.total_advance, money_exchange_id:this.coin_id, customer_id:this.customer_id, brand_id:this.brand_id, services_catalog_id:this.services_catalog_id, responsable_id:this.responsable_id, binnacle_id:this.binnacle_id, class_id:this.class_id, sales:this.sales, management:this.management, operations:this.operations, sales_comission:this.sales_comission, operations_comission:this.operations_comission, management_comission:this.management_comission, process:this.process, sales_check:this.sales_check, operations_check:this.operations_check, management_check:this.management_check, sales_value:this.sales_value, operations_value:this.operations_value, management_value:this.management_value, status_category_id:this.status_category_id, status_subcategory_id:this.status_subcategory_id, external_fee:this.external_fee, utility:this.fee})
+                await this.$axios.post('/api/service/store', {comment:this.comment, date:this.date, cost:this.cost, price:this.price, money_exchange:this.conversion, discount:this.discount, discount_percent:this.discount_percent, final_price:this.final_price, advance_total:this.total_advance, money_exchange_id:this.coin_id, customer_id:this.customer_id, brand_id:this.brand_id, services_catalog_id:this.services_catalog_id, responsable_id:this.responsable_id, binnacle_id:this.binnacle_id, class_id:this.class_id, sales:this.sales, management:this.management, operations:this.operations, sales_comission:this.sales_comission, operations_comission:this.operations_comission, management_comission:this.management_comission, process:this.process, sales_check:this.sales_check, operations_check:this.operations_check, management_check:this.management_check, sales_value:this.sales_value, operations_value:this.operations_value, management_value:this.management_value, status_category_id:this.status_category_id, status_subcategory_id:this.status_subcategory_id, external_fee:this.external_fee, utility:this.fee, has_package:this.has_package, package_id:this.package_id, related_ammount:this.related_ammount, select_related:this.select_related})
                 .then(res => {
                     this.errors = {};
+                    this.related = res.data.services;
+                    this.package_id = res.data.package_id;
+                    this.$emit('addService', res.data.service.original);
+                    if(this.select_related){
+                        this.$emit('addService', res.data.service_related.original);
+                    }
                     this.snackbar = true;
                     this.snackColor = 'success';
                     this.snackText = 'Se creó el servicio exitosamente';
                     this.timeout = 3000;
-                    const data = res.data;
-                    this.servicesCollection.unshift(data);
-                    this.$emit('addService', data);
                     this.loading = false;
                     this.ReloadService();
+                    if(!this.has_package){
+                        this.service_dialog = false;
+                    }
                 })
                 .catch(error => {
                     // console.clear();

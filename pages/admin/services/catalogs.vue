@@ -226,7 +226,8 @@ export default {
 		},
 
 		updateService(data){
-			this.services[this.catalog_selected] = data;
+			// this.services[this.catalog_selected] = data;
+			this.services.splice(this.catalog_selected,1,data);
 			this.catalog_selected = '';
 		},
 
