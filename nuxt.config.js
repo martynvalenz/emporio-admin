@@ -58,11 +58,17 @@ export default {
   */
   modules: [
     // Doc: https://axios.nuxtjs.org/usage
+    // '@nuxtjs/vuetify',
     '@nuxtjs/axios',
     '@nuxtjs/pwa',
     '@nuxtjs/auth',
     '@nuxtjs/dotenv',
   ],
+
+  buildModules: [
+    // '@nuxtjs/vuetify'
+  ],
+
   /*
   ** Axios module configuration
   ** See https://axios.nuxtjs.org/options

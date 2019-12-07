@@ -47,7 +47,7 @@
                                     <v-text-field v-model="cost" v-on:keyup="CalculateValues" outlined label="Pago de Derechos *" type="number" step="any" min="0" :error-messages="errors.cost"></v-text-field>
                                 </v-col>
                                 <v-col cols="12" sm="12" md="3" lg="2">
-                                    <v-text-field v-model="external_fee" outlined label="Pago de Honorarios *" type="number" step="any" min="0" :error-messages="errors.external_fee"></v-text-field>
+                                    <v-text-field v-model="external_fee" outlined label="Pago de Honorarios *" type="number" step="any" min="0" v-on:keyup="CalculateValues" :error-messages="errors.external_fee"></v-text-field>
                                 </v-col>
                                 <v-col cols="12" sm="12" md="3" lg="2">
                                     <v-text-field v-model="price" outlined label="Precio (Sin IVA) *" type="number" step="any" min="0" v-on:keyup="CalculateValues" :error-messages="errors.price"></v-text-field>
@@ -257,21 +257,21 @@ export default {
             this.management_ammount = 0;
         },
 
-        async editService(service_id){
+        editService(service_id){
+            this.getCatalogCategories();
             this.service_dialog = true;
             this.service_catalog_id = service_id;
-            this.getCatalogCategories();
-            await this.$axios.get(`/api/catalog/edit/${service_id}`)
+            this.$axios.get(`/api/catalog/edit/${service_id}`)
             .then(res => {
                 this.title = 'Editar servicio: ' + res.data.code;
                 this.code = res.data.code;
                 this.service = res.data.service;
-                this.services_category_id = res.data.services_category_id;
-                this.binnacle_id = res.data.binnacle_id;
-                this.status_category_id = res.data.status_category_id;
-                this.status_subcategory_id = res.data.status_subcategory_id;
+                this.services_category_id = res.data.services_category_id * 1;
+                this.binnacle_id = res.data.binnacle_id * 1;
+                this.status_category_id = res.data.status_category_id * 1;
+                this.status_subcategory_id = res.data.status_subcategory_id * 1;
                 this.comments = res.data.comments;
-                this.money_exchange_id = res.data.money_exchange_id;
+                this.money_exchange_id = res.data.money_exchange_id * 1;
                 if(res.data.authorize == 1){
                     this.authorize = true;
                 }
@@ -373,9 +373,10 @@ export default {
             let utility = 0;
             const cost = (this.cost * 1);
             const price = (this.price * 1);
-            fee = price - cost;
+            const external_fee = (this.external_fee * 1);
+            fee = price - cost - external_fee;
 
-            if(price > 0 && cost < price){
+            if(price > 0 && fee < price){
                 this.errors = {};
 
                 if(this.sales == 0){

@@ -27,8 +27,8 @@
 							</v-row>
                             <v-row>
                                 <v-col cols="12" sm="12" md="10" lg="10">
-                                    <v-select v-if="!newBrand" v-model="brand_id" outlined :items="brands" item-value="id" item-text="brand" label="Seleccionar Marca o aviso comercial" :error-messages="errors.brand_id" prepend-icon="add" @click:prepend="newBrand = true" clearable></v-select>
-                                    <v-text-field v-else v-model="brand" prepend-icon="close" @click:prepend="newBrand = false" append-icon="save" @click:append="saveBrand" outlined label="Agregar marca o aviso comercial" :error-messages="errors.brand"></v-text-field>
+                                    <v-select v-if="!newBrand" v-model="brand_id" outlined :items="brands" item-value="id" item-text="brand" label="Seleccionar nombre de Servicio" :error-messages="errors.brand_id" prepend-icon="add" @click:prepend="newBrand = true" clearable></v-select>
+                                    <v-text-field v-else v-model="brand" prepend-icon="close" @click:prepend="newBrand = false" append-icon="save" @click:append="saveBrand" outlined label="Crear nombre de Servicio" :error-messages="errors.brand"></v-text-field>
                                 </v-col>
                                 <v-col cols="12" sm="12" md="2" lg="2">
                                     <v-select v-model="class_id" outlined :items="classes" item-value="id" item-text="class" label="Clase" :error-messages="errors.class_id" clearable append-outer-icon="help_outline" @click:append-outer="showClass"></v-select>
@@ -59,7 +59,7 @@
                             <br v-if="related.length > 0">
 							<v-row>
 								<v-col cols="12" sm="12" md="10" lg="10">
-                                    <v-autocomplete v-if="service_select" v-model="service" :items="services" outlined :loading="serviceLoading" :search-input.sync="sync_service" hide-no-data hide-selected item-text="service" item-value="id" placeholder="Buscar servicio..." return-object :error-messages="errors.services_catalog_id" label="Servicio" append-outer-icon="refresh" append-icon="clear" @click:append="ClearData" @click:append-outer="getServiceData"></v-autocomplete>
+                                    <v-autocomplete v-if="service_select" v-model="service" :items="services" outlined :loading="serviceLoading" :search-input.sync="sync_service" hide-no-data hide-selected item-text="service" item-value="id" placeholder="Buscar servicio contratado..." return-object :error-messages="errors.services_catalog_id" label="Servicio contratado" append-outer-icon="refresh" append-icon="clear" @click:append="ClearData" @click:append-outer="getServiceData"></v-autocomplete>
                                     <v-text-field v-if="!service_select" v-model="service" outlined label="Servicio" readonly append-icon="edit" @click:append="service_select = true"></v-text-field>
                                 </v-col>
 							</v-row>
@@ -81,7 +81,7 @@
                             <br>
                             <v-row>
                                 <v-col cols="12" sm="6" md="3" lg="2">
-                                    <v-select v-model="coin_id" :items="coins" item-value="id" item-text="coin" outlined label="Moneda" @change="changeCoin" readonly></v-select>
+                                    <v-select v-model="coin_id" :items="coins" item-value="id" item-text="coin" outlined label="Moneda" @change="changeCoin"></v-select>
                                 </v-col>
                                 <v-col cols="12" sm="6" md="3" lg="2">
                                     <v-text-field v-model="price_desc" filled label="Precio base" readonly></v-text-field>
@@ -90,11 +90,11 @@
                                     <v-text-field v-model="cost" type="number" step="any" outlined label="Pago de Derechos" append-icon="refresh" :error-messages="errors.cost" v-on:keyup="editCost" @click:append="editCost"></v-text-field>
                                 </v-col>
                                 <v-col cols="12" sm="6" md="3" lg="2">
-                                    <v-text-field v-model="external_fee" type="number" step="any" outlined label="Pago de Honorarios" append-icon="add" :error-messages="errors.external_fee" @click:append="addExternalFee"></v-text-field>
+                                    <v-text-field v-model="external_fee" type="number" step="any" outlined label="Pago de Honorarios" :error-messages="errors.external_fee" v-on:keyup="editCost"></v-text-field>
                                 </v-col>
-                                <!-- <v-col cols="12" sm="6" md="3" lg="2">
-                                    <v-text-field v-model="fee" readonly type="number" step="any" outlined label="Honorarios"></v-text-field>
-                                </v-col> -->
+                                <v-col cols="12" sm="6" md="3" lg="2">
+                                    <v-text-field v-model="extra_cost" type="number" step="any" outlined label="Costos Extra" append-icon="add" @click:append="addExtraCosts"></v-text-field>
+                                </v-col>
                             </v-row>
                             <v-row>
                                 <v-col cols="12" sm="6" md="3" lg="2">
@@ -116,7 +116,7 @@
                                     <v-select v-model="select_related" outlined label="Seleccionar servicio extra" :items="related_services" item-value="id" item-text="service"  append-icon="clear" @click:append="select_related = ''" :error-messages="errors.select_related"></v-select>
                                 </v-col>
                                 <v-col cols="12" xs="12" sm="12" md="3" lg="2" xl="2">
-                                    <v-text-field v-model="related_ammount" type="number" step="any" min="0" outlined label="Monto de honorarios" :error-messages="errors.related_ammount"></v-text-field>
+                                    <v-text-field v-model="related_ammount" type="number" step="any" min="0" outlined label="Monto de honorarios" :error-messages="errors.related_ammount" append-outer-icon="close" @click:append-outer="closeRelated"></v-text-field>
                                 </v-col>
                             </v-row>
                             <hr>
@@ -249,6 +249,7 @@ export default {
             sync_service:'',
             service_id:'',
             service_select:true,
+            services_catalog_id:'',
             //Package
             package_id:'',
             has_package:false,
@@ -265,6 +266,7 @@ export default {
             coin_id:'',
             cost:0,
             external_fee:0,
+            extra_cost:0,
             price:0,
             price_desc:'',
             conversion:0,
@@ -397,13 +399,14 @@ export default {
                 this.class_id = res.data.class_id;
                 this.services_catalog_id = res.data.services_catalog_id;
                 this.service = res.data.service;
-                this.responsable_id = res.data.responsable_id;
-                this.binnacle_id = res.data.binnacle_id;
-                this.status_category_id = res.data.status_category_id;
-                this.status_subcategory_id = res.data.status_subcategory_id;
-                this.coin_id = res.data.money_exchange_id;
+                this.responsable_id = res.data.responsable_id * 1;
+                this.binnacle_id = res.data.binnacle_id * 1;
+                this.status_category_id = res.data.status_category_id * 1;
+                this.status_subcategory_id = res.data.status_subcategory_id * 1;
+                this.coin_id = res.data.money_exchange_id * 1;
                 this.price_desc = res.data.price_desc;
                 this.cost = res.data.cost;
+                this.extra_cost = 0;
                 this.external_fee = res.data.external_fee;
                 this.conversion = res.data.money_exchange;
                 this.discount = res.data.discount;
@@ -559,17 +562,17 @@ export default {
                     this.errors = {};
                     const conversion = res.data.service.conversion;
                     //General Data
-                    this.binnacle_id = res.data.service.binnacle_id;
-                    this.status_category_id = res.data.service.status_category_id;
-                    this.status_subcategory_id = res.data.service.status_subcategory_id;
-                    this.coin_id = res.data.service.money_exchange_id;
+                    this.binnacle_id = res.data.service.binnacle_id * 1;
+                    this.status_category_id = res.data.service.status_category_id * 1;
+                    this.status_subcategory_id = res.data.service.status_subcategory_id * 1;
+                    this.coin_id = res.data.service.money_exchange_id * 1;
                     this.total_advance = res.data.service.total_advance;
                     this.price_desc = res.data.service.price + ' ' + res.data.service.code;
                     this.price = res.data.service.price;
-                    this.status_category_id = res.data.service.status_category_id;
+                    this.status_category_id = res.data.service.status_category_id * 1;
                     if(this.status_category_id){
                         this.getSubcategories();
-                        this.status_subcategory_id = res.data.service.status_subcategory_id;
+                        this.status_subcategory_id = res.data.service.status_subcategory_id * 1;
                     }
 
                     //Discounts
@@ -578,13 +581,13 @@ export default {
                     this.discount = Math.round(discount * 100) / 100;
 
                     //Totals
-                    this.external_fee = res.data.service.external_fee;
+                    this.external_fee = Math.round((res.data.service.external_fee * conversion) * 100) / 100;
                     this.conversion = conversion;
                     this.conversion_base = conversion;
                     this.cost = res.data.service.cost * conversion;
                     this.final_price = Math.round(((res.data.service.price * conversion) - discount) * 100) / 100;
                     this.const_price = Math.round(((res.data.service.price * conversion) - discount) * 100) / 100;
-                    this.fee = Math.round(((res.data.service.price * conversion) - (res.data.service.cost * conversion) - discount) * 100)/100;
+                    this.fee = Math.round(((res.data.service.price * conversion) - (res.data.service.cost * conversion) - (res.data.service.external_fee * conversion) - discount) * 100)/100;
 
                     //Comissions
                     this.sales = res.data.service.sales;
@@ -657,7 +660,7 @@ export default {
                 }
                 else{
                     this.errors = {};
-                    const value = this.const_price - (this.const_price * (this.discount_percent / 100)) - this.cost;
+                    const value = this.const_price - (this.const_price * (this.discount_percent / 100)) - this.cost - this.external_fee;
                     if(value < 0){
                         this.errors.discount_percent = 'El descuento no puede ser mayor a los honorarios del servicio';
                     }
@@ -703,9 +706,9 @@ export default {
 
         FinalCut(){
             if(this.final_price){
-                const value = this.final_price - this.cost - this.discount;
+                const value = this.final_price - this.cost - this.discount - this.external_fee;
                 if(value < 0){
-                    this.errors.final_price = 'El precio no puede ser menor a la suma de costos y descuentos';
+                    this.errors.final_price = 'El precio no puede ser menor a la suma de pago de derechos + descuento + honorarios';
                 }
                 else{
                     this.errors = {};
@@ -728,6 +731,7 @@ export default {
                         this.discount = Math.round((this.discount * this.conversion / this.conversion_base) * 100) / 100;
                         this.const_price = Math.round((this.const_price * this.conversion / this.conversion_base) * 100) / 100;
                         this.fee = Math.round((this.fee * this.conversion / this.conversion_base) * 100) / 100;
+                        this.external_fee = Math.round((this.fee * this.conversion / this.conversion_base) * 100) / 100;
                         this.calculateComission();
                         this.conversion_base = res.data.conversion;
                         this.snackbar = true;
@@ -796,6 +800,7 @@ export default {
             this.service = null;
             this.coin_id = '';
             this.cost = 0;
+            this.extra_cost = 0;
             this.price = 0;
             this.price_desc = 0;
             this.fee = 0;
@@ -978,15 +983,22 @@ export default {
             }
         },
 
-        async addExternalFee(){
+        async addExtraCosts(){
             if(this.services_catalog_id){
                 this.show_related = true;
                 await this.$axios.get('/api/services-additional')
                 .then(res => {
-                    this.related_ammount = this.external_fee;
+                    this.related_ammount = this.extra_cost;
                     this.related_services = res.data;
                 })
             }
+        },
+
+        closeRelated(){
+            this.show_related = false;
+            this.related_ammount = 0;
+            this.extra_cost = 0;
+            this.related_services = '';
         },
 
         async getRelatedServiceData(){

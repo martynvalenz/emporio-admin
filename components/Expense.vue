@@ -367,7 +367,8 @@ export default {
             this.clearData();
             this.getAccounts();
             this.employee = true;
-            this.date_ini = new Date().toISOString().substr(0, 10);
+            this.date_ini = this.user.session.original.biweek1;
+            this.date = this.user.session.original.biweek2;
             this.employees = [];
             this.getEmployees();
             this.service_payments = 0;
@@ -686,22 +687,26 @@ export default {
                 this.employees = [];
                 this.employees_wage = [];
                 this.service_payments = 0;
+                this.date_ini = new Date().toISOString().substr(0, 10);
             }
             else if(this.type === 2){
                 this.employee = false;
                 this.employees = [];
                 this.employees_wage = [];
                 this.service_payments = 0;
+                this.date_ini = new Date().toISOString().substr(0, 10);
             }
             else if(this.type === 3){
                 this.employee = false;
                 this.employees = [];
                 this.employees_wage = [];
                 this.service_payments = 0;
+                this.date_ini = new Date().toISOString().substr(0, 10);
             }
             else if(this.type === 5){
                 this.employee = true;
-                this.date_ini = new Date().toISOString().substr(0, 10);
+                this.date_ini = this.user.session.original.biweek1;
+                this.date_ini = this.user.session.original.biweek2;
                 this.employees = [];
                 if(!this.expense_id){
                     this.getEmployees();
@@ -710,7 +715,8 @@ export default {
             }
             else if(this.type === 6){
                 this.employee = true;
-                this.date_ini = new Date().toISOString().substr(0, 10);
+                this.date_ini = this.user.session.original.biweek1;
+                this.date_ini = this.user.session.original.biweek2;
                 this.employees_wage = [];
                 this.getEmployees();
                 this.service_payments = 0;

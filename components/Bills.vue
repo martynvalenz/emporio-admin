@@ -235,7 +235,7 @@
                                     <h2>Pago de Factura/Recibo</h2>
                                 </v-col>
                             </v-row>
-                            <v-row v-if="paying_alert">
+                            <v-row v-show="paying_alert">
                                 <v-alert text prominent type="warning" icon="mdi-cloud-alert"><p>El monto a pagar es menor que el saldo disponible del cliente, ¿desea continuar con el pago o capturar otro ingreso del cliente?</p><v-btn class="ma-1" color="green" dark @click="ContinuePayment">Continuar</v-btn><v-btn class="ma-1" color="warning" dark @click="CancelPayment">Cancelar</v-btn></v-alert>
                             </v-row>
                             <v-row>

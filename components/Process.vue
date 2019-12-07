@@ -3,11 +3,11 @@
         <v-dialog v-model="service_dialog" fullscreen transition="dialog-bottom-transition" scrollable>
 			<v-form>
 				<v-card>
-					<v-card-title class="primary white--text">
-						Editar Proceso
-						<v-spacer></v-spacer>
-						<v-btn icon @click="service_dialog = false"><v-icon color="white">close</v-icon></v-btn>
-					</v-card-title>
+                    <v-system-bar color="primary" dark height="60px;">
+                        <h2>Editar Proceso</h2>
+                        <v-spacer></v-spacer>
+                        <v-btn icon small @click="service_dialog = false"><v-icon color="white">close</v-icon></v-btn>
+                    </v-system-bar>
 					<v-card-text class="mb-4">
                         <v-container>
                             <v-simple-table class="elevation-4"> 
@@ -26,7 +26,7 @@
                                 </thead>
                                 <tbody>
                                     <tr v-for="(reg, index) in service_requisites" :key="index">
-                                        <td>{{ reg.orden }} <span><v-icon>keyboard_arrow_up</v-icon><v-icon>keyboard_arrow_down</v-icon></span></td>
+                                        <td>{{ index + 1 }} <!-- <span><v-icon>keyboard_arrow_up</v-icon><v-icon>keyboard_arrow_down</v-icon></span> --></td>
                                         <td>{{ reg.requisite }}</td>
                                         <td>
                                             <span v-if="reg.category == 0">Dirección</span>
@@ -56,7 +56,7 @@
                                         </td>
                                         <td class="text-center">{{ reg.created_at }}</td>
                                         <td class="text-right">
-                                            <v-icon color="red">cancel</v-icon>
+                                            <v-icon color="red" @click="deleteRequisite(index)">cancel</v-icon>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -86,7 +86,8 @@
                         <v-container>
                             <v-layout row wrap>
                                 <v-flex xs12 sm12 md6 lg4 xl3 v-for="(requirement, index) in requisites" :key="index" class="px-3">
-                                    <v-switch color="primary" v-bind:class="[requirement.status == 0 ? 'inactive':'']" :value="requirement.selected" :input-value="requirement.selected" :label="requirement.requisite" inset append-icon="edit" @click:append="edit(index)"></v-switch>
+                                    <v-switch color="primary" v-bind:class="[requirement.status == 0 ? 'inactive':'']" :value="requirement.selected" :input-value="requirement.selected" :label="requirement.requisite" inset append-icon="edit" @click:append="edit(index)" @change="Switch(index)" :disabled="requirement.status == 0"></v-switch>
+                                    <v-icon @click="edit(index)" v-if="requirement.status == 0" color="green">check</v-icon>
                                 </v-flex>
                             </v-layout>
                         </v-container>
@@ -174,7 +175,7 @@ export default {
             this.requirement_id = requisites.id;
             this.requisite = requisites.requisite;
             this.status = requisites.status;
-            this.category = requisites.category;
+            this.category = requisites.category * 1;
         },
 
         cancel(){
@@ -185,12 +186,73 @@ export default {
             this.category = '';
         },
 
-        Save(){
-
+        async Save(){
+            this.loading = true;
+            if(this.requirement_id){
+                await this.$axios.put(`/api/catalog-requirement/update/${this.requirement_id}`, {requisite:this.requisite, category:this.category, status:this.status, services_catalog_id:this.service_catalog_id})
+                .then(res => {
+                    this.requisites[this.selected_requirement] = res.data;
+                    this.cancel();
+                    this.errors = {};
+                    this.loading = false;
+                })
+                .catch(error => {
+                    this.errors = error.response.data.errors;
+                    this.loading = false;
+                })
+            }
+            else{
+                await this.$axios.post('/api/catalog-requirement/store', {requisite:this.requisite, category:this.category, status:this.status, services_catalog_id:this.service_catalog_id})
+                .then(res => {
+                    this.requisites.unshift(res.data);
+                    this.cancel();
+                    this.errors = {};
+                    this.loading = false;
+                })
+                .catch(error => {
+                    this.errors = error.response.data.errors;
+                    this.loading = false;
+                })
+            }
         },
 
         Sales(index){
             
+        },
+
+        async Switch(index){
+            // console.log(this.requisites[index]);
+            const requi = this.requisites[index];
+            let selected = 1;
+            if(requi.selected === 1){
+                selected = 0;
+            }
+            else if(requi.selected === 0){
+                selected = 1;
+            }
+            await this.$axios.put(`/api/catalog-requisite/switch/${requi.id}`, {selected:selected, requirement_id:requi.id, services_catalog_id:this.service_catalog_id})
+            .then(res => {
+                this.serviceRequisites();
+                this.requisites[index] = res.data.requi;
+                this.$emit('updateProcess', res.data.count);
+            })
+            .catch(error => {
+                console.log(error);
+            })
+        },
+
+        async deleteRequisite(index){
+            const requi = this.service_requisites[index];
+            let selected = 0;
+            await this.$axios.put(`/api/catalog-requisite/switch/${requi.id}`, {selected:selected, requirement_id:requi.requirement_id, services_catalog_id:requi.services_catalog_id})
+            .then(res => {
+                this.service_requisites.splice(index, 1);
+                this.$emit('updateProcess', res.data.count);
+                this.getRequisites();
+            })
+            .catch(error => {
+                console.log(error);
+            })
         }
     }
 }

@@ -9,7 +9,7 @@
 						<v-btn color="info" class="mx-1" @click="createSalary">Nómina<v-icon right>person</v-icon></v-btn>
 						<v-btn color="info" class="mx-1" >Comisión<v-icon right>person</v-icon></v-btn>
 						<v-btn color="secondary" class="mx-1" @click="createTransfer">Traspaso<v-icon right>sync_alt</v-icon></v-btn>
-						<v-btn color="green" dark class="mx-1" to="/admin/services/comissions" router exact>Exportar<v-icon right>arrow_downward</v-icon></v-btn>
+						<!-- <v-btn color="green" dark class="mx-1" to="/admin/services/comissions" router exact>Exportar<v-icon right>arrow_downward</v-icon></v-btn> -->
 					</v-card-title>
                     <v-card-title>
                         <v-row>

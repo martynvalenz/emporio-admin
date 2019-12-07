@@ -5,7 +5,7 @@
 			<v-flex xs12>
 				<v-card :loading="loading_table">
 					<v-card-title>
-						<v-btn color="primary" class="mx-1">Agregar Servicio<v-icon right>add</v-icon></v-btn>
+						<v-btn color="primary" class="mx-1" @click="addService">Agregar Servicio<v-icon right>add</v-icon></v-btn>
 						<v-btn color="info" class="mx-1" to="/admin/services/catalogs" router exact>Ver catálogo<v-icon right>chrome_reader_mode</v-icon></v-btn>
 						<v-spacer></v-spacer>
 						<v-btn icon @click="Reload"><v-icon>sync</v-icon></v-btn>
@@ -25,12 +25,12 @@
 									<th class="text-left" style="width:10%">Clave</th>
 									<th class="text-left" style="width:25%">Servicio</th>
 									<th class="text-center" style="width:5%">Moneda</th>
-									<th class="text-center" style="width:13%">Precio</th>
-									<th class="text-center" style="width:6%">Venta</th>
-									<th class="text-center" style="width:6%">Gestión</th>
-									<th class="text-center" style="width:6%">Operativa</th>
+									<th class="text-center" style="width:12%">Precio</th>
+									<th class="text-center" style="width:7%">Venta</th>
+									<th class="text-center" style="width:7%">Gestión</th>
+									<th class="text-center" style="width:7%">Operativa</th>
 									<th class="text-center" style="width:7%">Status</th>
-									<th class="text-right" style="width:12%"></th>
+									<th class="text-right" style="width:10%"></th>
 								</tr>
 							</thead>
 							<tbody>
@@ -50,23 +50,60 @@
 										<v-chip v-else dark color="red">Inactivo</v-chip>
 									</td>
 									<td class="text-right">
-										<span @click="openProcess(index)">
-											<v-badge color="primary" overlap v-if="reg.requisites > 0">
-												<template v-slot:badge>
-													<span>{{reg.requisites}}</span>
-												</template>
-												<v-icon color="warning" @click="openProcess(index)">list</v-icon>
-											</v-badge>
-											<v-badge color="error" overlap v-if="reg.requisites == 0">
-												<template v-slot:badge >
-													<span>{{reg.requisites}}</span>
-												</template>
-												<v-icon color="warning" @click="openProcess(index)">list</v-icon>
-											</v-badge>
-										</span>
-										<v-icon color="warning" @click="editService(index)">edit</v-icon>
-										<v-icon color="error" v-if="reg.status == 1" @click="editStatus(index, reg.status)">block</v-icon>
-										<v-icon color="success" v-else @click="editStatus(index, reg.status)">check</v-icon>
+										<v-menu offset-y class="text-center">
+											<template v-slot:activator="{on}">
+												<v-btn v-on="on">
+													<span>
+														<v-badge color="primary" overlap v-if="reg.requisites > 0">
+															<template v-slot:badge>
+																<span>{{reg.requisites}}</span>
+															</template>
+															<v-icon color="warning">list</v-icon>
+														</v-badge>
+														<v-badge color="error" overlap v-if="reg.requisites == 0">
+															<template v-slot:badge >
+																<span>{{reg.requisites}}</span>
+															</template>
+															<v-icon color="warning">list</v-icon>
+														</v-badge>
+													</span>
+												</v-btn>
+											</template>
+											<v-list>
+												<v-list-item  @click="openProcess(index)">
+													<v-list-item-content>
+														<v-list-item-title>Check List</v-list-item-title>
+													</v-list-item-content>
+													<v-list-item-action>
+														<v-icon color="warning">list</v-icon>
+													</v-list-item-action>
+												</v-list-item>
+												<v-list-item @click="editService(index)">
+													<v-list-item-content>
+														<v-list-item-title>Editar</v-list-item-title>
+													</v-list-item-content>
+													<v-list-item-action>
+														<v-icon color="warning">edit</v-icon>
+													</v-list-item-action>
+												</v-list-item>
+												<v-list-item v-if="reg.status == 1" @click="editStatus(index, reg.status)">
+													<v-list-item-content>
+														<v-list-item-title>Cancelar</v-list-item-title>
+													</v-list-item-content>
+													<v-list-item-action>
+														<v-icon color="error">block</v-icon>
+													</v-list-item-action>
+												</v-list-item>
+												<v-list-item v-else @click="editStatus(index, reg.status)">
+													<v-list-item-content>
+														<v-list-item-title>Cancelar</v-list-item-title>
+													</v-list-item-content>
+													<v-list-item-action>
+														<v-icon color="green">check</v-icon>
+													</v-list-item-action>
+												</v-list-item>
+											</v-list>
+										</v-menu>
 									</td>
 								</tr>
 								<tr>
@@ -85,7 +122,7 @@
 		</v-layout>
 
 		<Catalog :service_dialog="1" ref="services_form" v-on:newService="newService($event)" v-on:updateService="updateService($event)"></Catalog>
-		<Process ref="process_form"></Process>
+		<Process ref="process_form" v-on:updateProcess="updateProcess($event)"></Process>
 
 		<v-dialog v-model="status_dialog" width="400">
 			<v-form>
@@ -272,6 +309,11 @@ export default {
 				this.loading = false;
 				this.status_dialog = false
 			})
+		},
+
+		updateProcess(data){
+			this.services[this.catalog_selected].requisites = data;
+			// this.catalog_selected = '';
 		}
     } 
 }
