@@ -37,7 +37,7 @@
                         </v-list-item-content>
                     </template>
                     <v-list-item>
-                        <v-list-item-content router exact>
+                        <v-list-item-content>
                             <v-list-item-title>Autorizar Servicios</v-list-item-title>
                         </v-list-item-content>
                         <v-list-item-action>
@@ -45,7 +45,7 @@
                         </v-list-item-action>
                     </v-list-item>
                     <v-list-item>
-                        <v-list-item-content router exact>
+                        <v-list-item-content>
                             <v-list-item-title>Comisiones</v-list-item-title>
                         </v-list-item-content>
                         <v-list-item-action>
@@ -53,7 +53,7 @@
                         </v-list-item-action>
                     </v-list-item>
                     <v-list-item>
-                        <v-list-item-content router exact>
+                        <v-list-item-content>
                             <v-list-item-title>Sueldos</v-list-item-title>
                         </v-list-item-content>
                         <v-list-item-action>
@@ -61,7 +61,7 @@
                         </v-list-item-action>
                     </v-list-item>
                     <v-list-item>
-                        <v-list-item-content router exact>
+                        <v-list-item-content>
                             <v-list-item-title>Bancos</v-list-item-title>
                         </v-list-item-content>
                         <v-list-item-action>
@@ -77,7 +77,7 @@
                         </v-list-item-content>
                     </template>
                     <v-list-item>
-                        <v-list-item-content router exact>
+                        <v-list-item-content>
                             <v-list-item-title>Metas</v-list-item-title>
                         </v-list-item-content>
                         <v-list-item-action>
@@ -136,7 +136,7 @@
                         </v-list-item-action>
                     </v-list-item>
                     <!-- <v-list-item>
-                        <v-list-item-content router exact>
+                        <v-list-item-content>
                             <v-list-item-title>Descuentos</v-list-item-title>
                         </v-list-item-content>
                         <v-list-item-action>
@@ -144,7 +144,7 @@
                         </v-list-item-action>
                     </v-list-item>
                     <v-list-item>
-                        <v-list-item-content router exact>
+                        <v-list-item-content>
                             <v-list-item-title>Check List</v-list-item-title>
                         </v-list-item-content>
                         <v-list-item-action>
@@ -152,7 +152,7 @@
                         </v-list-item-action>
                     </v-list-item>
                     <v-list-item>
-                        <v-list-item-content router exact>
+                        <v-list-item-content>
                             <v-list-item-title>Pago de Derechos</v-list-item-title>
                         </v-list-item-content>
                         <v-list-item-action>
@@ -202,46 +202,46 @@
                     </v-list-item-content>
                 </v-list-item>
 
-                <!-- <v-list-group prepend-icon="bookmarks" no-action>
+                <v-list-group prepend-icon="bookmarks" no-action>
                     <template v-slot:activator>
                         <v-list-item-content>
                             <v-list-item-title>Bitácoras</v-list-item-title>
                         </v-list-item-content>
                     </template>
-                    <v-list-item>
-                        <v-list-item-content router exact>
+                    <v-list-item router exact to="/admin/binnacles/new-procedures">
+                        <v-list-item-content>
                             <v-list-item-title>Trámites Nuevos</v-list-item-title>
                         </v-list-item-content>
                         <v-list-item-action>
                             <v-icon>create_new_folder</v-icon>
                         </v-list-item-action>
                     </v-list-item>
-                    <v-list-item>
-                        <v-list-item-content router exact>
+                    <v-list-item router exact to="/admin/binnacles/factibility-studies">
+                        <v-list-item-content>
                             <v-list-item-title>Estudios de Factibilidad</v-list-item-title>
                         </v-list-item-content>
-                        <v-list-item-action>
+                        <v-list-item-action> 
                             <v-icon>search</v-icon>
                         </v-list-item-action>
                     </v-list-item>
-                    <v-list-item>
-                        <v-list-item-content router exact>
+                    <v-list-item router exact to="/admin/binnacles/negatives">
+                        <v-list-item-content>
                             <v-list-item-title>Negativas</v-list-item-title>
                         </v-list-item-content>
                         <v-list-item-action>
                             <v-icon>block</v-icon>
                         </v-list-item-action>
                     </v-list-item>
-                    <v-list-item>
-                        <v-list-item-content router exact>
+                    <v-list-item router exact to="/admin/binnacles/requisites">
+                        <v-list-item-content>
                             <v-list-item-title>Requisitos y Objeciones</v-list-item-title>
                         </v-list-item-content>
                         <v-list-item-action>
                             <v-icon>unarchive</v-icon>
                         </v-list-item-action>
                     </v-list-item>
-                    <v-list-item>
-                        <v-list-item-content router exact>
+                    <v-list-item router exact to="/admin/binnacles/titles">
+                        <v-list-item-content>
                             <v-list-item-title>Títulos y Certificados</v-list-item-title>
                         </v-list-item-content>
                         <v-list-item-action>
@@ -257,7 +257,7 @@
                         </v-list-item-content>
                     </template>
                     <v-list-item>
-                        <v-list-item-content router exact>
+                        <v-list-item-content>
                             <v-list-item-title>Signos Distintivos</v-list-item-title>
                         </v-list-item-content>
                         <v-list-item-action>
@@ -265,7 +265,7 @@
                         </v-list-item-action>
                     </v-list-item>
                     <v-list-item>
-                        <v-list-item-content router exact>
+                        <v-list-item-content>
                             <v-list-item-title>Declaraciones de Uso</v-list-item-title>
                         </v-list-item-content>
                         <v-list-item-action>
@@ -273,7 +273,7 @@
                         </v-list-item-action>
                     </v-list-item>
                     <v-list-item>
-                        <v-list-item-content router exact>
+                        <v-list-item-content>
                             <v-list-item-title>Búsqueda Técnica</v-list-item-title>
                         </v-list-item-content>
                         <v-list-item-action>
@@ -281,7 +281,7 @@
                         </v-list-item-action>
                     </v-list-item>
                     <v-list-item>
-                        <v-list-item-content router exact>
+                        <v-list-item-content>
                             <v-list-item-title>Invenciones</v-list-item-title>
                         </v-list-item-content>
                         <v-list-item-action>
@@ -289,7 +289,7 @@
                         </v-list-item-action>
                     </v-list-item>
                     <v-list-item>
-                        <v-list-item-content router exact>
+                        <v-list-item-content>
                             <v-list-item-title>Dictamen Previo</v-list-item-title>
                         </v-list-item-content>
                         <v-list-item-action>
@@ -297,7 +297,7 @@
                         </v-list-item-action>
                     </v-list-item>
                     <v-list-item>
-                        <v-list-item-content router exact>
+                        <v-list-item-content>
                             <v-list-item-title>Códigos de Barra</v-list-item-title>
                         </v-list-item-content>
                         <v-list-item-action>
@@ -305,7 +305,7 @@
                         </v-list-item-action>
                     </v-list-item>
                     <v-list-item>
-                        <v-list-item-content router exact>
+                        <v-list-item-content>
                             <v-list-item-title>Registro de Obras</v-list-item-title>
                         </v-list-item-content>
                         <v-list-item-action>
@@ -313,7 +313,7 @@
                         </v-list-item-action>
                     </v-list-item>
                     <v-list-item>
-                        <v-list-item-content router exact>
+                        <v-list-item-content>
                             <v-list-item-title>Reserva de Derechos</v-list-item-title>
                         </v-list-item-content>
                         <v-list-item-action>
@@ -321,7 +321,7 @@
                         </v-list-item-action>
                     </v-list-item>
                     <v-list-item>
-                        <v-list-item-content router exact>
+                        <v-list-item-content>
                             <v-list-item-title>Juicios</v-list-item-title>
                         </v-list-item-content>
                         <v-list-item-action>
@@ -329,7 +329,7 @@
                         </v-list-item-action>
                     </v-list-item>
                     <v-list-item>
-                        <v-list-item-content router exact>
+                        <v-list-item-content>
                             <v-list-item-title>Franquicias</v-list-item-title>
                         </v-list-item-content>
                         <v-list-item-action>
@@ -345,51 +345,51 @@
                     <v-list-item-content>
                         <v-list-item-title>Comisiones</v-list-item-title>
                     </v-list-item-content>
-                </v-list-item> -->
+                </v-list-item>
 
                  <v-divider></v-divider>
 				<v-subheader>Adminstración</v-subheader>
 
-                <!-- <v-list-group prepend-icon="insert_drive_file" no-action>
+                <v-list-group prepend-icon="insert_drive_file" no-action>
                     <template v-slot:activator>
                         <v-list-item-content>
                             <v-list-item-title>Facturación</v-list-item-title>
                         </v-list-item-content>
                     </template>
-                    <v-list-item>
-                        <v-list-item-content router exact>
+                    <v-list-item router exact to="/admin/bills/bills">
+                        <v-list-item-content>
                             <v-list-item-title>Facturas</v-list-item-title>
                         </v-list-item-content>
                         <v-list-item-action>
                             <v-icon>description</v-icon>
                         </v-list-item-action>
                     </v-list-item>
-                    <v-list-item>
-                        <v-list-item-content router exact>
+                    <v-list-item router exact to="/admin/bills/receipts">
+                        <v-list-item-content>
                             <v-list-item-title>Recibos</v-list-item-title>
                         </v-list-item-content>
                         <v-list-item-action>
                             <v-icon>receipt</v-icon>
                         </v-list-item-action>
                     </v-list-item>
-                    <v-list-item>
-                        <v-list-item-content router exact>
+                    <v-list-item router exact to="/admin/bills/pending">
+                        <v-list-item-content>
                             <v-list-item-title>Cuentas por Cobrar</v-list-item-title>
                         </v-list-item-content>
                         <v-list-item-action>
-                            <v-icon>account_balance_wallet</v-icon>
+                            <v-icon color="orange">account_balance_wallet</v-icon>
                         </v-list-item-action>
                     </v-list-item>
-                </v-list-group> -->
+                </v-list-group>
 
-                <!-- <v-list-group prepend-icon="money" no-action>
+                <v-list-group prepend-icon="money" no-action>
                     <template v-slot:activator>
                         <v-list-item-content>
                             <v-list-item-title>Finanzas</v-list-item-title>
                         </v-list-item-content>
                     </template>
-                    <v-list-item>
-                        <v-list-item-content router exact>
+                    <!-- <v-list-item>
+                        <v-list-item-content>
                             <v-list-item-title>Ingresos</v-list-item-title>
                         </v-list-item-content>
                         <v-list-item-action>
@@ -405,7 +405,7 @@
                         </v-list-item-action>
                     </v-list-item>
                     <!-- <v-list-item>
-                        <v-list-item-content router exact>
+                        <v-list-item-content>
                             <v-list-item-title>Tarjetas de Crédito</v-list-item-title>
                         </v-list-item-content>
                         <v-list-item-action>
@@ -413,7 +413,7 @@
                         </v-list-item-action>
                     </v-list-item>
                     <v-list-item>
-                        <v-list-item-content router exact>
+                        <v-list-item-content>
                             <v-list-item-title>Cuentas por Pagar</v-list-item-title>
                         </v-list-item-content>
                         <v-list-item-action>
@@ -421,14 +421,14 @@
                         </v-list-item-action>
                     </v-list-item>
                     <v-list-item>
-                        <v-list-item-content router exact>
+                        <v-list-item-content>
                             <v-list-item-title>Bancos</v-list-item-title>
                         </v-list-item-content>
                         <v-list-item-action>
                             <v-icon>account_balance</v-icon>
                         </v-list-item-action>
-                    </v-list-item> 
-                </v-list-group>-->
+                    </v-list-item>  -->
+                </v-list-group>
 
                 <!-- <v-list-item router exact>
                     <v-list-item-action>
@@ -488,7 +488,7 @@
                         </v-list-item-content>
                     </template>
                     <v-list-item>
-                        <v-list-item-content router exact>
+                        <v-list-item-content>
                             <v-list-item-title>Listado de Franquicias</v-list-item-title>
                         </v-list-item-content>
                         <v-list-item-action>
@@ -507,7 +507,7 @@
                         </v-list-item-content>
                     </template>
                     <v-list-item>
-                        <v-list-item-content router exact>
+                        <v-list-item-content>
                             <v-list-item-title>Listado de Usuarios</v-list-item-title>
                         </v-list-item-content>
                         <v-list-item-action>
@@ -515,7 +515,7 @@
                         </v-list-item-action>
                     </v-list-item>
                     <v-list-item>
-                        <v-list-item-content router exact>
+                        <v-list-item-content>
                             <v-list-item-title>Puestos</v-list-item-title>
                         </v-list-item-content>
                         <v-list-item-action>
@@ -523,7 +523,7 @@
                         </v-list-item-action>
                     </v-list-item>
                     <v-list-item>
-                        <v-list-item-content router exact>
+                        <v-list-item-content>
                             <v-list-item-title>Permisos</v-list-item-title>
                         </v-list-item-content>
                         <v-list-item-action>
@@ -539,7 +539,7 @@
                         </v-list-item-content>
                     </template>
                     <v-list-item>
-                        <v-list-item-content router exact>
+                        <v-list-item-content>
                             <v-list-item-title>Servicios</v-list-item-title>
                         </v-list-item-content>
                         <v-list-item-action>
@@ -547,7 +547,7 @@
                         </v-list-item-action>
                     </v-list-item>
                     <v-list-item>
-                        <v-list-item-content router exact>
+                        <v-list-item-content>
                             <v-list-item-title>Facturas</v-list-item-title>
                         </v-list-item-content>
                         <v-list-item-action>
@@ -555,7 +555,7 @@
                         </v-list-item-action>
                     </v-list-item>
                     <v-list-item>
-                        <v-list-item-content router exact>
+                        <v-list-item-content>
                             <v-list-item-title>Recibos</v-list-item-title>
                         </v-list-item-content>
                         <v-list-item-action>
@@ -563,7 +563,7 @@
                         </v-list-item-action>
                     </v-list-item>
                     <v-list-item>
-                        <v-list-item-content router exact>
+                        <v-list-item-content>
                             <v-list-item-title>Ingresos</v-list-item-title>
                         </v-list-item-content>
                         <v-list-item-action>
@@ -571,7 +571,7 @@
                         </v-list-item-action>
                     </v-list-item>
                     <v-list-item>
-                        <v-list-item-content router exact>
+                        <v-list-item-content>
                             <v-list-item-title>Egresos</v-list-item-title>
                         </v-list-item-content>
                         <v-list-item-action>
@@ -587,7 +587,7 @@
                         </v-list-item-content>
                     </template>
                     <v-list-item>
-                        <v-list-item-content router exact>
+                        <v-list-item-content>
                             <v-list-item-title>Datos Fiscales</v-list-item-title>
                         </v-list-item-content>
                         <v-list-item-action>
@@ -595,7 +595,7 @@
                         </v-list-item-action>
                     </v-list-item>
                     <v-list-item>
-                        <v-list-item-content router exact>
+                        <v-list-item-content>
                             <v-list-item-title>Formas de Pago</v-list-item-title>
                         </v-list-item-content>
                         <v-list-item-action>
@@ -603,7 +603,7 @@
                         </v-list-item-action>
                     </v-list-item>
                     <v-list-item>
-                        <v-list-item-content router exact>
+                        <v-list-item-content>
                             <v-list-item-title>Tipos de Cambio</v-list-item-title>
                         </v-list-item-content>
                         <v-list-item-action>
@@ -611,7 +611,7 @@
                         </v-list-item-action>
                     </v-list-item>
                     <v-list-item>
-                        <v-list-item-content router exact>
+                        <v-list-item-content>
                             <v-list-item-title>Porcentaje IVA</v-list-item-title>
                         </v-list-item-content>
                         <v-list-item-action>
@@ -619,7 +619,7 @@
                         </v-list-item-action>
                     </v-list-item>
                     <v-list-item>
-                        <v-list-item-content router exact>
+                        <v-list-item-content>
                             <v-list-item-title>Clases</v-list-item-title>
                         </v-list-item-content>
                         <v-list-item-action>
@@ -627,7 +627,7 @@
                         </v-list-item-action>
                     </v-list-item>
                     <v-list-item>
-                        <v-list-item-content router exact>
+                        <v-list-item-content>
                             <v-list-item-title>Estatus</v-list-item-title>
                         </v-list-item-content>
                         <v-list-item-action>

@@ -1,7 +1,7 @@
 <template>
 	<div>
 		<Progress ref="process_form" v-on:updateProgress="updateProgress($event)"></Progress>
-		<h2>Bitácora de Trámites Nuevos</h2>
+		<h2>Negativas</h2>
 		<v-layout class="pt-4">
 			<v-flex xs12>
 				<v-card :loading="services_loading">
@@ -312,7 +312,7 @@ export default {
 	layout: 'admin',
 	middleware: 'auth',
 	head:{
-        title: 'Bitácora de trámites nuevos'
+        title: 'Negativas'
 	},
 	components:{Customer, Services, Bills, Progress},
 
@@ -360,7 +360,7 @@ export default {
 
 		async Load(){
 			this.services_loading = true;
-			await this.$axios.post(this.url, {search:this.search_table, status:this.status, orderBy:this.orderBy, binnacle:1})
+			await this.$axios.post(this.url, {search:this.search_table, status:this.status, orderBy:this.orderBy, binnacle:3})
 			.then(res => {
 				this.services = res.data.data;
 				this.services_loading = false;
@@ -373,7 +373,7 @@ export default {
 		infiniteScroll($state){
 			setTimeout(() => {
 				this.page++
-				this.$axios.post(this.url, {search:this.search_table, status:this.status, orderBy:this.orderBy, binnacle:1})
+				this.$axios.post(this.url, {search:this.search_table, status:this.status, orderBy:this.orderBy, binnacle:3})
 				.then( res => {
 
 					let services = res.data.data;

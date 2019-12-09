@@ -562,17 +562,30 @@ export default {
                     this.errors = {};
                     const conversion = res.data.service.conversion;
                     //General Data
-                    this.binnacle_id = res.data.service.binnacle_id * 1;
-                    this.status_category_id = res.data.service.status_category_id * 1;
-                    this.status_subcategory_id = res.data.service.status_subcategory_id * 1;
+                    if(res.data.service.binnacle_id){
+                        this.binnacle_id = res.data.service.binnacle_id * 1;
+                    }
+                    else{
+                        this.binnacle_id = '';
+                    }
+                    if(res.data.service.status_category_id){
+                        this.status_category_id = res.data.service.status_category_id * 1;
+                    }
+                    else{
+                        this.status_category_id = '';
+                    }
                     this.coin_id = res.data.service.money_exchange_id * 1;
                     this.total_advance = res.data.service.total_advance;
                     this.price_desc = res.data.service.price + ' ' + res.data.service.code;
                     this.price = res.data.service.price;
-                    this.status_category_id = res.data.service.status_category_id * 1;
                     if(this.status_category_id){
                         this.getSubcategories();
+                        if(res.data.service.status_subcategory_id){
                         this.status_subcategory_id = res.data.service.status_subcategory_id * 1;
+                        }
+                        else{
+                            this.status_subcategory_id = '';
+                        }
                     }
 
                     //Discounts

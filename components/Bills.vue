@@ -30,6 +30,12 @@
                                     </v-menu>
                                 </v-col>
 							</v-row>
+                            <v-row v-if="!bill_id">
+								<v-col>
+                                    <v-btn color="warning" dark class="mx-1" :loading="loading" @click="SavePendient(0)">Guardar Pendiente<v-icon right>save</v-icon></v-btn>
+                                    <v-btn color="error" dark class="mx-1" :loading="loading" @click="SavePendient(2)">Guardar Cancelado<v-icon right>block</v-icon></v-btn>
+                                </v-col>
+							</v-row>
                             <v-row>
                                 <v-col sm="12" lg="12">
                                     <v-textarea v-model="comments" outlined label="Comentarios"></v-textarea>
@@ -148,7 +154,7 @@
                             <div class="pa-1"></div>
                             <v-row>
 								<v-col>
-                                    <v-btn color="success" class="mx-1" :loading="loading" @click="Save">Guardar<v-icon right>save</v-icon></v-btn>
+                                    <v-btn color="green" dark class="mx-1" :loading="loading" @click="Save">Guardar<v-icon right>save</v-icon></v-btn>
                                     <v-btn v-if="bill_id" color="warning" class="mx-1" :loading="loading_free" @click="Free">Liberar Factura<v-icon right>settings_backup_restore</v-icon></v-btn>
                                     <v-btn v-if="bill_id" color="error" class="mx-1" :loading="loading_cancel" @click="Cancel">Cancelar Factura <v-icon right>block</v-icon></v-btn>
                                 </v-col>
@@ -279,6 +285,7 @@ export default {
     data(){
         return{
             bill_id:'',
+            from_bill:1,//1.Service 2.Bill 3.Receipt 4.Pending
             customer_disabled:false,
             billing_dialog:false,
             customer_name:'',
@@ -401,14 +408,17 @@ export default {
     },
 
     methods:{
-        addBill()
+        addBill(from_bill)
         {
+            this.from_bill = from_bill;
             this.billing_dialog = true;
             this.clearData();
             this.getTax();
+            this.getBillLastFolio();
         },
         
-        addBillAlready(customer_id, customer, type){
+        addBillAlready(customer_id, customer, type, from_bill){
+            this.from_bill = from_bill;
             this.billing_dialog = true;
             this.customer_disabled = true;
             this.customer_id = customer_id;
@@ -432,13 +442,25 @@ export default {
             }
             this.getPendingServices();
             this.getCustomersBalance();
+            this.getBillLastFolio();
         },
 
-        async editBill(bill_id){
+        async getBillLastFolio(){
+            if(!this.bill_id && this.type){
+                await this.$axios.post('/api/bills/get-folio', {type:this.type})
+                .then(res => {
+                    this.folio = res.data;
+                    this.errors = {};
+                })
+            }
+        },
+
+        async editBill(bill_id, from_bill){
             this.bill_id = bill_id;
             if(bill_id){
                 await this.$axios.get(`/api/bill/edit/${bill_id}`)
                 .then(res => {
+                    this.from_bill = from_bill;
                     this.billing_dialog = true;
                     this.customer_disabled = true;
                     this.customer_id = res.data.customer_id;
@@ -543,6 +565,7 @@ export default {
                 await this.$axios.get(`/api/customers-balance/${this.customer_id}`)
                 .then(res => {
                     this.customers_balance = res.data.balance;
+                    this.ammount = this.total - this.customers_balance - this.payed_ammount;
                 })
             }
         },
@@ -563,6 +586,7 @@ export default {
                 this.has_tax_readonly = false;
                 this.updateTAX();
             }
+            this.getBillLastFolio();
         },
 
         updateTAX(){
@@ -630,7 +654,12 @@ export default {
                     this.customers = {};
                     this.customer = null;
                     this.getBillServices();
-                    this.$emit('updateServices');
+                    if(this.from_bill == 1){
+                        this.$emit('updateServices');
+                    }
+                    else if(this.from_bill == 2 || this.from_bill == 3){
+                        this.$emit('newBill', res.data)
+                    }
                     this.getAccounts();
                     this.loading = false;
                     this.snackbar = true;
@@ -655,6 +684,31 @@ export default {
                     }
                 })
             }
+        },
+
+        SavePendient(status){
+            this.loading = true;
+            this.$axios.post('/api/bill/save-pendient', {type:this.type, folio:this.folio, customer_id:this.customer_id, date:this.date, comments:this.comments, has_tax:this.has_tax, tax_percent:this.tax_percent, status:status})
+            .then(res => {
+                this.customer_id = ''
+                this.comments = '';
+                this.errors = {};
+                this.getBillLastFolio();
+                this.snackbar = true;
+                this.snackColor = 'success';
+                this.snackText = 'Se guardó el registro exitosamente.';
+                this.timeout = 1500;
+                this.loading = false;
+            })
+            .catch(error => {
+                this.errors = error.response.data.errors;
+                this.loading = false;
+                this.snackbar = true;
+                this.snackColor = 'error';
+                this.snackText = 'No se pudo guardar el registro, revise los errores en el formulario.';
+                this.timeout = 1500;
+                this.loading = false;
+            })
         },
 
         async getPendingServices(){
@@ -797,7 +851,12 @@ export default {
         async PayBill(){
             await this.$axios.put(`/api/bills/paybill/${this.bill_id}`, {ammount:this.bill_pending, balance:this.balance, date_payed:this.date_payed, payed_ammount:this.payed_ammount, total:this.total, customer_id:this.customer_id})
             .then(res => {
-                this.$emit('updateServices');
+                if(this.from_bill == 1){
+                    this.$emit('updateServices');
+                }
+                else if(this.from_bill == 2 || this.from_bill == 3){
+                    this.$emit('updateBill', res.data);
+                }
                 this.customers_balance = res.data.customer_balance;
                 this.balance = res.data.balance;
                 this.bill_pending = res.data.balance;

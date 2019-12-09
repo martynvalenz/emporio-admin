@@ -216,16 +216,16 @@
 										<v-flex xs4 sm4 md4 lg1 xl1>
 											<small>Facturas</small><br>
 											<ul class="list-style: none;" v-for="(bill, index) in service.bills" :key="index">
-												<li>{{bill.folio}}</li>
+												<li @click="editFolio(bill.id)">{{bill.folio}}</li>
 											</ul>
-											<v-icon v-if="service.is_payed == 0 && (service.status != 2 || service.status != 4)" color="blue">add</v-icon>
+											<v-icon v-if="service.is_payed == 0 && (service.status != 2 || service.status != 4)" color="blue" @click="createBill(index, 'Factura')">add</v-icon>
 										</v-flex>
 										<v-flex xs4 sm4 md4 lg1 xl1>
 											<small>Recibos</small><br>
 											<ul class="list-style: none;" v-for="(receipt, index) in service.receipts" :key="index">
-												<li>{{receipt.folio}}</li>
+												<li @click="editFolio(bill.id)">{{receipt.folio}}</li>
 											</ul>
-											<v-icon v-if="service.is_payed == 0 && (service.status != 2 || service.status != 4)" color="blue">add</v-icon>
+											<v-icon v-if="service.is_payed == 0 && (service.status != 2 || service.status != 4)" color="blue" @click="createBill(index, 'Recibo')">add</v-icon>
 										</v-flex>
 										<v-flex xs4 sm4 md4 lg2 xl1>
 											<small>Precio</small><br>
@@ -247,7 +247,7 @@
 									<br>
 									<v-layout row wrap>
 										<v-flex xs12 sm12 md12 lg12 xl12 class="text-left">
-											<v-btn dark fab small color="warning" title="Editar">
+											<v-btn dark fab small color="warning" title="Editar" @click="EditService(index)">
 												<v-icon dark color="white">edit</v-icon>
 											</v-btn>
 											<v-btn dark fab small color="grey" title="Proceso">
@@ -429,25 +429,25 @@ export default {
 		},
 
 		addBill(){
-			this.$refs.bills_form.addBill();
+			this.$refs.bills_form.addBill(1);
 		},
 		
 		createBill(index, type){
 			const bill = this.services[index];
 			let customer_id = bill.customer_id;
 			let customer = bill.customer;
-			this.$refs.bills_form.addBillAlready(customer_id, customer, type);
+			this.$refs.bills_form.addBillAlready(customer_id, customer, type, 1);
 		},
 		
 		createReceipt(index, type){
 			const receipt = this.services[index];
 			let customer_id = receipt.customer_id;
 			let customer = receipt.customer;
-			this.$refs.bills_form.addBillAlready(customer_id, customer, type);
+			this.$refs.bills_form.addBillAlready(customer_id, customer, type, 1);
 		},
 
 		editFolio(id){
-			this.$refs.bills_form.editBill(id);
+			this.$refs.bills_form.editBill(id, 1);
 		},
 
 		formatPrice(value) {
