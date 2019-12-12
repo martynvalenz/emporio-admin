@@ -50,18 +50,18 @@
                                     <v-text-field v-model="external_fee" outlined label="Pago de Honorarios *" type="number" step="any" min="0" v-on:keyup="CalculateValues" :error-messages="errors.external_fee"></v-text-field>
                                 </v-col>
                                 <v-col cols="12" sm="12" md="3" lg="2">
-                                    <v-text-field v-model="price" outlined label="Precio (Sin IVA) *" type="number" step="any" min="0" v-on:keyup="CalculateValues" :error-messages="errors.price"></v-text-field>
+                                    <v-text-field v-model="price" outlined label="Precio (Sin IVA) *" type="number" step="any" min="0" v-on:keyup="CalculateValues" v-on:keyup.enter="CalculateValues" :error-messages="errors.price"></v-text-field>
                                 </v-col>
                                 <v-col cols="12" sm="12" md="3" lg="3">
-                                    <v-checkbox v-model="authorize" color="primary" label="Por proyecto" :error-messages="errors.authorize"></v-checkbox>
+                                    <v-checkbox v-model="authorize" false-value="0" true-value="1" color="primary" label="Por proyecto" :error-messages="errors.authorize"></v-checkbox>
                                 </v-col>
                             </v-row>
                             <v-row>
                                 <v-col cols="12" sm="12" md="3" lg="3">
-                                    <v-checkbox v-model="additional_service" color="primary" label="Aplica en cargos adicionales?" :error-messages="errors.additional_service"></v-checkbox>
+                                    <v-checkbox v-model="additional_service" false-value="0" true-value="1" color="primary" label="Aplica en cargos adicionales?" :error-messages="errors.additional_service"></v-checkbox>
                                 </v-col>
                                 <v-col cols="12" sm="12" md="3" lg="3">
-                                    <v-checkbox v-model="allow_finance" color="primary" label="Aplica financiamiento mensual?" :error-messages="errors.allow_finance"></v-checkbox>
+                                    <v-checkbox v-model="allow_finance" false-value="0" true-value="1" color="primary" label="Aplica financiamiento mensual?" :error-messages="errors.allow_finance"></v-checkbox>
                                 </v-col>
                             </v-row>
                             <v-row>
@@ -249,11 +249,11 @@ export default {
             this.fee = 0;
             this.utility = 0;
             this.utility_percent = 0;
-            this.sales_percent = 0;
+            this.sales_percent = 10;
             this.sales_ammount = 0;
-            this.operations_percent = 0;
+            this.operations_percent = 5;
             this.operations_ammount = 0;
-            this.management_percent = 0;
+            this.management_percent = 2;
             this.management_ammount = 0;
         },
 
@@ -371,10 +371,10 @@ export default {
         CalculateValues(){
             let fee = 0;
             let utility = 0;
-            const cost = (this.cost * 1);
-            const price = (this.price * 1);
-            const external_fee = (this.external_fee * 1);
-            fee = price - cost - external_fee;
+            const cost = this.cost;
+            const price = this.price;
+            const external_fee = this.external_fee;
+            fee = (price * 1) - (cost * 1) - (external_fee * 1);
 
             if(price > 0 && fee < price){
                 this.errors = {};
@@ -497,6 +497,20 @@ export default {
         },
 
         async Save(){
+
+            if(this.status_category_id == 0){
+                this.status_category_id = '';
+            }
+            if(this.status_subcategory_id == 0){
+                this.status_subcategory_id = '';
+            }
+            if(this.binnacle_id == 0){
+                this.binnacle_id = '';
+            }
+            if(this.services_category_id == 0){
+                this.services_category_id = '';
+            }
+
             if(this.service_catalog_id){
                 await this.$axios.put(`/api/catalog/update/${this.service_catalog_id}`, {code:this.code, service:this.service, comments:this.comments, price:this.price, cost:this.cost, fee:this.fee, utility:this.utility, utility_percent:this.utility_percent, sales_comission:this.sales_comission, management_comission:this.management_comission, operations_comission:this.operations_comission, sales:this.sales, operations:this.operations, management:this.management, authorize:this.authorize, money_exchange_id:this.money_exchange_id, services_category_id:this.services_category_id, binnacle_id:this.binnacle_id, status_category_id:this.status_category_id, status_subcategory_id:this.status_subcategory_id, external_fee:this.external_fee, additional_service:this.additional_service, allow_finance:this.allow_finance})
                 .then(res => {

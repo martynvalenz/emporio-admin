@@ -29,7 +29,7 @@
             <v-list v-if="asign_cost == 1">
                 <v-list-item>
                     <v-list-item-action>
-                        <v-checkbox v-model="manage_cost" color="orange" :disabled="payed_cost == 1" @change="ManageCost"></v-checkbox>
+                        <v-checkbox v-model="manage_cost" false-value="0" true-value="1" color="orange" :disabled="payed_cost == 1" @change="ManageCost"></v-checkbox>
                     </v-list-item-action>
                     <v-list-item-content>
                         <v-list-item-title>Gestionar pago de derechos: {{formatPrice(cost)}}</v-list-item-title>
@@ -40,9 +40,9 @@
             <v-list v-for="(prog, index) in progress" :key="index">
                 <v-list-item>
                     <v-list-item-action>
-                        <v-checkbox v-if="prog.admin == 1" v-model="prog.status" color="primary" :disabled="!is_payed || loading_check" @change="Check(index)"></v-checkbox>
-                        <v-checkbox v-if="prog.admin == 2" v-model="prog.status" color="primary" :disabled="payed_cost == 0 || loading_check" @change="Check(index)"></v-checkbox>
-                        <v-checkbox v-if="prog.admin == 0" v-model="prog.status" color="primary" :disabled="loading_check" @change="Check(index)"></v-checkbox>
+                        <v-checkbox v-if="prog.admin == 1" v-model="prog.status" false-value="0" true-value="1" color="primary" :disabled="!is_payed || loading_check" @change="Check(index)"></v-checkbox>
+                        <v-checkbox v-if="prog.admin == 2" v-model="prog.status" false-value="0" true-value="1" color="primary" :disabled="payed_cost == 0 || loading_check" @change="Check(index)"></v-checkbox>
+                        <v-checkbox v-if="prog.admin == 0" v-model="prog.status" false-value="0" true-value="1" color="primary" :disabled="loading_check" @change="Check(index)"></v-checkbox>
                     </v-list-item-action>
                     <v-list-item-content>
                         <v-list-item-title>{{prog.requisite}}</v-list-item-title>

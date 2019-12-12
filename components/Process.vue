@@ -86,8 +86,16 @@
                         <v-container>
                             <v-layout row wrap>
                                 <v-flex xs12 sm12 md6 lg4 xl3 v-for="(requirement, index) in requisites" :key="index" class="px-3">
-                                    <v-switch color="primary" v-bind:class="[requirement.status == 0 ? 'inactive':'']" :value="requirement.selected" :input-value="requirement.selected" :label="requirement.requisite" inset append-icon="edit" @click:append="edit(index)" @change="Switch(index)" :disabled="requirement.status == 0"></v-switch>
-                                    <v-icon @click="edit(index)" v-if="requirement.status == 0" color="green">check</v-icon>
+                                    <span v-if="requirement.category == 0">Dirección</span>
+                                    <span v-if="requirement.category == 1">Jurídico</span>
+                                    <span v-if="requirement.category == 2">Administración</span>
+                                    <span v-if="requirement.category == 3">Gestión</span>
+                                    <span v-if="requirement.category == 4">Operaciones</span>
+                                    <span v-if="requirement.category == 5">Soporte</span>
+                                    <span v-if="requirement.category == 6">Auditoría</span>
+                                    <span v-if="requirement.category == 7">Ventas</span>
+                                    <v-icon @click="edit(index)" v-if="requirement.status == 0" :color="requirement.color">check</v-icon>
+                                    <v-switch :color="requirement.color" v-bind:class="[requirement.status == 0 ? 'inactive':'']" :value="requirement.selected" :input-value="requirement.selected" :label="requirement.requisite" inset append-icon="edit" @click:append="edit(index)" @change="Switch(index)" :disabled="requirement.status == 0"></v-switch>
                                 </v-flex>
                             </v-layout>
                         </v-container>

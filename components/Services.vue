@@ -143,7 +143,7 @@
                                                 <td class="text-right">% {{sales_comission}}</td>
                                                 <td class="text-right">$ {{sales_value}}</td>
                                                 <td>
-                                                    <v-checkbox @change="updateComissions" color="primary" v-model="sales_check"></v-checkbox>
+                                                    <v-checkbox @change="updateComissions" color="primary" v-model="sales_check" false-value="0" true-value="1"></v-checkbox>
                                                 </td>
                                             </tr>
                                             <tr>
@@ -151,7 +151,7 @@
                                                 <td class="text-right">% {{operations_comission}}</td>
                                                 <td class="text-right">$ {{operations_value}}</td>
                                                 <td>
-                                                    <v-checkbox color="primary" v-model="operations_check"></v-checkbox>
+                                                    <v-checkbox color="primary" v-model="operations_check" false-value="0" true-value="1"></v-checkbox>
                                                 </td>
                                             </tr>
                                             <tr>
@@ -159,7 +159,7 @@
                                                 <td class="text-right">% {{management_comission}}</td>
                                                 <td class="text-right">$ {{management_value}}</td>
                                                 <td>
-                                                    <v-checkbox color="primary" v-model="management_check" @change="updateComissions"></v-checkbox>
+                                                    <v-checkbox color="primary" v-model="management_check" @change="updateComissions" false-value="0" true-value="1"></v-checkbox>
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -175,38 +175,6 @@
 								<v-btn large color="success" :loading="loading" @click="SaveService">Guardar<v-icon right>save</v-icon></v-btn>
 							</v-row>
                             <br>
-                            <!-- <v-simple-table class="elevation-4" v-if="servicesCollection">
-                                <thead>
-                                    <tr>
-                                        <th class="text-left" style="width:15%">Fecha</th>
-                                        <th class="text-left" style="width:30%">Servicio</th>
-                                        <th class="text-center" style="width:15%">Facturas</th>
-                                        <th class="text-center" style="width:15%">Recibos</th>
-                                        <th class="text-right" style="width:15%">Precio</th>
-                                        <th class="text-center" style="width:10%">Resp</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr v-for="(service, index) in servicesCollection" :key="index">
-                                        <td title="service.id">{{ service.date }}</td>
-                                        <td>{{ service.code }} - {{ service.brand }}<span v-if="service.class"> {{service.class}}</span></td>
-                                        <td class="text-center">
-                                            <ul class="list-style: none;" v-for="(bill, index) in service.bills" :key="index">
-                                                <a v-if="service.is_payed == 0 && (service.status != 2 || service.status != 4)">{{bill.folio}}</a>
-                                                <li v-else>{{bill.folio}}</li>
-                                            </ul>
-                                        </td>
-                                        <td class="text-center">
-                                            <ul class="list-style: none;" v-for="(receipt, index) in service.receipts" :key="index">
-                                                <a v-if="service.is_payed == 0 && (service.status != 2 || service.status != 4)">{{receipt.folio}}</a>
-                                                <li v-else>{{receipt.folio}}</li>
-                                            </ul>
-                                        </td>
-                                        <td class="text-right">$ {{ formatPrice(service.final_price) }}</td>
-                                        <td class="text-center">{{ service.resp }}</td>
-                                    </tr>
-                                </tbody>
-                            </v-simple-table> -->
                             <div class="pt-4"></div>
 						</v-container>
 					</v-card-text>
@@ -292,12 +260,15 @@ export default {
             sales_comission:0,
             management_comission:0,
             operations_comission:0,
+            sales_id:'',
             sales:0,
             sales_force:0,
+            management_id:'',
             management:0,
             operations:0,
             sales_value:0,
             management_value:0,
+            operations_id:'',
             operations_value:0,
             sales_check:true,
             management_check:false,
@@ -391,33 +362,103 @@ export default {
             this.getEstatus();
             this.$axios.get(`/api/service/edit/${service_id}`)
             .then(res =>{
-                this.customer_id = res.data.customer_id;
-                this.customer = res.data.customer;
-                this.date = res.data.date;
+                this.customer_id = res.data.service.customer_id;
+                this.customer = res.data.service.customer;
+                this.date = res.data.service.date;
                 this.getBrands();
-                this.brand_id = res.data.brand_id;
-                this.class_id = res.data.class_id;
-                this.services_catalog_id = res.data.services_catalog_id;
-                this.service = res.data.service;
-                this.responsable_id = res.data.responsable_id * 1;
-                this.binnacle_id = res.data.binnacle_id * 1;
-                this.status_category_id = res.data.status_category_id * 1;
-                this.status_subcategory_id = res.data.status_subcategory_id * 1;
-                this.coin_id = res.data.money_exchange_id * 1;
-                this.price_desc = res.data.price_desc;
-                this.cost = res.data.cost;
+                if(res.data.service.brand_id){
+                    this.brand_id = res.data.service.brand_id * 1;
+                }
+                else{
+                    this.brand_id = '';
+                }
+                if(res.data.service.class_id){
+                    this.class_id = res.data.service.class_id * 1;
+                }
+                else{
+                    this.class_id = '';
+                }
+                this.services_catalog_id = res.data.service.services_catalog_id;
+                this.service = res.data.service.service;
+                if(res.data.service.responsable_id){
+                    this.responsable_id = res.data.service.responsable_id * 1;
+                }
+                else{
+                    this.responsable_id = '';
+                }
+                if(res.data.service.binnacle_id){
+                    this.binnacle_id = res.data.service.binnacle_id * 1;
+                }
+                else{
+                    this.binnacle_id = '';
+                }
+                if(res.data.service.status_category_id){
+                    this.status_category_id = res.data.service.status_category_id * 1;
+                }
+                else{
+                    this.status_category_id = '';
+                }
+                if(res.data.service.status_subcategory_id){
+                    this.status_subcategory_id = res.data.service.status_subcategory_id * 1;
+                }
+                else{
+                    this.status_subcategory_id = '';
+                }
+                this.coin_id = res.data.service.money_exchange_id * 1;
+                this.price_desc = res.data.service.price_desc;
+                this.cost = res.data.service.cost;
                 this.extra_cost = 0;
-                this.external_fee = res.data.external_fee;
-                this.conversion = res.data.money_exchange;
-                this.discount = res.data.discount;
-                this.discount_percent = res.data.discount_percent;
-                this.final_price = res.data.final_price;
-                this.comment = res.data.comment;
+                this.external_fee = res.data.service.external_fee;
+                this.conversion = res.data.service.money_exchange;
+                this.discount = res.data.service.discount;
+                this.discount_percent = res.data.service.discount_percent;
+                this.final_price = res.data.service.final_price;
+                this.comment = res.data.service.comment;
                 this.show_related = false;
                 this.related = [];
                 this.select_related = '';
                 this.related_services = [];
                 this.related_ammount = 0;
+                //Comissions
+                if(res.data.sales_comission){
+                    this.sales_id = res.data.sales_comission.id;
+                    this.sales_comission = res.data.sales_comission.comission_percent;
+                    this.sales_value = res.data.sales_comission.comission;
+                    this.sales_check = '1';
+                }
+                else{
+                    this.sales_id = '';
+                    this.sales_comission = 0;
+                    this.sales_value = 0;
+                    this.sales_check = '0';
+                }
+
+                if(res.data.operations_comission){
+                    this.operations_id = res.data.operations_comission.id;
+                    this.operations_comission = res.data.operations_comission.comission_percent;
+                    this.operations_value = res.data.operations_comission.comission;
+                    this.operations_check = '1';
+                }
+                else{
+                    this.operations_id = '';
+                    this.operations_comission = 0;
+                    this.operations_value = 0;
+                    this.operations_check = '0';
+                }
+
+                if(res.data.management_comission){
+                    this.management_id = res.data.management_comission.id;
+                    this.management_comission = res.data.management_comission.comission_percent;
+                    this.management_value = res.data.management_comission.comission;
+                    this.management_check = '1';
+                }
+                else{
+                    this.management_id = '';
+                    this.management_comission = 0;
+                    this.management_value = 0;
+                    this.management_check = '0';
+                }
+                
             })
             .catch(error => {
                 console.log(error);
@@ -500,54 +541,56 @@ export default {
         },
 
         updateComissions(){
-            if(this.management_comission){
-                if(this.management == 0){
-                    this.management_comission = this.management_comission;
-                    this.management_value = Math.round((this.management_comission * this.fee) / 100);
+            if(!this.service_id){
+                if(this.management_comission){
+                    if(this.management == 0){
+                        this.management_comission = this.management_comission;
+                        this.management_value = Math.round((this.management_comission * this.fee) / 100);
+                    }
+                    else{
+                        this.management_value = this.management_comission * conversion;
+                        this.management_comission = Math.round((this.management_value / this.fee) * 100);
+                    }
                 }
-                else{
-                    this.management_value = this.management_comission * conversion;
-                    this.management_comission = Math.round((this.management_value / this.fee) * 100);
-                }
-            }
 
-            if(this.sales_comission){
-                if(this.sales == 0){
-                    this.sales_comission = this.sales_force;
-                    this.sales_value = Math.round((this.sales_comission * this.fee) / 100);
+                if(this.sales_comission){
+                    if(this.sales == 0){
+                        this.sales_comission = this.sales_force;
+                        this.sales_value = Math.round((this.sales_comission * this.fee) / 100);
+                    }
+                    else{
+                        this.sales_value = this.sales_force * conversion;
+                        this.sales_comission = Math.round((this.sales_value / this.fee) * 100);
+                    }
                 }
-                else{
-                    this.sales_value = this.sales_force * conversion;
-                    this.sales_comission = Math.round((this.sales_value / this.fee) * 100);
-                }
-            }
 
-            if(this.operations_comission){
-                if(this.operations == 0){
-                    this.operations_comission = this.operations_comission;
-                    this.operations_value = Math.round((this.operations_comission * this.fee) / 100);
+                if(this.operations_comission){
+                    if(this.operations == 0){
+                        this.operations_comission = this.operations_comission;
+                        this.operations_value = Math.round((this.operations_comission * this.fee) / 100);
+                    }
+                    else{
+                        this.operations_value = this.operations_comission * conversion;
+                        this.operations_comission = Math.round((this.operations_comission / this.fee) * 100);
+                    }
                 }
-                else{
-                    this.operations_value = this.operations_comission * conversion;
-                    this.operations_comission = Math.round((this.operations_comission / this.fee) * 100);
-                }
-            }
 
-            if(this.management_check){
-                if(this.sales_value == 0){
-                    
-                }
-                else if(this.management_value == 0)
-                {
-                    
-                }
-                else if(this.sales_value < this.management_value){
-                    this.sales_value = 0;
-                    this.sales_comission = 0;
-                }
-                else{
-                    this.sales_value = this.sales_value - this.management_value;
-                    this.sales_comission = Math.round(((this.sales_value / this.fee) * 100) * 100) / 100;
+                if(this.management_check){
+                    if(this.sales_value == 0){
+                        
+                    }
+                    else if(this.management_value == 0)
+                    {
+                        
+                    }
+                    else if(this.sales_value < this.management_value){
+                        this.sales_value = 0;
+                        this.sales_comission = 0;
+                    }
+                    else{
+                        this.sales_value = this.sales_value - this.management_value;
+                        this.sales_comission = Math.round(((this.sales_value / this.fee) * 100) * 100) / 100;
+                    }
                 }
             }
             else{
@@ -825,10 +868,13 @@ export default {
             this.final_price = 0;
             this.const_price = 0;
             this.const_price = 0;
+            this.sales_id = '';
             this.sales_comission = 0;
             this.sales_value = 0;
+            this.management_id = '';
             this.management_comission = 0;
             this.management_value = 0;
+            this.operations_id = '';
             this.operations_comission = 0;
             this.operations_value = 0;
             this.binnacle_id = '';
@@ -1011,7 +1057,8 @@ export default {
             this.show_related = false;
             this.related_ammount = 0;
             this.extra_cost = 0;
-            this.related_services = '';
+            this.related_services = {};
+            this.select_related = '';
         },
 
         async getRelatedServiceData(){

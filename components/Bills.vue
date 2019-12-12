@@ -47,6 +47,11 @@
                                     <v-btn large icon @click="Refresh"><v-icon>sync</v-icon></v-btn>
                                 </v-col>
                             </v-row>
+                            <v-row v-if="bill_id && pending_services.length > 0">
+                                <v-col cols="12" sm="12">
+                                    <v-select v-model="pending_service" :items="pending_services" item-value="id" item-text="service" :error-messages="errors.pending_service" outlined color="primary" label="Agregar servicio a factura/recibo" append-outer-icon="check" @click:append-outer="addAnotherService" clearable></v-select>
+                                </v-col>
+                            </v-row>
                             <v-card v-if="customer_id" class="elevation-1" :loading="loading_services">
                                 <v-card-text>
                                     <v-simple-table class="elevation-4" >
@@ -58,7 +63,7 @@
                                                 <th class="text-center" style="width:10%;">Cobranza</th>
                                                 <th class="text-center" style="width:10%;">Trámite</th>
                                                 <th class="text-right" style="width:10%;">Pendiente</th>
-                                                <th class="text-right" style="width:10%;">Monto</th>
+                                                <th class="text-right" style="width:10%;">Pagado</th>
                                                 <th style="width:15%;"></th>
                                             </tr>
                                         </thead>
@@ -249,13 +254,13 @@
                                     <v-text-field v-model="customers_balance" label="Saldo del cliente" type="number" readonly step="any" min="0" filled></v-text-field>
                                 </v-col>
                                 <v-col cols="12" sm="12" md="6" lg="3">
-                                    <v-text-field v-model="balance" label="Monto pendiente de factura" readonly type="number" step="any" min="0" filled></v-text-field>
+                                    <v-text-field v-model="balance" label="Monto pendiente de factura/recibo" readonly type="number" step="any" min="0" filled></v-text-field>
                                 </v-col>
                                 <v-col cols="12" sm="12" md="6" lg="3">
-                                    <v-text-field v-model="bill_pending" :error-messages="errors.bill_pending" label="Monto a pagar de la factura *" type="number" step="any" min="0" outlined></v-text-field>
+                                    <v-text-field v-model="bill_pending" :error-messages="errors.bill_pending" label="Monto a pagar de la factura/recibo *" type="number" step="any" min="0" outlined></v-text-field>
                                 </v-col>
                                 <v-col cols="12" sm="12" md="6" lg="3">
-                                    <v-btn color="green" dark block large :loading="pay_load" @click="PayLoad">Pagar Factura<v-icon right>check</v-icon></v-btn>
+                                    <v-btn color="green" dark block large :loading="pay_load" @click="PayLoad" v-if="bill_pending > 0">Pagar Factura/Recibo<v-icon right>check</v-icon></v-btn>
                                 </v-col>
                             </v-row>
                         </v-container>
@@ -323,6 +328,8 @@ export default {
             calculated_subtotal:0,
             service_selected:'',
             payed_ammount:0,
+            pending_services:[],
+            pending_service:'',
             //Payment
             ammount:0,
             date_payed:new Date().toISOString().substr(0, 10),
@@ -728,7 +735,27 @@ export default {
                 await this.$axios.get(`/api/bill/services/${this.bill_id}/${this.customer_id}`)
                 .then(res => {
                     this.billed_services = res.data.billed_services;
-                    this.services = res.data.services;
+                    // this.pending_services = res.data.services;
+                    this.pending_services = [];
+                    res.data.services.forEach((value, index) => {
+                        let data = [];
+                        var clas = '';
+                        var brand = '';
+                        let service = '';
+
+                        if(value.class){
+                            var clas = value.class;
+                        }
+
+                        if(value.brand){
+                            var brand = value.brand
+                        }
+
+                        service = '('+value.code+')'+' '+brand+' '+clas+' [$'+value.balance+']';
+
+                        data = {id:value.id, service:service}
+                        this.pending_services.push(data);
+                    });
                     this.loading_services = false;
                 })
             }
@@ -758,6 +785,10 @@ export default {
                     this.paying_method_id = 3;
                 }
             }
+        },
+
+        addAnotherService(){
+
         },
         
         Free(){
@@ -867,6 +898,7 @@ export default {
                 this.timeout = 2000;
                 this.errors = {};
                 this.pay_load = false;
+                this.billing_dialog = false;
             })
             .catch(error => {
                 this.errors = error.response.data.errors;

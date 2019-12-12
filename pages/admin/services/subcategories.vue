@@ -106,7 +106,7 @@
 									<v-text-field v-model="expiration" outlined type="number" step="any" min="0" label="Vencimiento"></v-text-field>
 								</v-col>
 								<v-col cols="12" xs="6" sm="6" md="6" lg="3" xl="3">
-									<v-checkbox v-model="renovation" color="primary" label="Renovación"></v-checkbox>
+									<v-checkbox v-model="renovation" color="primary" false-value="0" true-value="1" label="Renovación"></v-checkbox>
 								</v-col>
 							</v-row>
 						</v-container>

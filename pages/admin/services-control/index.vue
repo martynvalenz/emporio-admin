@@ -1,5 +1,6 @@
 <template>
 	<div>
+		<Progress ref="process_form" v-on:updateProgress="updateProgress($event)"></Progress>
 		<h2>Control de Servicios</h2>
 		<v-layout class="pt-4">
 			<v-flex xs12>
@@ -47,15 +48,15 @@
 						<v-simple-table class="elevation-3" fixed-header height="700px">
 							<thead>
 								<tr>
-									<th class="text-left" style="width:15%">Fecha</th>
-									<th class="text-left" style="width:21%">Servicio</th>
+									<th class="text-left" style="width:14%">Fecha</th>
+									<th class="text-left" style="width:20%">Servicio</th>
 									<th class="text-left" style="width:15%">Cliente</th>
-									<th class="text-right" style="width:8%">Factura</th>
-									<th class="text-right" style="width:8%">Recibo</th>
+									<th class="text-right" style="width:7%">Factura</th>
+									<th class="text-right" style="width:7%">Recibo</th>
 									<th class="text-center" style="width:10%">Precio</th>
 									<th class="text-center" style="width:6%">Resp</th>
-									<th class="text-center" style="width:6%">Cobranza</th>
-									<th class="text-center" style="width:6%">Trámite</th>
+									<th class="text-center" style="width:8%">Cobranza</th>
+									<th class="text-center" style="width:8%">Trámite</th>
 									<th class="text-right" style="width:5%"></th>
 								</tr>
 							</thead>
@@ -89,16 +90,16 @@
 									</td>
 									<td v-else class="text-center">
 										<v-chip label small v-if="service.status == 2" class="error">Cancelado</v-chip>
-										<v-chip label small v-if="service.status == 3" class="error">No Registro</v-chip>
-										<v-chip label small v-if="service.status == 4" class="orange darken-1">Repetido</v-chip>
+										<v-chip label small v-if="service.status == 3" class="error">NoRegistro</v-chip>
+										<v-chip label small v-if="service.status == 4" class="error">Repetido</v-chip>
 									</td>
 									<!-- Div -->
 									<td class="text-center">
 										<v-chip label small v-if="service.status == 0" class="warning">Pendiente</v-chip>
 										<v-chip label small v-if="service.status == 1" class="success" :title="service.date_registered">Terminado</v-chip>
 										<v-chip label small v-if="service.status == 2" color="error">Cancelado</v-chip>
-										<v-chip label small v-if="service.status == 3" class="error">No Registro</v-chip>
-										<v-chip label small v-if="service.status == 4" color="orange darken-1">Repetido</v-chip>
+										<v-chip label small v-if="service.status == 3" class="error">NoRegistro</v-chip>
+										<v-chip label small v-if="service.status == 4" color="error">Repetido</v-chip>
 									</td>
 									<!-- Status -->
 									<td>
@@ -109,7 +110,7 @@
 												</v-btn>
 											</template>
 											<v-list>
-												<v-list-item @click="EditService(index)">
+												<v-list-item @click="EditService(index)" v-if="service.status < 2">
 													<v-list-item-content>
 														<v-list-item-title>Editar</v-list-item-title>
 													</v-list-item-content>
@@ -117,7 +118,7 @@
 														<v-icon color="warning">edit</v-icon>
 													</v-list-item-action>
 												</v-list-item>
-												<v-list-item>
+												<v-list-item @click="CheckList(index)">
 													<v-list-item-content>
 														<v-list-item-title>Proceso</v-list-item-title>
 													</v-list-item-content>
@@ -141,15 +142,15 @@
 														<v-icon color="green">attach_money</v-icon>
 													</v-list-item-action>
 												</v-list-item>
-												<v-list-item>
+												<v-list-item v-if="service.status > 1" @click="ServiceChangeStatus(index, 'success')">
 													<v-list-item-content>
-														<v-list-item-title>Facturas</v-list-item-title>
+														<v-list-item-title>Activar</v-list-item-title>
 													</v-list-item-content>
 													<v-list-item-action>
-														<v-icon>folder_open</v-icon>
+														<v-icon color="green">check</v-icon>
 													</v-list-item-action>
 												</v-list-item>
-												<v-list-item>
+												<v-list-item v-else @click="ServiceChangeStatus(index, 'error')">
 													<v-list-item-content>
 														<v-list-item-title>Cancelar</v-list-item-title>
 													</v-list-item-content>
@@ -247,7 +248,7 @@
 									<br>
 									<v-layout row wrap>
 										<v-flex xs12 sm12 md12 lg12 xl12 class="text-left">
-											<v-btn dark fab small color="warning" title="Editar" @click="EditService(index)">
+											<v-btn dark fab small color="warning" title="Editar" @click="EditService(index)" v-if="service.status < 2">
 												<v-icon dark color="white">edit</v-icon>
 											</v-btn>
 											<v-btn dark fab small color="grey" title="Proceso">
@@ -259,10 +260,10 @@
 											<v-btn dark fab small color="green" title="Comisiones">
 												<v-icon dark>attach_money</v-icon>
 											</v-btn>
-											<v-btn dark fab small color="grey" title="Facturas y Recibos">
-												<v-icon dark>folder_open</v-icon>
+											<v-btn v-if="service.status > 1" dark fab small color="green" title="Activar" @click="ServiceChangeStatus(index, 'success')">
+												<v-icon dark>check</v-icon>
 											</v-btn>
-											<v-btn dark fab small color="error" title="Cancelar">
+											<v-btn v-else dark fab small color="error" title="Cancelar" @click="ServiceChangeStatus(index, 'error')">
 												<v-icon dark>block</v-icon>
 											</v-btn>
 										</v-flex>
@@ -282,6 +283,7 @@
 		<Customer :customer_dialog="1" ref="customer_form"></Customer>
 		<Services :service_dialog="1" ref="services_form" v-on:addService="newService($event)" v-on:updateService="updateService($event)"></Services>
 		<Bills :billing_dialog="1" ref="bills_form" v-on:updateServices="Reload()"></Bills>
+		<ServiceStatus ref="service_cancel" v-on:updateService="updateService($event)"></ServiceStatus>
 	</div>
 </template>
 
@@ -290,6 +292,8 @@ import Customer from '@/components/Customer'
 import Services from '@/components/Services'
 import Bills from '@/components/Bills'
 import Quotes from '@/components/Quotes'
+import ServiceStatus from '@/components/ServiceStatus'
+import Progress from '@/components/Progress'
 import axios from 'axios'
 export default {
 	layout: 'admin',
@@ -297,7 +301,7 @@ export default {
 	head:{
         title: 'Control de Servicios'
 	},
-	components:{Customer, Services, Bills, Quotes},
+	components:{Customer, Services, Bills, Quotes, ServiceStatus, Progress},
 
 	data(){
 		return{
@@ -477,10 +481,26 @@ export default {
 
 		updateService(data){
 			this.services[this.selected_service] = data;
-			this.services.splice(index, 1, data);
+			this.services.splice(this.selected_service, 1, data);
 			this.selected_service = '';
-		}
+		}, 
 
+		ServiceChangeStatus(index, color){
+			const service = this.services[index];
+			this.selected_service = index;
+			this.$refs.service_cancel.ServiceChangeStatus(service.id, color, service.status);
+		},
+
+		CheckList(index){
+			this.selected_service = index;
+			const service = this.services[index];
+			this.$refs.process_form.openProgress(service.id);
+			
+		},
+
+		updateProgress(data){
+			this.services.splice(this.selected_service, 1, data);
+		}
 	}
 }
 </script>	

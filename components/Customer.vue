@@ -3,11 +3,11 @@
         <v-dialog v-model="customer_dialog" max-width="750" height="auto" style="overflow: auto;">
 			<v-form @submit.prevent="Save">
 				<v-card>
-					<v-card-title class="primary white--text">
-						Agregar cliente
-						<v-spacer></v-spacer>
-						<v-btn icon @click="customer_dialog = false"><v-icon color="white">close</v-icon></v-btn>
-					</v-card-title>
+                    <v-system-bar color="primary" dark height="60px;">
+                        <h2>Agregar Cliente</h2>
+                        <v-spacer></v-spacer>
+                        <v-btn icon small @click="customer_dialog = false"><v-icon color="white">close</v-icon></v-btn>
+                    </v-system-bar>
 					<v-card-text>
 						<v-container>
 							<v-row>
@@ -21,6 +21,14 @@
 								</v-col>
 								<v-col cols="12" sm="12" md="7" v-if="strategy_id == 2">
 									<v-autocomplete v-model="referred" :items="referrals" outlined :loading="referralLoading" :search-input.sync="search" hide-no-data hide-selected item-text="customer" item-value="id" placeholder="Referido por..." prepend-icon="person" return-object clearable label="Seleccionar cliente..." :error-messages="errors.referred_by"></v-autocomplete>
+								</v-col>
+							</v-row>
+                            <v-row>
+								<v-col cols="12" sm="12" md="6">
+									<v-text-field v-model="random_name" outlined label="Referido por..." ></v-text-field>
+								</v-col>
+								<v-col cols="12" sm="12" md="6">
+									<v-select v-model="prospected_by" outlined :items="prospecters" label="Prospectado por..." item-value="id" item-text="user"></v-select>
 								</v-col>
 							</v-row>
 						</v-container>
@@ -69,6 +77,9 @@ export default {
             customer:'',
             strategies:[],
             strategy_id:'',
+            random_name:'',
+			prospecters:[],
+			prospected_by:'',
 			loading: false,
 			//snackbar
             snackbar: false,
@@ -136,10 +147,20 @@ export default {
             this.strategy_id = '';
             this.strategies = [];
             this.errors = {};
+            this.random_name = '';
+			this.prospected_by = '';
+            this.getProspecters();
         },
 
+        async getProspecters(){
+			await this.$axios.get('/api/responsables')
+			.then(res => {
+				this.prospecters = res.data;
+			})
+		},
+
         async Save(){
-            await this.$axios.post('/api/customer', {customer:this.customer, strategy_id:this.strategy_id, referred_by:this.referred_by})
+            await this.$axios.post('/api/customer', {customer:this.customer, strategy_id:this.strategy_id, referred_by:this.referred_by, random_name:this.random_name, prospected_by:this.prospected_by})
             .then(res => {
                 this.loading = false;
                 this.clearForm();

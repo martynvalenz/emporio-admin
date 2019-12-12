@@ -102,11 +102,11 @@
 						<span class="white--text" v-if="errors.customer">{{ errors.customer[0] }}</span>
 						<span class="white--text" v-if="errors.id">{{ errors.id[0] }}</span>
 					</v-alert>
-					<v-card-title class="primary white--text">
-						{{ dialogTitle }}
-						<v-spacer></v-spacer>
-						<v-btn icon @click="customer_dialog = false"><v-icon>close</v-icon></v-btn>
-					</v-card-title>
+					<v-system-bar color="primary" dark height="60px;">
+                        <h2>{{ dialogTitle }}</h2>
+                        <v-spacer></v-spacer>
+                        <v-btn icon small @click="customer_dialog = false"><v-icon color="white">close</v-icon></v-btn>
+                    </v-system-bar>
 					<v-card-text>
 						<v-container>
 							<v-row>
@@ -119,7 +119,15 @@
 									<v-select v-model="strategy_id" @change="changeStrategy" outlined item-value="id" item-text="strategy" :items="strategies" label="Seleccionar estrategia"></v-select>
 								</v-col>
 								<v-col cols="12" sm="12" md="7" v-if="strategy_id == 2">
-									<v-autocomplete v-model="referred" :items="referrals" outlined :loading="referralLoading" :search-input.sync="search" hide-no-data hide-selected item-text="customer" item-value="id" placeholder="Referido por..." prepend-icon="person" return-object clearable label="Seleccionar cliente..."></v-autocomplete>
+									<v-autocomplete v-model="referred" :items="referrals" outlined :loading="referralLoading" :search-input.sync="search" hide-no-data hide-selected item-text="customer" item-value="id" placeholder="Referido por cliente..." prepend-icon="person" return-object clearable label="Seleccionar cliente..."></v-autocomplete>
+								</v-col>
+							</v-row>
+							<v-row>
+								<v-col cols="12" sm="12" md="6">
+									<v-text-field v-model="random_name" outlined label="Referido por..." ></v-text-field>
+								</v-col>
+								<v-col cols="12" sm="12" md="6">
+									<v-select v-model="prospected_by" outlined :items="prospecters" label="Prospectado por..." item-value="id" item-text="user"></v-select>
 								</v-col>
 							</v-row>
 							<v-row>
@@ -210,6 +218,9 @@ export default {
 			customer: '',
 			strategy_id: '',
 			referred_by: '',
+			random_name:'',
+			prospecters:[],
+			prospected_by:'',
 			referred_loading: false,
 			folder: '',
 			// web_page: '',
@@ -244,6 +255,7 @@ export default {
 	created(){
 		this.customersCount();
 		this.Load();
+		
 	},
 
 	watch: {
@@ -379,6 +391,9 @@ export default {
 			this.strategy_id = '';
 			this.referred_by = '';
 			this.referrals = '';
+			this.random_name = '';
+			this.prospected_by = '';
+			this.prospecters = {};
 			this.folder = '';
 			// this.web_page = '';
 			this.comments = '';
@@ -386,6 +401,7 @@ export default {
 
 		create(){
 			this.getStrategies();
+			this.getProspecters();
 			this.dialogTitle = 'Agregar Cliente',
 			this.customer_dialog = true;
 			this.clearCustomer();
@@ -393,8 +409,16 @@ export default {
 			this.error_alert = false;
 		},
 
+		async getProspecters(){
+			await this.$axios.get('/api/responsables')
+			.then(res => {
+				this.prospecters = res.data;
+			})
+		},
+
 		edit(index){
 			this.getStrategies();
+			this.getProspecters();
 			this.customer_dialog = true;
 			const customer = this.customers[index];
 			this.customer_selected = index;
@@ -403,6 +427,8 @@ export default {
 			this.customer = customer.customer;
 			this.strategy_id = customer.strategy_id;
 			this.referred_by = customer.referred_by;
+			this.random_name = customer.random_name;
+			this.prospected_by = customer.prospected_by;
 			this.folder = customer.folder;
 			// this.web_page = customer.web_page;
 			this.comments = customer.comments;
@@ -420,7 +446,7 @@ export default {
 			this.loading = true;
 			//Update
 			if(this.customer_id){
-				await this.$axios.put(`/api/customer/${this.customer_id}`, {customer:this.customer, strategy_id:this.strategy_id, referred_by:this.referred_by, folder:this.folder, comments:this.comments})
+				await this.$axios.put(`/api/customer/${this.customer_id}`, {customer:this.customer, strategy_id:this.strategy_id, referred_by:this.referred_by, random_name:this.random_name, prospected_by:this.prospected_by, folder:this.folder, comments:this.comments})
 				.then(res => {
 					this.customers[this.customer_selected] = res.data;
 					this.customer_dialog = false;
@@ -438,7 +464,7 @@ export default {
 			}
 			//Store
 			else{
-				await this.$axios.post('/api/customer', {customer:this.customer, strategy_id:this.strategy_id, referred_by:this.referred_by, folder:this.folder, comments:this.comments})
+				await this.$axios.post('/api/customer', {customer:this.customer, strategy_id:this.strategy_id, referred_by:this.referred_by, random_name:this.random_name, prospected_by:this.prospected_by, folder:this.folder, comments:this.comments})
 				.then(res => {
 					this.customers.unshift(res.data);
 					this.loading = false;
