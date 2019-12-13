@@ -50,6 +50,11 @@
                     </v-list-item-content>
                 </v-list-item>
             </v-list>
+            <v-list>
+                <v-list-item>
+                    <v-btn block color="primary">Enviar a estatus <v-icon right>send</v-icon></v-btn>
+                </v-list-item>
+            </v-list>
         </v-navigation-drawer>
     </div>
 </template>
@@ -117,7 +122,6 @@ export default {
         async ManageCost(){
             await this.$axios.put(`/api/binnacles/manage-cost/${this.service_id}`, {manage_cost:this.manage_cost})
             .then(res => {
-                this.manage_cost = res.data.manage_cost * 1;
                 this.cost = res.data.cost;
             })
             .catch(error => {

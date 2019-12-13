@@ -39,20 +39,20 @@
                                             <span v-if="reg.category == 7">Ventas</span>
                                         </td>
                                         <td class="text-center">
-                                            <v-icon v-if="reg.sales" color="green">fiber_manual_record</v-icon>
-                                            <v-icon v-else color="grey lighten-2" @click="Sales(index)">fiber_manual_record</v-icon>
+                                            <v-icon v-if="reg.sales == 1" color="green">fiber_manual_record</v-icon>
+                                            <v-icon v-else color="grey lighten-2" @click="ChangeRegistrant(index, 'sales')">fiber_manual_record</v-icon>
                                         </td>
                                         <td class="text-center">
-                                            <v-icon v-if="reg.operations" color="green">fiber_manual_record</v-icon>
-                                            <v-icon v-else color="grey lighten-2">fiber_manual_record</v-icon>
+                                            <v-icon v-if="reg.operations == 1" color="green">fiber_manual_record</v-icon>
+                                            <v-icon v-else color="grey lighten-2" @click="ChangeRegistrant(index, 'operations')">fiber_manual_record</v-icon>
                                         </td>
                                         <td class="text-center">
-                                            <v-icon v-if="reg.management" color="green">fiber_manual_record</v-icon>
-                                            <v-icon v-else color="grey lighten-2">fiber_manual_record</v-icon>
+                                            <v-icon v-if="reg.management == 1" color="green">fiber_manual_record</v-icon>
+                                            <v-icon v-else color="grey lighten-2" @click="ChangeRegistrant(index, 'management')">fiber_manual_record</v-icon>
                                         </td>
                                         <td class="text-center">
-                                            <v-icon v-if="reg.register" color="green">fiber_manual_record</v-icon>
-                                            <v-icon v-else color="grey lighten-2">fiber_manual_record</v-icon>
+                                            <v-icon v-if="reg.register == 1" color="green">fiber_manual_record</v-icon>
+                                            <v-icon v-else color="grey lighten-2" @click="ChangeRegistrant(index, 'register')">fiber_manual_record</v-icon>
                                         </td>
                                         <td class="text-center">{{ reg.created_at }}</td>
                                         <td class="text-right">
@@ -94,7 +94,7 @@
                                     <span v-if="requirement.category == 5">Soporte</span>
                                     <span v-if="requirement.category == 6">Auditoría</span>
                                     <span v-if="requirement.category == 7">Ventas</span>
-                                    <v-icon @click="edit(index)" v-if="requirement.status == 0" :color="requirement.color">check</v-icon>
+                                    <v-icon @click="edit(index)" v-if="requirement.status == 0" :color="requirement.color">edit</v-icon>
                                     <v-switch :color="requirement.color" v-bind:class="[requirement.status == 0 ? 'inactive':'']" :value="requirement.selected" :input-value="requirement.selected" :label="requirement.requisite" inset append-icon="edit" @click:append="edit(index)" @change="Switch(index)" :disabled="requirement.status == 0"></v-switch>
                                 </v-flex>
                             </v-layout>
@@ -133,7 +133,7 @@ export default {
             requirement_id:'',
             service_catalog_id:'',
             requisite:'',
-            status:0,
+            status:'1',
             category:'',
             categories:[
                 {value:0, category:'Dirección'},
@@ -190,7 +190,7 @@ export default {
             this.selected_requirement = '';
             this.requirement_id = '';
             this.requisite = '';
-            this.status = '';
+            this.status = '1';
             this.category = '';
         },
 
@@ -199,9 +199,9 @@ export default {
             if(this.requirement_id){
                 await this.$axios.put(`/api/catalog-requirement/update/${this.requirement_id}`, {requisite:this.requisite, category:this.category, status:this.status, services_catalog_id:this.service_catalog_id})
                 .then(res => {
-                    this.requisites[this.selected_requirement] = res.data;
-                    this.cancel();
+                    this.requisites[this.selected_requirement] = res.data.requi;
                     this.errors = {};
+                    this.cancel();
                     this.loading = false;
                 })
                 .catch(error => {
@@ -212,7 +212,7 @@ export default {
             else{
                 await this.$axios.post('/api/catalog-requirement/store', {requisite:this.requisite, category:this.category, status:this.status, services_catalog_id:this.service_catalog_id})
                 .then(res => {
-                    this.requisites.unshift(res.data);
+                    this.requisites.unshift(res.data.requi);
                     this.cancel();
                     this.errors = {};
                     this.loading = false;
@@ -224,8 +224,15 @@ export default {
             }
         },
 
-        Sales(index){
-            
+        async ChangeRegistrant(index, variable){
+            const requi = this.service_requisites[index];
+            await this.$axios.post('/api/catalog/requisite-save-option', {id:requi.id, services_catalog_id:requi.services_catalog_id, variable:variable})
+            .then(res => {
+                this.serviceRequisites();
+            })
+            .catch(error => {
+                console.log(error)
+            })
         },
 
         async Switch(index){

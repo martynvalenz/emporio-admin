@@ -160,6 +160,7 @@ export default {
 		},
 
         async Save(){
+            this.loading = true;
             await this.$axios.post('/api/customer', {customer:this.customer, strategy_id:this.strategy_id, referred_by:this.referred_by, random_name:this.random_name, prospected_by:this.prospected_by})
             .then(res => {
                 this.loading = false;

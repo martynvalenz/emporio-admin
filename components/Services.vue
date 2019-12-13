@@ -363,20 +363,20 @@ export default {
             this.$axios.get(`/api/service/edit/${service_id}`)
             .then(res =>{
                 this.customer_id = res.data.service.customer_id;
+                this.getBrands();
                 this.customer = res.data.service.customer;
                 this.date = res.data.service.date;
-                this.getBrands();
-                if(res.data.service.brand_id){
-                    this.brand_id = res.data.service.brand_id * 1;
-                }
-                else{
-                    this.brand_id = '';
-                }
                 if(res.data.service.class_id){
                     this.class_id = res.data.service.class_id * 1;
                 }
                 else{
                     this.class_id = '';
+                }
+                if(res.data.service.brand_id){
+                    this.brand_id = res.data.service.brand_id;
+                }
+                else{
+                    this.brand_id = '';
                 }
                 this.services_catalog_id = res.data.service.services_catalog_id;
                 this.service = res.data.service.service;
@@ -394,6 +394,7 @@ export default {
                 }
                 if(res.data.service.status_category_id){
                     this.status_category_id = res.data.service.status_category_id * 1;
+                    this.getSubcategories();
                 }
                 else{
                     this.status_category_id = '';

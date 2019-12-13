@@ -7,6 +7,7 @@
 				<v-card :loading="services_loading">
 					<v-card-title>
 						<v-btn color="primary" class="mx-1" @click="addService">Servicio<v-icon right>add</v-icon></v-btn>
+						<v-btn color="primary" class="mx-1" @click="addPackage">Paquete<v-icon right>add</v-icon></v-btn>
 						<v-btn color="info" class="mx-1" @click="addCustomer">Cliente<v-icon right>person_add</v-icon></v-btn>
 						<v-spacer></v-spacer>
 						<!-- <v-btn-toggle mandatory v-model="service_control_view">
@@ -96,7 +97,7 @@
 												</v-btn>
 											</template>
 											<v-list>
-												<v-list-item>
+												<v-list-item @click="EditService(index)" v-if="service.status < 2">
 													<v-list-item-content>
 														<v-list-item-title>Editar</v-list-item-title>
 													</v-list-item-content>
@@ -104,15 +105,15 @@
 														<v-icon color="warning">edit</v-icon>
 													</v-list-item-action>
 												</v-list-item>
-												<v-list-item>
+												<v-list-item @click="CheckList(index)">
 													<v-list-item-content>
-														<v-list-item-title>Check-list</v-list-item-title>
+														<v-list-item-title>Proceso</v-list-item-title>
 													</v-list-item-content>
 													<v-list-item-action>
 														<v-icon>list</v-icon>
 													</v-list-item-action>
 												</v-list-item>
-												<v-list-item>
+												<v-list-item @click="showComments(index)">
 													<v-list-item-content>
 														<v-list-item-title>Comentarios</v-list-item-title>
 													</v-list-item-content>
@@ -128,15 +129,15 @@
 														<v-icon color="green">attach_money</v-icon>
 													</v-list-item-action>
 												</v-list-item>
-												<v-list-item>
+												<v-list-item v-if="service.status > 1" @click="ServiceChangeStatus(index, 'success')">
 													<v-list-item-content>
-														<v-list-item-title>Facturas</v-list-item-title>
+														<v-list-item-title>Activar</v-list-item-title>
 													</v-list-item-content>
 													<v-list-item-action>
-														<v-icon>folder_open</v-icon>
+														<v-icon color="green">check</v-icon>
 													</v-list-item-action>
 												</v-list-item>
-												<v-list-item>
+												<v-list-item v-else @click="ServiceChangeStatus(index, 'error')">
 													<v-list-item-content>
 														<v-list-item-title>Cancelar</v-list-item-title>
 													</v-list-item-content>
@@ -299,6 +300,8 @@
 		<Customer :customer_dialog="1" ref="customer_form"></Customer>
 		<Services :service_dialog="1" ref="services_form" v-on:addService="newService($event)"></Services>
 		<Bills :billing_dialog="1" ref="bills_form"></Bills>
+		<ServiceStatus ref="service_cancel" v-on:updateService="updateService($event)"></ServiceStatus>
+		<Comments ref="comments_dialog"></Comments>
 	</div>
 </template>
 
@@ -307,6 +310,8 @@ import Customer from '@/components/Customer'
 import Services from '@/components/Services'
 import Bills from '@/components/Bills'
 import Progress from '@/components/Progress'
+import ServiceStatus from '@/components/ServiceStatus'
+import Comments from '@/components/Comments'
 import axios from 'axios'
 export default {
 	layout: 'admin',
@@ -314,7 +319,7 @@ export default {
 	head:{
         title: 'Estudios de Factibilidad'
 	},
-	components:{Customer, Services, Bills, Progress},
+	components:{Customer, Services, Bills, Progress, ServiceStatus, Comments},
 
 	data(){
 		return{
@@ -453,6 +458,25 @@ export default {
 			this.services.unshift(data);
 		},
 
+		EditService(index){
+			const service = this.services[index];
+			this.selected_service = index;
+			let service_id = service.id;
+			this.$refs.services_form.editService(service_id);
+		},
+
+		updateService(data){
+			this.services[this.selected_service] = data;
+			this.services.splice(this.selected_service, 1, data);
+			this.selected_service = '';
+		}, 
+
+		ServiceChangeStatus(index, color){
+			const service = this.services[index];
+			this.selected_service = index;
+			this.$refs.service_cancel.ServiceChangeStatus(service.id, color, service.status);
+		},
+
 		CheckList(index){
 			this.selected_service = index;
 			const service = this.services[index];
@@ -462,6 +486,15 @@ export default {
 
 		updateProgress(data){
 			this.services.splice(this.selected_service, 1, data);
+		},
+
+		addPackage(){
+			this.$refs.services_form.addPackage();
+		},
+
+		showComments(index){
+			const service = this.services[index];
+			this.$refs.comments_dialog.showComments(service.id, '', 'service');
 		}
 	}
 }

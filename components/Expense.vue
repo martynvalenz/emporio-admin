@@ -12,8 +12,9 @@
 						<v-container>
 							<v-row>
 								<v-col cols="12" sm="12" md="6" lg="6" xl="6" v-if="type <= 3">
-                                    <v-autocomplete v-model="provider" v-if="!new_provider" :items="providers" outlined :loading="providerLoading" :search-input.sync="sync_provider" hide-no-data hide-selected item-text="provider" item-value="id" placeholder="Buscar proveedor..." return-object :error-messages="errors.provider_id" label="Proveedor" append-icon="clear" @click:append="clearProvider" append-outer-icon="add" @click:append-outer="addProvider"></v-autocomplete>
-                                    <v-text-field v-if="new_provider && type <= 3" outlined v-model="provider_name" :readonly="!new_provider" prepend-icon="close" @click:prepend="clearProvider" append-icon="save" @click:append="saveProvider" label="Agregar Proveedor" :error-messages="errors.provider" :loading="providerLoading"></v-text-field>
+                                    <v-autocomplete v-model="provider" v-if="!new_provider && !provider_edit" :items="providers" outlined :loading="providerLoading" :search-input.sync="sync_provider" hide-no-data hide-selected item-text="provider" item-value="id" placeholder="Buscar proveedor..." return-object :error-messages="errors.provider_id" label="Proveedor" append-icon="clear" @click:append="clearProvider" append-outer-icon="add" @click:append-outer="addProvider"></v-autocomplete>
+                                    <v-text-field v-if="new_provider && type <= 3 && !provider_edit" outlined v-model="provider_name" :readonly="!new_provider" prepend-icon="close" @click:prepend="clearProvider" append-icon="save" @click:append="saveProvider" label="Agregar Proveedor" :error-messages="errors.provider" :loading="providerLoading"></v-text-field>
+                                    <v-text-field v-model="provider" v-if="provider_edit" outlined  label="Proveedor" append-icon="edit" @click:append="provider_edit = false"></v-text-field>
 								</v-col>
                                 <v-col cols="12" xs="12" sm="12" md="8" lg="6" xl="6" v-if="type == 6 || type == 9">
                                     <v-select v-model="employee_id" :items="employees" item-value="id" item-text="employee" outlined clearable append-outer-icon="sync" @click:append-outer="getEmployees" label="Seleccionar usuario"></v-select>
@@ -213,6 +214,7 @@ export default {
             provider_name:'',
             providerLoading:false,
             sync_provider:'',
+            provider_edit:false,
             //Servicios
             service_id:'',
             services:[],
@@ -401,9 +403,16 @@ export default {
             await this.$axios.get(`/api/account-statement/expense/edit/${this.expense_id}`)
             .then(res => {
                 //Provider
-                this.provider_id = res.data.expense.provider_id;
-                this.provider = res.data.expense.provider;
-                this.providers = res.data.expense.provider;
+                if(res.data.expense.provider_id){
+                    this.provider_edit = true;
+                    this.provider_id = res.data.expense.provider_id;
+                    this.provider = res.data.expense.provider;
+                }
+                else{
+                    this.provider_edit = false;
+                    this.provider_id = '';
+                    this.provider = '';
+                }
                 //Servicios
                 this.service_payments = res.data.expense.service_payment;
                 if(res.data.expense.service_payment == 1){
@@ -463,6 +472,7 @@ export default {
             this.provider_name = '';
             this.providerLoading = false;
             this.sync_provider = '';
+            this.provider_edit = false;
             //Form
             this.errors = [];
             this.date = new Date().toISOString().substr(0, 10);
@@ -540,6 +550,10 @@ export default {
                 this.service_payments = this.provider.service_payments;
                 this.providerLoading = false;
             })
+            .catch(error => {
+                console.log(error)
+                this.providerLoading =false;
+            })
         },
 
         serviceSelect(val){
@@ -554,12 +568,18 @@ export default {
         },
 
         clearProvider(){
-            this.new_provider = false;
-            this.provider_name = '';
-            this.providers = [];
-            this.provider_id = '';
-            this.provider = '';
-            this.providerLoading = false;
+            
+            if(this.expense_id && this.provider_id){
+                this.new_provider = true;
+            }
+            else{
+                this.new_provider = false;
+                this.provider_name = '';
+                this.providers = [];
+                this.provider_id = '';
+                this.provider = '';
+                this.providerLoading = false;
+            }
         },
 
         clearService(){

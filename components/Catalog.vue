@@ -123,7 +123,7 @@
                             </v-row>
                             <v-row>
                                 <v-col cols="12" sm="12" md="4" lg="2">
-                                    <v-text-field v-model="fee"  filled label="Honorarios" type="number" step="any" min="0" readonly></v-text-field>
+                                    <v-text-field v-model="fee"  filled label="Costos de servicio" type="number" step="any" min="0" readonly></v-text-field>
                                 </v-col>
                                 <v-col cols="12" sm="12" md="4" lg="2">
                                     <v-text-field v-model="utility"  filled label="Utilidad" type="number" step="any" min="0" readonly></v-text-field>
@@ -222,6 +222,7 @@ export default {
             this.getCatalogCategories();
             this.setComission();
             this.ClearData();
+            this.CalculateValues();
         },
 
         ClearData(){
@@ -273,22 +274,22 @@ export default {
                 this.comments = res.data.comments;
                 this.money_exchange_id = res.data.money_exchange_id * 1;
                 if(res.data.authorize == 1){
-                    this.authorize = true;
+                    this.authorize = '1';
                 }
                 else{
-                    this.authorize = false;
+                    this.authorize = '0';
                 }
                 if(res.data.additional_service == 1){
-                    this.additional_service = true;
+                    this.additional_service = '1';
                 }
                 else{
-                    this.additional_service = false;
+                    this.additional_service = '0';
                 }
                 if(res.data.allow_finance == 1){
-                    this.allow_finance = true;
+                    this.allow_finance = '1';
                 }
                 else{
-                    this.allow_finance = false;
+                    this.allow_finance = '0';
                 }
                 this.cost = (res.data.cost) * 1;
                 this.external_fee = (res.data.external_fee) * 1;
@@ -369,14 +370,16 @@ export default {
         },
 
         CalculateValues(){
-            let fee = 0;
             let utility = 0;
             const cost = this.cost;
-            const price = this.price;
+            const price = this.price;  
             const external_fee = this.external_fee;
+            let fee = (price * 1);
+            let final_fee = (price * 1);
             fee = (price * 1) - (cost * 1) - (external_fee * 1);
+            final_fee = (cost * 1) + (external_fee * 1);
 
-            if(price > 0 && fee < price){
+            if(fee > 0){
                 this.errors = {};
 
                 if(this.sales == 0){
@@ -406,8 +409,8 @@ export default {
                     this.management_comission = this.management_ammount;
                 }
 
-                this.fee = fee;
-                this.utility = fee - this.operations_comission - this.sales_comission - this.management_comission;
+                this.fee = final_fee;
+                this.utility = fee - this.operations_ammount - this.sales_ammount - this.management_ammount;
                 this.utility_percent = Math.round((this.utility / price) * 100);
             }
             else if(price === 0 || fee < 0){
@@ -463,7 +466,7 @@ export default {
                 this.timeout = 2500;
                 this.loading = false;
             }
-            else if(price === 0 && this.authorize === 0){
+            else if(price === 0 && this.authorize === '0'){
                 this.snackbar = true;
                 this.snackColor = 'error';
                 this.snackText = 'El precio del servicio no puede ser 0, a menos que habilite la casilla de autorización';
@@ -472,7 +475,7 @@ export default {
                 this.timeout = 3500;
                 this.loading = false;
             }
-            else if(price > 0 && fee < 0 && this.authorize === 0){
+            else if(price > 0 && fee < 0 && this.authorize === '0'){
                 this.snackbar = true;
                 this.snackColor = 'error';
                 this.snackText = 'El costo y comisiones no pueden ser mayor al precio, a menos que habilite la casilla de autorización';
@@ -481,7 +484,7 @@ export default {
                 this.timeout = 3500;
                 this.loading = false;
             }
-            else if(price >= 0 && fee <= 0 && this.authorize == 1){
+            else if(price >= 0 && fee <= 0 && this.authorize == '1'){
                 this.Save();
             }
             else if(price > 0 && fee > 0){

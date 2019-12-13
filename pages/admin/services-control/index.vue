@@ -126,7 +126,7 @@
 														<v-icon>list</v-icon>
 													</v-list-item-action>
 												</v-list-item>
-												<v-list-item>
+												<v-list-item @click="showComments(index)">
 													<v-list-item-content>
 														<v-list-item-title>Comentarios</v-list-item-title>
 													</v-list-item-content>
@@ -134,7 +134,7 @@
 														<v-icon color="info">comment</v-icon>
 													</v-list-item-action>
 												</v-list-item>
-												<v-list-item>
+												<v-list-item @click="showComissions(index)">
 													<v-list-item-content>
 														<v-list-item-title>Comisiones</v-list-item-title>
 													</v-list-item-content>
@@ -251,13 +251,13 @@
 											<v-btn dark fab small color="warning" title="Editar" @click="EditService(index)" v-if="service.status < 2">
 												<v-icon dark color="white">edit</v-icon>
 											</v-btn>
-											<v-btn dark fab small color="grey" title="Proceso">
+											<v-btn dark fab small color="grey" title="Proceso" @click="CheckList(index)">
 												<v-icon dark>list</v-icon>
 											</v-btn>
-											<v-btn dark fab small color="info" title="Comentarios">
+											<v-btn dark fab small color="info" title="Comentarios" @click="showComments(index)">
 												<v-icon dark>comment</v-icon>
 											</v-btn>
-											<v-btn dark fab small color="green" title="Comisiones">
+											<v-btn dark fab small color="green" title="Comisiones" @click="showComissions(index)">
 												<v-icon dark>attach_money</v-icon>
 											</v-btn>
 											<v-btn v-if="service.status > 1" dark fab small color="green" title="Activar" @click="ServiceChangeStatus(index, 'success')">
@@ -284,6 +284,8 @@
 		<Services :service_dialog="1" ref="services_form" v-on:addService="newService($event)" v-on:updateService="updateService($event)"></Services>
 		<Bills :billing_dialog="1" ref="bills_form" v-on:updateServices="Reload()"></Bills>
 		<ServiceStatus ref="service_cancel" v-on:updateService="updateService($event)"></ServiceStatus>
+		<Comments ref="comments_dialog"></Comments>
+		<Comissions ref="comissions_dialog"></Comissions>
 	</div>
 </template>
 
@@ -294,6 +296,8 @@ import Bills from '@/components/Bills'
 import Quotes from '@/components/Quotes'
 import ServiceStatus from '@/components/ServiceStatus'
 import Progress from '@/components/Progress'
+import Comments from '@/components/Comments'
+import Comissions from '@/components/Comissions'
 import axios from 'axios'
 export default {
 	layout: 'admin',
@@ -301,7 +305,7 @@ export default {
 	head:{
         title: 'Control de Servicios'
 	},
-	components:{Customer, Services, Bills, Quotes, ServiceStatus, Progress},
+	components:{Customer, Services, Bills, Quotes, ServiceStatus, Progress, Comments, Comissions},
 
 	data(){
 		return{
@@ -500,6 +504,16 @@ export default {
 
 		updateProgress(data){
 			this.services.splice(this.selected_service, 1, data);
+		},
+
+		showComments(index){
+			const service = this.services[index];
+			this.$refs.comments_dialog.showComments(service.id, '', 'service');
+		},
+
+		showComissions(index){
+			const service = this.services[index];
+			this.$refs.comissions_dialog.showComissions(service.id);
 		}
 	}
 }
