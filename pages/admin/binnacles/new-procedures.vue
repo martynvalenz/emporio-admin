@@ -121,7 +121,7 @@
 														<v-icon color="info">comment</v-icon>
 													</v-list-item-action>
 												</v-list-item>
-												<v-list-item>
+												<v-list-item @click="showComissions(index)">
 													<v-list-item-content>
 														<v-list-item-title>Comisiones</v-list-item-title>
 													</v-list-item-content>
@@ -168,6 +168,7 @@
 		<Bills :billing_dialog="1" ref="bills_form"></Bills>
 		<ServiceStatus ref="service_cancel" v-on:updateService="updateService($event)"></ServiceStatus>
 		<Comments ref="comments_dialog"></Comments>
+		<Comissions ref="comissions_dialog"></Comissions>
 	</div>
 </template>
 
@@ -178,6 +179,7 @@ import Bills from '@/components/Bills'
 import Progress from '@/components/Progress'
 import ServiceStatus from '@/components/ServiceStatus'
 import Comments from '@/components/Comments'
+import Comissions from '@/components/Comissions'
 import axios from 'axios'
 export default {
 	layout: 'admin',
@@ -185,7 +187,7 @@ export default {
 	head:{
         title: 'Bitácora de trámites nuevos'
 	},
-	components:{Customer, Services, Bills, Progress, ServiceStatus, Comments},
+	components:{Customer, Services, Bills, Progress, ServiceStatus, Comments, Comissions},
 
 	data(){
 		return{
@@ -361,6 +363,11 @@ export default {
 		showComments(index){
 			const service = this.services[index];
 			this.$refs.comments_dialog.showComments(service.id, '', 'service');
+		},
+
+		showComissions(index){
+			const service = this.services[index];
+			this.$refs.comissions_dialog.showComissions(service.id);
 		}
 	}
 }

@@ -16,6 +16,8 @@
                 </v-list-item>
                 <v-list-item>
                     <v-list-item-title>{{service}}</v-list-item-title>
+                    <v-spacer></v-spacer>
+                    <v-progress-circular class="mr-2" color="success" :value="advance_percent"></v-progress-circular>
                 </v-list-item>
             </v-list>
             <v-list v-if="progress.length == 0">
@@ -78,6 +80,7 @@ export default {
             is_payed:0,
             advance:0,
             advance_total:0,
+            advance_percent:0
         }
     },
 
@@ -91,12 +94,16 @@ export default {
         async getServicesProgress(){
             await this.$axios.get(`/api/binnacles/service/${this.service_id}`)
             .then(res => {
+                let brand = '';
+                let classer = '';
+
                 if(res.data.service.class){
-                    this.service =  '('+res.data.service.id+') '+res.data.service.code+' - '+res.data.service.brand+' '+res.data.service.class;
+                    classer = res.data.service.class;
                 }
-                else{
-                    this.service = '('+res.data.service.id+') '+res.data.service.code+' - '+res.data.service.brand;
+                else if(res.data.service.brand){
+                    classer = res.data.service.brand;
                 }
+                this.service =  '('+res.data.service.id+') '+res.data.service.code+' - '+brand+' '+classer;
                 this.customer = res.data.service.customer;
                 this.asign_cost = res.data.service.asign_cost;
                 this.manage_cost = res.data.service.manage_cost;
@@ -104,6 +111,7 @@ export default {
                 this.cost = res.data.service.cost;
                 this.advance = res.data.service.advance;
                 this.advance_total = res.data.service.advance_total;
+                this.advance_percent = res.data.service.advance_percent;
                 this.services_catalog_id = res.data.service.services_catalog_id;
                 this.is_payed = res.data.service.is_payed;
                 this.progress = res.data.progress;
@@ -153,6 +161,7 @@ export default {
             await this.$axios.post('/api/binnacles/generate-process', {id:this.service_id, services_catalog_id:this.services_catalog_id})
             .then(res => {
                 this.progress = res.data;
+                this.advance_percent = res.data.service.advance_percent;
                 this.loading_generate = false;
             })
             .catch(error => {

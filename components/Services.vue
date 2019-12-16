@@ -27,8 +27,8 @@
 							</v-row>
                             <v-row>
                                 <v-col cols="12" sm="12" md="10" lg="10">
-                                    <v-select v-if="!newBrand" v-model="brand_id" outlined :items="brands" item-value="id" item-text="brand" label="Seleccionar nombre de Servicio" :error-messages="errors.brand_id" prepend-icon="add" @click:prepend="newBrand = true" clearable></v-select>
-                                    <v-text-field v-else v-model="brand" prepend-icon="close" @click:prepend="newBrand = false" append-icon="save" @click:append="saveBrand" outlined label="Crear nombre de Servicio" :error-messages="errors.brand"></v-text-field>
+                                    <v-select v-if="!newBrand" v-model="brand_id" outlined :items="brands" item-value="id" item-text="brand" label="Seleccionar nombre de Trámite" :error-messages="errors.brand_id" prepend-icon="add" @click:prepend="newBrand = true" clearable></v-select>
+                                    <v-text-field v-else v-model="brand" prepend-icon="close" @click:prepend="newBrand = false" append-icon="save" @click:append="saveBrand" outlined label="Crear nombre de Trámite" :error-messages="errors.brand"></v-text-field>
                                 </v-col>
                                 <v-col cols="12" sm="12" md="2" lg="2">
                                     <v-select v-model="class_id" outlined :items="classes" item-value="id" item-text="class" label="Clase" :error-messages="errors.class_id" clearable append-outer-icon="help_outline" @click:append-outer="showClass"></v-select>

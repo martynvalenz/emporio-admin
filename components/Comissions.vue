@@ -121,8 +121,8 @@
                                                     <v-chip label small v-if="comis.status == 3" class="warning">Cancelada</v-chip>
                                                 </td>
                                                 <td class="text-right">
-                                                    <v-btn x-small :disabled="comis.status == 3 || comis.modified == 1"><v-icon color="orange">edit</v-icon></v-btn>
-                                                    <v-btn x-small><v-icon color="error">close</v-icon></v-btn>
+                                                    <v-btn x-small fab color="orange" dark :disabled="comis.status == 3 || comis.modified == 1"><v-icon>edit</v-icon></v-btn>
+                                                    <v-btn x-small fab color="error" dark><v-icon>close</v-icon></v-btn>
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -253,7 +253,7 @@ export default {
         selectComission(index){
             const comi = this.comissions_available[index];
             this.selected_comi = index;
-            this.comission_type = comi.type;
+            this.comission_type = comi.type * 1;
             this.comission_percent = comi.percent;
             this.ammount = comi.available;
             this.available_id = comi.id;

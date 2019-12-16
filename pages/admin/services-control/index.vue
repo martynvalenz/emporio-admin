@@ -69,17 +69,17 @@
 									<td>{{ service.customer }}</td>
 									<td class="text-center">
 										<ul class="list-style: none;" v-for="(bill, index) in service.bills" :key="index">
-											<a color="green" @click="editFolio(bill.id)" v-if="service.is_payed == 0 && (service.status != 2 || service.status != 4)">{{bill.folio}}</a>
+											<a color="green" @click="editFolio(bill.id)" v-if="service.is_payed == 0 && service.status < 2">{{bill.folio}}</a>
 											<a v-else @click="editFolio(bill.id)">{{bill.folio}}</a>
 										</ul>
-										<v-icon @click="createBill(index, 'Factura')" v-if="service.billed == 0 && (service.status != 2 || service.status != 4)" color="blue">add</v-icon>
+										<v-icon @click="createBill(index, 'Factura')" v-if="service.billed == 0 && service.status < 2" color="blue">add</v-icon>
 									</td>
 									<td class="text-center">
 										<ul class="list-style: none;" v-for="(receipt, index) in service.receipts" :key="index">
-											<a color="green" @click="editFolio(receipt.id)" v-if="service.is_payed == 0 && (service.status != 2 || service.status != 4)">{{receipt.folio}}</a>
+											<a color="green" @click="editFolio(receipt.id)" v-if="service.is_payed == 0 && service.status < 2">{{receipt.folio}}</a>
 											<a @click="editFolio(receipt.id)" v-else>{{receipt.folio}}</a>
 										</ul>
-										<v-icon @click="createReceipt(index, 'Recibo')" v-if="service.billed == 0 && (service.status != 2 || service.status != 4)" color="blue">add</v-icon>
+										<v-icon @click="createReceipt(index, 'Recibo')" v-if="service.billed == 0 && service.status < 2" color="blue">add</v-icon>
 									</td>
 									<td class="text-right">{{ formatPrice(service.final_price) }}</td>
 									<td class="text-center">{{ service.resp }}</td>
