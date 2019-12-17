@@ -388,14 +388,14 @@
                             <v-list-item-title>Finanzas</v-list-item-title>
                         </v-list-item-content>
                     </template>
-                    <!-- <v-list-item>
+                    <v-list-item router exact to="/admin/finance/income">
                         <v-list-item-content>
                             <v-list-item-title>Ingresos</v-list-item-title>
                         </v-list-item-content>
                         <v-list-item-action>
                             <v-icon style="color:green">money</v-icon>
                         </v-list-item-action>
-                    </v-list-item> -->
+                    </v-list-item>
                     <v-list-item router exact to="/admin/finance/expenses">
                         <v-list-item-content>
                             <v-list-item-title>Egresos</v-list-item-title>

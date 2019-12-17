@@ -171,6 +171,90 @@
                                     </v-card>
                                 </v-col>
                             </v-row>
+                            <!-- <v-row v-if="type == 6">
+                                <v-col cols="12" xs="12">
+                                    <v-card class="elevation-1" :loading="loading_wage">
+                                        <v-card-title>
+                                            <h4>Empleados</h4>
+                                            <v-spacer></v-spacer>
+                                            <v-btn fab icon @click="getEmployees"><v-icon>sync</v-icon></v-btn>
+                                        </v-card-title>
+                                        <v-card-title v-if="errors.employees_length">
+                                            <v-alert text prominent type="error" icon="mdi-cloud-alert">{{errors.employees_length}}</v-alert>
+                                        </v-card-title>
+                                        <v-card-text>
+                                            <v-simple-table class="elevation-4" >
+                                                <thead>
+                                                    <tr>
+                                                        <th class="text-left" style="width:25%;">Usuario</th>
+                                                        <th class="text-right" style="width:15%; color:red;">IMSS</th>
+                                                        <th class="text-right" style="width:15%; color:red;">Préstamos</th>
+                                                        <th class="text-right" style="width:15%; color:red;">Error en cobro</th>
+                                                        <th class="text-right" style="width:15%; color:green;">Monto</th>
+                                                        <th style="width:15%;"></th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr v-for="(service, index) in comissions" :key="index">
+                                                        <td>{{employee.initials}} - {{employee.name}} {{employee.last_name}}</td>
+                                                        <td class="text-right">
+                                                            <v-edit-dialog :return-value.sync="employee.imss" large persistent>
+                                                                <div>{{ employee.imss }}</div>
+                                                                <template v-slot:input>
+                                                                    <v-text-field v-model="employee.imss" label="Editar monto" single-line autofocus type="number" step="any"></v-text-field>
+                                                                </template>
+                                                            </v-edit-dialog>
+                                                        </td>
+                                                        <td class="text-right">
+                                                            <v-edit-dialog :return-value.sync="employee.loan" large persistent>
+                                                                <div>{{ employee.loan }}</div>
+                                                                <template v-slot:input>
+                                                                    <v-text-field v-model="employee.loan" label="Editar monto" single-line autofocus type="number" step="any"></v-text-field>
+                                                                </template>
+                                                            </v-edit-dialog>
+                                                        </td>
+                                                        <td class="text-right">
+                                                            <v-edit-dialog :return-value.sync="employee.errors" large persistent>
+                                                                <div>{{ employee.errors }}</div>
+                                                                <template v-slot:input>
+                                                                    <v-text-field v-model="employee.errors" label="Editar monto" single-line autofocus type="number" step="any"></v-text-field>
+                                                                </template>
+                                                            </v-edit-dialog>
+                                                        </td>
+                                                        <td class="text-right">
+                                                            <v-edit-dialog :return-value.sync="employee.biweekly_salary" large persistent>
+                                                                <div>{{ employee.biweekly_salary }}</div>
+                                                                <template v-slot:input>
+                                                                    <v-text-field v-model="employee.biweekly_salary" label="Editar monto" single-line autofocus type="number" step="any"></v-text-field>
+                                                                </template>
+                                                            </v-edit-dialog>
+                                                        </td>
+                                                        
+                                                        <td class="text-right">
+                                                            <v-btn fab dark x-small color="green" v-if="expense_id">
+                                                                <v-icon>save</v-icon>
+                                                            </v-btn>
+                                                            <v-btn fab dark x-small color="error">
+                                                                <v-icon @click="Delete(index)">close</v-icon>
+                                                            </v-btn>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                                <tfoot>
+                                                    <tr>
+                                                        <td colspan="1"></td>
+                                                        <td class="text-right"><h4>$ {{formatPrice(imss_total)}}</h4></td>
+                                                        <td class="text-right"><h4>$ {{formatPrice(loans_total)}}</h4></td>
+                                                        <td class="text-right"><h4>$ {{formatPrice(billing_errors_total)}}</h4></td>
+                                                        <td class="text-right"><h4>$ {{formatPrice(withdraw_total)}}</h4></td>
+                                                        <td class="text-right"><h4>$ {{formatPrice(total_wage)}}</h4></td>
+                                                    </tr>
+                                                </tfoot>
+                                            </v-simple-table>
+                                        </v-card-text>
+                                    </v-card>
+                                </v-col>
+                            </v-row> -->
                             <v-row>
                                 <v-col cols="12" xs="12">
                                     <v-textarea v-model="comment" outlined label="Comentarios (opcional)"></v-textarea>
@@ -261,6 +345,7 @@ export default {
             employee_id:'',
             employees:[],
             employees_wage:[],
+            comissions:[],
             loading_wage:false,
             date_ini:'',
             date_menu_ini:false,

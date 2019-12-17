@@ -47,9 +47,12 @@
                                     <v-btn large icon @click="Refresh"><v-icon>sync</v-icon></v-btn>
                                 </v-col>
                             </v-row>
-                            <v-row v-if="bill_id && pending_services.length > 0">
-                                <v-col cols="12" sm="12">
-                                    <v-select v-model="pending_service" :items="pending_services" item-value="id" item-text="service" :error-messages="errors.pending_service" outlined color="primary" label="Agregar servicio a factura/recibo" append-outer-icon="check" @click:append-outer="addAnotherService" clearable></v-select>
+                            <v-row v-if="bill_id && pending_services.length > 0 && services.length > 0">
+                                <v-col cols="12" xs="12" sm="12" md="8" lg="10" xl="10">
+                                    <v-select v-model="pending_service" :items="pending_services" item-value="id" item-text="service" :error-messages="errors.pending_service" outlined color="primary" label="Agregar servicio a factura/recibo" @change="getServicePendingAmmount" append-outer-icon="close" @click:append-outer="ResetAnotherService"></v-select>
+                                </v-col>
+                                <v-col cols="12" xs="12" sm="12" md="4" lg="2" xl="2">
+                                    <v-text-field v-model="pending_ammount" outlined type="number" step="any" min="0" label="Monto" append-outer-icon="add" @click:append-outer="addAnotherService" :max="pending_ammount"></v-text-field>
                                 </v-col>
                             </v-row>
                             <v-card v-if="services.length > 0" class="elevation-1" :loading="loading_services">
@@ -63,13 +66,13 @@
                                                 <th class="text-center" style="width:10%;">Cobranza</th>
                                                 <th class="text-center" style="width:10%;">Trámite</th>
                                                 <th class="text-right" style="width:10%;">Pendiente</th>
-                                                <th class="text-right" style="width:10%;">Pagado</th>
+                                                <th class="text-right" style="width:10%;">Facturado</th>
                                                 <th style="width:15%;"></th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                           <tr v-for="(service, index) in billed_services" :key="index">
-                                                <td title="service.id">{{ service.date }}</td>
+                                           <tr v-for="(service, index) in services" :key="index">
+                                                <td :title="service.id">{{ service.date }}</td>
                                                 <td>{{ service.code }}<span v-if="service.brand"> - {{ service.brand }}</span><span v-if="service.class"> {{service.class}}</span></td>
                                                 <td>{{ service.resp }}</td>
                                                 <td v-if="service.status < 2" class="text-center">
@@ -100,7 +103,7 @@
                                                     </v-edit-dialog>
                                                 </td>
                                                 <td class="text-right">
-                                                    <v-btn fab dark x-small color="green">
+                                                    <v-btn v-if="service.bill_id && service.det_id" fab dark x-small color="green">
                                                         <v-icon>save</v-icon>
                                                     </v-btn>
                                                     <v-btn fab dark x-small color="error">
@@ -108,46 +111,6 @@
                                                     </v-btn>
                                                 </td>
                                             </tr>
-                                           <!-- <template v-if="services.length > 0 && billed_services.length == 0">
-                                                <tr v-for="(service, index) in services" :key="index">
-                                                    <td title="service.id">{{ service.date }}</td>
-                                                    <td>{{ service.code }}<span v-if="service.brand"> - {{ service.brand }}</span><span v-if="service.class"> {{service.class}}</span></td>
-                                                    <td>{{ service.resp }}</td>
-                                                    <td v-if="service.status < 2" class="text-center">
-                                                        <v-chip label small v-if="service.is_payed == 0" class="warning">Pendiente</v-chip>
-                                                        <v-chip label small v-if="service.is_payed == 1" :title="service.date_payed" class="success">Pagado</v-chip>
-                                                    </td>
-                                                    <td v-else class="text-center">
-                                                        <v-chip label small v-if="service.status == 2" class="error">Cancelado</v-chip>
-                                                        <v-chip label small v-if="service.status == 3" class="error">No Registro</v-chip>
-                                                        <v-chip label small v-if="service.status == 4" class="orange darken-1">Repetido</v-chip>
-                                                    </td>
-                                                    <td class="text-center">
-                                                        <v-chip label small v-if="service.status == 0" class="warning">Pendiente</v-chip>
-                                                        <v-chip label small v-if="service.status == 1" class="success" :title="service.date_registered">Terminado</v-chip>
-                                                        <v-chip label small v-if="service.status == 2" color="error">Cancelado</v-chip>
-                                                        <v-chip label small v-if="service.status == 3" class="error">No Registro</v-chip>
-                                                        <v-chip label small v-if="service.status == 4" color="orange darken-1">Repetido</v-chip>
-                                                    </td>
-                                                    <td class="text-right">{{ service.pending_biller }}</td>
-                                                    <td class="text-right">
-                                                        <v-edit-dialog :return-value.sync="service.biller" large persistent>
-                                                            <div><b>{{ service.biller }}</b></div>
-                                                            <template v-slot:input>
-                                                                <v-text-field v-model="service.biller" label="Editar monto" single-line autofocus max="service.biller" type="number" step="any"></v-text-field>
-                                                            </template>
-                                                        </v-edit-dialog>
-                                                    </td>
-                                                    <td class="text-right">
-                                                        <v-btn fab x-small dark color="primary" v-if="bill_id">
-                                                            <v-icon>add</v-icon>
-                                                        </v-btn>
-                                                        <v-btn fab dark x-small color="error">
-                                                            <v-icon @click="Delete(index)">close</v-icon>
-                                                        </v-btn>
-                                                    </td>
-                                                </tr>
-                                           </template> -->
                                         </tbody>
                                     </v-simple-table>
                                 </v-card-text>
@@ -255,7 +218,7 @@
                                 <v-col cols="12" sm="12" md="6" lg="3">
                                     <v-text-field v-model="bill_pending" :error-messages="errors.bill_pending" label="Monto a pagar de la factura/recibo *" type="number" step="any" min="0" outlined></v-text-field>
                                 </v-col>
-                                <v-col cols="12" sm="12" md="6" lg="3">
+                                <v-col cols="12" sm="12" md="6" lg="3" v-if="status == 0">
                                     <v-btn color="green" dark block large :loading="pay_load" @click="PayLoad" v-if="bill_pending > 0">Pagar Factura/Recibo<v-icon right>check</v-icon></v-btn>
                                 </v-col>
                             </v-row>
@@ -321,11 +284,16 @@ export default {
             subtotal:0,
             balance:0,
             total:0,
+            status:0,
             calculated_subtotal:0,
             service_selected:'',
             payed_ammount:0,
             pending_services:[],
             pending_service:'',
+            pending_ammount:0,
+            pending_ammount_verify:0,
+            pending_ammount_billing:0,
+            pending_final_price:0,
             //Payment
             ammount:0,
             date_payed:new Date().toISOString().substr(0, 10),
@@ -426,13 +394,20 @@ export default {
             this.customer_disabled = true;
             this.customer_id = customer_id;
             this.customer_name = customer;
+            this.total = 0;
             this.type = type;
             this.errors = {};
             this.bill_id = '';
             this.folio = '';
+            this.status = 0;
             this.date = new Date().toISOString().substr(0, 10);
             this.customers = {};
             this.customer = null;
+            this.pending_service = '';
+            this.pending_ammount = 0;
+            this.pending_ammount_verify = 0;
+            this.pending_ammount_billing = 0;
+            this.pending_final_price = 0;
             this.getTax();
             if(type == 'Factura'){
                 this.has_tax = true;
@@ -465,6 +440,7 @@ export default {
                     this.from_bill = from_bill;
                     this.billing_dialog = true;
                     this.customer_disabled = true;
+                    this.status = res.data.status;
                     this.customer_id = res.data.customer_id;
                     this.customer_name = res.data.customer;
                     this.customer_balance = res.data.customer_balance;
@@ -480,6 +456,11 @@ export default {
                     this.payed_ammount = res.data.payed_ammount;
                     this.ammount = res.data.balance;
                     this.bill_pending = res.data.balance;
+                    this.pending_service = '';
+                    this.pending_ammount = 0;
+                    this.pending_ammount_verify = 0;
+                    this.pending_ammount_billing = 0;
+                    this.pending_final_price = 0;
                     this.errors = {};
                     this.customers = {};
                     this.customer = null;
@@ -496,7 +477,12 @@ export default {
                         this.has_tax_readonly = false;
                     }
                     this.paying_alert = false;
-                    this.getBillServices();
+                    if(res.data.total == 0){
+                        this.getPendingServices();
+                    }
+                    else{
+                        this.getBillServices();
+                    }
                     this.getAccounts();
                     this.getCustomersBalance();
                 })
@@ -529,10 +515,16 @@ export default {
             this.date = new Date().toISOString().substr(0, 10);
             this.customers = {};
             this.services = {};
+            this.status = 0;
             // this.billed_services = {};
             this.customer_id = '';
             this.customer = null;
             this.paying_alert = false;
+            this.pending_service = '';
+            this.pending_ammount = 0;
+            this.pending_ammount_verify = 0;
+            this.pending_ammount_billing = 0;
+            this.pending_final_price = 0;
         },
 
         customerSelect(val){
@@ -657,7 +649,7 @@ export default {
                     this.errors = {};
                     this.customers = {};
                     this.customer = null;
-                    this.getBillServices();
+                    this.editBill(this.bill_id, this.from_bill);
                     if(this.from_bill == 1){
                         this.$emit('updateServices');
                     }
@@ -782,9 +774,9 @@ export default {
             if(this.customer_id){
                 await this.$axios.get(`/api/bill/services/${this.bill_id}/${this.customer_id}`)
                 .then(res => {
-                    this.services = res.data.billed_services;
-                    this.pending_services = res.data.services;
-                    res.data.services.forEach((value, index) => {
+                    this.services = res.data.services;
+                    this.pending_services = [];
+                    res.data.pending_services.forEach((value, index) => {
                         let data = [];
                         var clas = '';
                         var brand = '';
@@ -798,7 +790,7 @@ export default {
                             var brand = value.brand
                         }
 
-                        service = '('+value.code+')'+' '+brand+' '+clas+' [$'+value.balance+']';
+                        service = '('+value.code+')'+' '+brand+' '+clas+' [$'+value.ammount+']';
 
                         data = {id:value.id, service:service}
                         this.pending_services.push(data);
@@ -834,25 +826,130 @@ export default {
             }
         },
 
-        addAnotherService(){
+        async getServicePendingAmmount(){
+            if(this.pending_service){
+                await this.$axios.get(`/api/service/pending-ammount/${this.pending_service}`)
+                .then(res => {
+                    this.pending_ammount = res.data.ammount * 1;
+                    this.pending_ammount_verify = res.data.ammount * 1;
+                    this.pending_ammount_billing = res.data.billing * 1;
+                    this.pending_final_price = res.data.final_price * 1;
+                })
+            }
+        },
 
+        async addAnotherService(){
+            if(this.payed_ammount > this.pending_ammount_verify){
+                this.errors.payed_ammount = 'El monto no puede ser mayor al monto pendiente a facturar del servicio: ' + this.pending_ammount_verify;
+            }
+            else{
+                await this.$axios.post('/api/bill/add-service', {pending_ammount:this.pending_ammount, pending_service:this.pending_service, bill_id:this.bill_id, pending_ammount_billing:this.pending_ammount_billing, pending_final_price:this.pending_final_price})
+                .then(res => {
+                    this.editBill(this.bill_id, this.from_bill);
+                })
+                .catch(error => {
+                    this.errors = error.response.data.errors;
+                })
+            }
+        },
+
+        ResetAnotherService(){
+            this.errors = {};
+            this.pending_ammount_verify = 0;
+            this.pending_ammount = 0;
+            this.pending_service = '';
         },
         
-        Free(){
-
+        async Free(){
+            this.loading_free = true;
+            if(this.bill_id){
+                await this.$axios.put(`/api/bill/free/${this.bill_id}`)
+                .then(res => {
+                    this.editBill(this.bill_id, this.from_bill);
+                    this.snackbar = true;
+                    this.snackColor = 'success';
+                    this.snackText = 'Se liberó la factura';
+                    this.timeout = 2000;
+                    this.errors = {};
+                    this.loading_free = false;
+                    if(this.from_bill == 1){
+                        this.$emit('updateServices');
+                    }
+                    else if(this.from_bill == 2 || this.from_bill == 3){
+                        this.$emit('reloadBills');
+                    }
+                })
+                .catch(error => {
+                    console.log(error);
+                    this.loading_free = false;
+                })
+            }
         },
 
-        Cancel(){
-
+        async Cancel(){
+            this.loading_cancel = true;
+            if(this.bill_id){
+                await this.$axios.put(`/api/bill/cancel/${this.bill_id}`)
+                .then(res => {
+                    this.snackbar = true;
+                    this.snackColor = 'success';
+                    this.snackText = 'Se canceló la factura';
+                    this.timeout = 2000;
+                    this.errors = {};
+                    this.loading_cancel = false;
+                    this.clearData();
+                    if(this.from_bill == 1){
+                        this.$emit('updateServices');
+                    }
+                    else if(this.from_bill == 2 || this.from_bill == 3){
+                        this.$emit('reloadBills');
+                    }
+                    this.billing_dialog = false;
+                })
+                .catch(error => {
+                    console.log(error);
+                    this.loading_cancel = false;
+                })
+            }
         },
 
         Delete: function(index){
             if(this.bill_id){
-
+                const service = this.services[index];
+                if(service.det_id){
+                    this.$axios.put(`/api/bill/delete-service/${this.bill_id}/${service.det_id}`, {payed_ammount:service.payed_ammount, service_id:service.id, ammount:service.biller})
+                    .then(res => {
+                        this.services.splice(index, 1);
+                        this.editBill();
+                        if(this.from_bill == 1){
+                            this.$emit('updateServices');
+                        }
+                        else if(this.from_bill == 2 || this.from_bill == 3){
+                            this.$emit('reloadBills');
+                        }
+                    })
+                    .catch(error => {
+                        console.log(error);
+                    })
+                }
+                else{
+                    this.services.splice(index, 1);
+                    if(this.from_bill == 1){
+                        this.$emit('updateServices');
+                    }
+                    else if(this.from_bill == 2 || this.from_bill == 3){
+                        this.$emit('reloadBills');
+                    }
+                }
             }
             else{
-                // const service = this.services[index];
                 this.services.splice(index, 1);
+                if(this.from_bill == 1){
+                    this.$emit('updateServices');
+                }
+                else if(this.from_bill == 2 || this.from_bill == 3){
+                    this.$emit('reloadBills');
+                }
             }
         }, 
 

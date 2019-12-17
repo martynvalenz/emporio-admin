@@ -81,7 +81,7 @@
 										</ul>
 										<v-icon @click="createReceipt(index, 'Recibo')" v-if="service.billed == 0 && service.status < 2" color="blue">add</v-icon>
 									</td>
-									<td class="text-right">{{ formatPrice(service.final_price) }}</td>
+									<td class="text-right" :title="'Facturado:'+formatPrice(service.billing)+' | Cobrado:'+formatPrice(service.charged)+' | Saldo:'+formatPrice(service.balance)">{{ formatPrice(service.final_price) }}</td>
 									<td class="text-center">{{ service.resp }}</td>
 									<!-- Payments -->
 									<td v-if="service.status < 2" class="text-center">

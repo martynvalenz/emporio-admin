@@ -105,7 +105,7 @@
 		</v-layout>
 		<Customer :customer_dialog="1" ref="customer_form"></Customer>
 		<Services :service_dialog="1" ref="services_form" v-on:addService="newService($event)" v-on:updateService="updateService($event)"></Services>
-		<Bills :billing_dialog="1" ref="bills_form" v-on:newBill="newBill($event)" v-on:updateBill="updateBill($event)"></Bills>
+		<Bills :billing_dialog="1" ref="bills_form" v-on:newBill="newBill($event)" v-on:updateBill="updateBill($event)" v-on:reloadBills="Reload"></Bills>
 	</div>
 </template>
 
@@ -250,8 +250,8 @@ export default {
 			return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
 		},
 
-		newService(data){
-			this.services.unshift(data);
+		newBill(data){
+			this.bills.unshift(data);
 		}
 	}
 }
