@@ -17,12 +17,12 @@
                                     <v-text-field v-model="provider" v-if="provider_edit" outlined  label="Proveedor" append-icon="edit" @click:append="provider_edit = false"></v-text-field>
 								</v-col>
                                 <v-col cols="12" xs="12" sm="12" md="8" lg="6" xl="6" v-if="type == 6 || type == 9">
-                                    <v-select v-model="employee_id" :items="employees" item-value="id" item-text="employee" outlined clearable append-outer-icon="sync" @click:append-outer="getEmployees" label="Seleccionar usuario"></v-select>
+                                    <v-select v-model="employee_id" :items="employees" item-value="id" item-text="employee" outlined clearable append-outer-icon="sync" @change="getComis" @click:append-outer="getEmployees" label="Seleccionar usuario"></v-select>
                                 </v-col>
                                 <v-col cols="12" sm="12" md="3" lg="3" xl="3">
                                     <v-select v-model="type" :items="types" item-value="value" item-text="text" color="primary" outlined label="Tipo de Egreso *" :error-messages="errors.type" @change="setType"></v-select>
 								</v-col>
-                                <v-col cols="12" sm="12" md="3" lg="3" xl="3" v-if="type == 5">
+                                <v-col cols="12" sm="12" md="3" lg="3" xl="3" v-if="type == 5 || type == 6">
                                     <v-menu v-model="date_menu_ini" :close-on-content-click="false" :nudge-right="40" transition="scale-transition" offset-y full-width min-width="290px">
                                         <template v-slot:activator="{ on }">
                                             <v-text-field v-model="date_ini" label="Fecha inicial *" append-icon="event" outlined readonly v-on="on" @click:append="date_menu_ini = true" :error-messages="errors.date_ini"></v-text-field>
@@ -77,8 +77,11 @@
                                 <v-col cols="12" sm="12" md="6" lg="2" v-if="type < 5 || type > 6">
                                     <v-text-field v-model="withdraw" outlined color="primary" label="Monto *" type="number" step="any" min="0"></v-text-field>
                                 </v-col>
-                                <v-col cols="12" sm="12" md="6" lg="2" v-else>
+                                <v-col cols="12" sm="12" md="6" lg="2" v-if="type == 5">
                                     <v-text-field v-model="total_wage" readonly filled color="primary" label="Monto *" type="number" step="any" min="0"></v-text-field>
+                                </v-col>
+                                <v-col cols="12" sm="12" md="6" lg="2" v-if="type == 6">
+                                    <v-text-field v-model="total_comis" readonly filled color="primary" label="Monto *" type="number" step="any" min="0"></v-text-field>
                                 </v-col>
                                 <v-col cols="12" sm="12" md="6" lg="3">
                                     <v-text-field v-model="cheque" outlined color="primary" label="Cheque"></v-text-field>
@@ -171,90 +174,55 @@
                                     </v-card>
                                 </v-col>
                             </v-row>
-                            <!-- <v-row v-if="type == 6">
+                            <v-row v-if="type == 6">
                                 <v-col cols="12" xs="12">
                                     <v-card class="elevation-1" :loading="loading_wage">
                                         <v-card-title>
-                                            <h4>Empleados</h4>
+                                            <h4>Comisiones</h4>
                                             <v-spacer></v-spacer>
-                                            <v-btn fab icon @click="getEmployees"><v-icon>sync</v-icon></v-btn>
-                                        </v-card-title>
-                                        <v-card-title v-if="errors.employees_length">
-                                            <v-alert text prominent type="error" icon="mdi-cloud-alert">{{errors.employees_length}}</v-alert>
+                                            <v-btn fab icon @click="getComis"><v-icon>sync</v-icon></v-btn>
                                         </v-card-title>
                                         <v-card-text>
                                             <v-simple-table class="elevation-4" >
                                                 <thead>
                                                     <tr>
-                                                        <th class="text-left" style="width:25%;">Usuario</th>
-                                                        <th class="text-right" style="width:15%; color:red;">IMSS</th>
-                                                        <th class="text-right" style="width:15%; color:red;">Préstamos</th>
-                                                        <th class="text-right" style="width:15%; color:red;">Error en cobro</th>
-                                                        <th class="text-right" style="width:15%; color:green;">Monto</th>
-                                                        <th style="width:15%;"></th>
+                                                        <th class="text-left" style="width:30%;">Servicio</th>
+                                                        <th class="text-center" style="width:13%;">Tipo</th>
+                                                        <th class="text-center" style="width:13%;">Agregada</th>
+                                                        <th class="text-center" style="width:13%;">Liberada</th>
+                                                        <th class="text-center" style="width:13%;">Porcentaje</th>
+                                                        <th class="text-center" style="width:13%;">Comisión</th>
+                                                        <th style="width:5%;"></th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    <tr v-for="(service, index) in comissions" :key="index">
-                                                        <td>{{employee.initials}} - {{employee.name}} {{employee.last_name}}</td>
-                                                        <td class="text-right">
-                                                            <v-edit-dialog :return-value.sync="employee.imss" large persistent>
-                                                                <div>{{ employee.imss }}</div>
-                                                                <template v-slot:input>
-                                                                    <v-text-field v-model="employee.imss" label="Editar monto" single-line autofocus type="number" step="any"></v-text-field>
-                                                                </template>
-                                                            </v-edit-dialog>
+                                                    <tr v-for="(comi, index) in comissions" :key="index">
+                                                        <td>{{comi.code}} - {{comi.brand}} {{comi.class}} <br>Cliente: {{comi.customer}}</td>
+                                                        <td class="text-center">
+                                                            <v-chip label small v-if="comi.comission_type == 0" class="green" dark>Venta</v-chip>
+                                                            <v-chip label small v-if="comi.comission_type == 1" class="primary">Operativa</v-chip>
+                                                            <v-chip label small v-if="comi.comission_type == 2" class="teal" dark>Gestión</v-chip>
                                                         </td>
-                                                        <td class="text-right">
-                                                            <v-edit-dialog :return-value.sync="employee.loan" large persistent>
-                                                                <div>{{ employee.loan }}</div>
-                                                                <template v-slot:input>
-                                                                    <v-text-field v-model="employee.loan" label="Editar monto" single-line autofocus type="number" step="any"></v-text-field>
-                                                                </template>
-                                                            </v-edit-dialog>
-                                                        </td>
-                                                        <td class="text-right">
-                                                            <v-edit-dialog :return-value.sync="employee.errors" large persistent>
-                                                                <div>{{ employee.errors }}</div>
-                                                                <template v-slot:input>
-                                                                    <v-text-field v-model="employee.errors" label="Editar monto" single-line autofocus type="number" step="any"></v-text-field>
-                                                                </template>
-                                                            </v-edit-dialog>
-                                                        </td>
-                                                        <td class="text-right">
-                                                            <v-edit-dialog :return-value.sync="employee.biweekly_salary" large persistent>
-                                                                <div>{{ employee.biweekly_salary }}</div>
-                                                                <template v-slot:input>
-                                                                    <v-text-field v-model="employee.biweekly_salary" label="Editar monto" single-line autofocus type="number" step="any"></v-text-field>
-                                                                </template>
-                                                            </v-edit-dialog>
-                                                        </td>
-                                                        
-                                                        <td class="text-right">
-                                                            <v-btn fab dark x-small color="green" v-if="expense_id">
-                                                                <v-icon>save</v-icon>
-                                                            </v-btn>
-                                                            <v-btn fab dark x-small color="error">
-                                                                <v-icon @click="Delete(index)">close</v-icon>
-                                                            </v-btn>
+                                                        <td class="text-center">{{comi.date_comission}}</td>
+                                                        <td class="text-center">{{comi.date_applied}}</td>
+                                                        <td class="text-right">{{comi.comission_percent}}%</td>
+                                                        <td class="text-right">$ {{formatPrice(comi.ammount)}}</td>
+                                                        <td>
+                                                            <v-btn x-small fab color="error" @click="deleteComi(index)"><v-icon>close</v-icon></v-btn>
                                                         </td>
                                                     </tr>
                                                 </tbody>
                                                 <tfoot>
                                                     <tr>
-                                                        <td colspan="1"></td>
-                                                        <td class="text-right"><h4>$ {{formatPrice(imss_total)}}</h4></td>
-                                                        <td class="text-right"><h4>$ {{formatPrice(loans_total)}}</h4></td>
-                                                        <td class="text-right"><h4>$ {{formatPrice(billing_errors_total)}}</h4></td>
-                                                        <td class="text-right"><h4>$ {{formatPrice(withdraw_total)}}</h4></td>
-                                                        <td class="text-right"><h4>$ {{formatPrice(total_wage)}}</h4></td>
+                                                        <td colspan="5"></td>
+                                                        <td class="text-right"><h4>$ {{formatPrice(total_comis)}}</h4></td>
                                                     </tr>
                                                 </tfoot>
                                             </v-simple-table>
                                         </v-card-text>
                                     </v-card>
                                 </v-col>
-                            </v-row> -->
+                            </v-row>
                             <v-row>
                                 <v-col cols="12" xs="12">
                                     <v-textarea v-model="comment" outlined label="Comentarios (opcional)"></v-textarea>
@@ -412,6 +380,17 @@ export default {
                 return 0;
             }
         },
+
+        total_comis: function(){
+            if(this.comissions.length > 0){
+                return this.comissions.reduce(function(total, item){
+                    return (total * 1) + (item.ammount * 1);
+                }, 0);
+            }
+            else{
+                return 0;
+            }
+        },
     },
 
     watch: {
@@ -445,6 +424,20 @@ export default {
             this.clearDataInit();
             this.getAccounts();
             this.getTax();
+        },
+
+        createComission(){
+            this.expense_dialog = true;
+            this.title = 'Crear Comisión';
+            this.type = 6;
+            this.clearData();
+            this.getAccounts();
+            this.employee = true;
+            this.date_ini = this.user.session.original.biweek1;
+            this.date = this.user.session.original.biweek2;
+            // this.comissions = [];
+            this.getEmployees();
+            this.service_payments = 0;
         },
 
         createSalary(){
@@ -570,6 +563,7 @@ export default {
             this.employee = false;
             this.employee_id = '';
             this.employees = [];
+            this.comissions = [];
             //withdraws
             this.has_tax = 0;
             this.withdraw = 0;
@@ -605,6 +599,8 @@ export default {
             //withdraws
             // this.tax_percent = 0;
             // this.has_tax = 0;
+            this.comissions = [];
+            this.employee_id = '';
             this.withdraw = 0;
             this.cheque = '';
             this.movimiento = '';
@@ -725,7 +721,7 @@ export default {
                 formData = {type:this.type, comment:this.comment, date:this.date, date_ini:this.date_ini, cheque:this.cheque, movimiento:this.movimiento, withdraw:this.total_wage, has_tax:0, tax_percent:this.tax_percent, paying_method_id:this.paying_method_id, account_id:this.account_id, employees_length:this.employees_wage.length, employees:this.employees_wage}
             }
             else if(this.type == 6){
-                
+                formData = {comissioner_id:this.employee_id, type:this.type, comment:this.comment, date:this.date, date_ini:this.date_ini, cheque:this.cheque, movimiento:this.movimiento, withdraw:this.total_comis, has_tax:0, tax_percent:this.tax_percent, paying_method_id:this.paying_method_id, account_id:this.account_id, comissions_length:this.comissions.length, comissions:this.comissions}
             }
             else if(this.type == 8){
                 
@@ -871,6 +867,29 @@ export default {
                         console.log(error);
                     })
                 }
+            }
+        },
+
+        async getComis(){
+            this.loading_wage = true;
+            if(this.employee_id){
+                if(!this.expense_id){
+                    await this.$axios.get(`/api/user/get-comis/${this.employee_id}`)
+                    .then(res => {
+                        this.comissions = res.data;
+                        this.loading_wage = false;
+                    })
+                    .catch(error => {
+                        console.log(error);
+                        this.loading_wage = false;
+                    })
+                }
+            }
+        },
+
+        deleteComi(index){
+            if(!this.expense_id){
+                this.comissions.splice(index, 1);
             }
         },
 

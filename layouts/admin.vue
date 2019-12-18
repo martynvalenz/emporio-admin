@@ -338,14 +338,29 @@
                     </v-list-item>
                 </v-list-group>
 
-                <v-list-item router exact>
-                    <v-list-item-action>
-                        <v-icon>money</v-icon>
-                    </v-list-item-action>
-                    <v-list-item-content>
-                        <v-list-item-title>Comisiones</v-list-item-title>
-                    </v-list-item-content>
-                </v-list-item>
+                <v-list-group prepend-icon="money" no-action>
+                    <template v-slot:activator>
+                        <v-list-item-content>
+                            <v-list-item-title>Comisiones</v-list-item-title>
+                        </v-list-item-content>
+                    </template>
+                    <v-list-item router exact to="/admin/comissions/assigned">
+                        <v-list-item-content>
+                            <v-list-item-title>Asignadas</v-list-item-title>
+                        </v-list-item-content>
+                        <v-list-item-action>
+                            <v-icon color="green">money</v-icon>
+                        </v-list-item-action>
+                    </v-list-item>
+                    <v-list-item router exact to="/admin/comissions/unassigned">
+                        <v-list-item-content>
+                            <v-list-item-title>Sin Asignar</v-list-item-title>
+                        </v-list-item-content>
+                        <v-list-item-action>
+                            <v-icon color="orange">money</v-icon>
+                        </v-list-item-action>
+                    </v-list-item>
+                </v-list-group>
 
                  <v-divider></v-divider>
 				<v-subheader>Adminstración</v-subheader>

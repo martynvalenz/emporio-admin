@@ -116,9 +116,9 @@
                                                 <td class="text-right">{{ formatPrice(comis.ammount) }}</td>
                                                 <td class="text-center">
                                                     <v-chip label small v-if="comis.status == 0" class="warning">Pendiente</v-chip>
-                                                    <v-chip label small v-if="comis.status == 1" class="warning">Liberada</v-chip>
-                                                    <v-chip label small v-if="comis.status == 2" class="warning">Pagada</v-chip>
-                                                    <v-chip label small v-if="comis.status == 3" class="warning">Cancelada</v-chip>
+                                                    <v-chip label small v-if="comis.status == 1" class="primary">Liberada</v-chip>
+                                                    <v-chip label small v-if="comis.status == 2" class="green">Pagada</v-chip>
+                                                    <v-chip label small v-if="comis.status == 3" class="error">Cancelada</v-chip>
                                                 </td>
                                                 <td class="text-right">
                                                     <v-btn x-small fab color="orange" dark :disabled="comis.status == 3 || comis.modified == 1"><v-icon>edit</v-icon></v-btn>

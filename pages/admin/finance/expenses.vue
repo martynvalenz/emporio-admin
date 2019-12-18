@@ -7,7 +7,7 @@
 					<v-card-title>
 						<v-btn color="primary" class="mx-1" @click="createExpense">Agregar Egreso<v-icon right>add</v-icon></v-btn>
 						<v-btn color="info" class="mx-1" @click="createSalary">Nómina<v-icon right>person</v-icon></v-btn>
-						<v-btn color="info" class="mx-1" >Comisión<v-icon right>person</v-icon></v-btn>
+						<v-btn color="info" class="mx-1" @click="createComission">Comisión<v-icon right>person</v-icon></v-btn>
 						<v-btn color="secondary" class="mx-1" @click="createTransfer">Traspaso<v-icon right>sync_alt</v-icon></v-btn>
 						<!-- <v-btn color="green" dark class="mx-1" to="/admin/services/comissions" router exact>Exportar<v-icon right>arrow_downward</v-icon></v-btn> -->
 					</v-card-title>
@@ -392,6 +392,10 @@ export default {
 
 		createTransfer(){
 			this.$refs.expenses_form.createTransfer();
+		},
+
+		createComission(){
+			this.$refs.expenses_form.createComission();
 		},
 
 		newExpense(data){

@@ -55,10 +55,8 @@
 								<tr>
 									<th class="text-left" style="width:15%">Fecha</th>
 									<th class="text-left" style="width:15%">Concepto</th>
-									<th class="text-left" style="width:15%">Cliente</th>
+									<th class="text-left" style="width:25%">Cliente</th>
 									<th class="text-center" style="width:5%">Cuenta</th>
-									<th class="text-center" style="width:5%">Factura?</th>
-									<th class="text-center" style="width:5%">Pago</th>
 									<th class="text-right" style="width:10%">Monto</th>
 									<th class="text-center" style="width:10%">Usuario</th>
 									<th class="text-center" style="width:10%">Estatus</th>
@@ -97,11 +95,6 @@
 										<v-chip v-if="reg.account_id == 1" color="green" dark label small>{{reg.alias}}</v-chip>
 										<v-chip v-else style="background-color:transparent" label>{{reg.alias}}</v-chip>
 									</td>
-									<td class="text-center">
-										<v-chip v-if="reg.has_tax == 1" color="green" dark label small>SI</v-chip>
-										<v-chip v-if="reg.has_tax == 0" color="warning" dark label small>NO</v-chip>
-									</td>
-									<td class="text-center" :title="reg.paying_method">{{ reg.code }}</td>
 									<td class="text-right">{{ formatPrice(reg.deposit) }}</td>
 									<td class="text-center">{{ reg.initials }}</td>
 									<td class="text-center">
