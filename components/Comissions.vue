@@ -3,7 +3,7 @@
         <v-dialog v-model="comissions_dialog" fullscreen transition="dialog-bottom-transition" scrollable>
             <v-card>
                 <v-system-bar color="primary" dark height="60px;">
-                    <h2>Comisiones</h2>
+                    <h2>{{title}}</h2>
                     <v-spacer></v-spacer>
                     <v-btn icon small @click="comissions_dialog = false"><v-icon color="white">close</v-icon></v-btn>
                 </v-system-bar>
@@ -33,7 +33,7 @@
                                                 <td class="text-right">{{formatPrice(comis.used)}}</td>
                                                 <td class="text-right">{{ formatPrice(comis.available) }}</td>
                                                 <td class="text-center">
-                                                    <v-btn small fab color="green" dark @click="selectComission(index)"><v-icon>send</v-icon></v-btn>
+                                                    <v-btn x-small fab color="green" dark @click="selectComission(index)" ><v-icon>send</v-icon></v-btn>
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -121,8 +121,8 @@
                                                     <v-chip label small v-if="comis.status == 3" class="error">Cancelada</v-chip>
                                                 </td>
                                                 <td class="text-right">
-                                                    <v-btn x-small fab color="orange" dark :disabled="comis.status == 3 || comis.modified == 1"><v-icon>edit</v-icon></v-btn>
-                                                    <v-btn x-small fab color="error" dark><v-icon>close</v-icon></v-btn>
+                                                    <v-btn x-small fab color="orange" dark v-if="comis.status > 1 || comis.modified == 1"><v-icon>edit</v-icon></v-btn>
+                                                    <v-btn v-if="comis.status > 1 || comis.modified == 1" x-small fab color="error" dark @click="DeleteComission(index)"><v-icon>close</v-icon></v-btn>
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -155,7 +155,9 @@
 export default {
     data(){
         return{
+            title:'',
             comissions_dialog:false,
+            from:'',
             comis_loading:false,
             loading:false,
             used_loading:false,
@@ -166,6 +168,7 @@ export default {
             users:[],
             available_id:'',
             available:0,
+            used:0,
             available_percent:0,
             comission_id:'',
             user_id:'',
@@ -192,9 +195,11 @@ export default {
     },
 
     methods:{
-        showComissions(id){
+        showComissions(id, from){
+            this.from = from;
             this.comissions_dialog = true;
             this.service_control_id = id;
+            this.title = 'Comisiones de servicio: ' + id;
             this.getComis();
             this.getUsedComis();
             this.getUsers();
@@ -215,6 +220,7 @@ export default {
             this.comments = '';
             this.ready = 0;
             this.available = 0;
+            this.used = 0;
             this.available_percent = 0;
         },
 
@@ -259,6 +265,7 @@ export default {
             this.available_id = comi.id;
             this.ready = comi.ready;
             this.available = comi.available;
+            this.used = comi.used;
             this.available_percent = comi.percent;
         },
 
@@ -316,8 +323,11 @@ export default {
                 
             }
             else{
-                this.$axios.post('/api/comission/store', {user_id:this.user_id, comission_type:this.comission_type, comission_percent:this.comission_percent, ammount:this.ammount, comments:this.comments, comissioner_id:this.comissioner_id, apply_comissioner:this.apply_comissioner, services_control_id:this.service_control_id, comission_id:this.available_id, ready:this.ready})
+                this.$axios.post('/api/comission/store', {user_id:this.user_id, comission_type:this.comission_type, comission_percent:this.comission_percent, ammount:this.ammount, comments:this.comments, comissioner_id:this.comissioner_id, apply_comissioner:this.apply_comissioner, services_control_id:this.service_control_id, comission_id:this.available_id, ready:this.ready, available:this.available, used:this.used})
                 .then(res => {
+                    if(this.from == 'comis'){
+                        this.$emit('updateComission');
+                    }
                     this.getUsedComis();
                     this.getComis();
                     this.clearData();
@@ -336,6 +346,25 @@ export default {
                     this.loading = false;
                 })
             }
+        },
+
+        DeleteComission(index){
+            const comi = this.comissions[index];
+            this.$axios.put(`/api/comission/delete/${comi.id}`, {comission_id:comi.comission_id})
+            .then(res => {
+                this.getComis();
+                this.getUsedComis();
+                if(this.from == 'comis'){
+                    this.$emit('updateComission');
+                }
+            })
+            .catch(error => {
+                console.log(error);
+                this.snackbar = true;
+                this.snackColor = 'error';
+                this.snackText = 'No se pudo eliminar la comisión, inténtelo más tarde.';
+                this.timeout = 2000;
+            })
         },
 
         Cancel(){

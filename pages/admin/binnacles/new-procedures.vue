@@ -71,22 +71,22 @@
 										</v-progress-linear>
                                     </td>
 									<!-- Payments -->
-										<td v-if="service.status < 2" class="text-center">
-											<v-chip label small v-if="service.is_payed == 0" class="warning">Pendiente</v-chip>
-											<v-chip label small v-if="service.is_payed == 1" :title="service.date_payed" class="success">Pagado</v-chip>
+										<td v-if="service.status < 3" class="text-center">
+											<v-chip label small v-if="service.is_payed == 1" class="orange" dark>Pendiente</v-chip>
+											<v-chip label small v-if="service.is_payed == 2" :title="service.date_payed" class="green" dark>Pagado</v-chip>
 										</td>
 										<td v-else class="text-center">
-											<v-chip label small v-if="service.status == 2" class="error">Cancelado</v-chip>
-											<v-chip label small v-if="service.status == 3" class="error">No Registro</v-chip>
-											<v-chip label small v-if="service.status == 4" class="orange darken-1">Repetido</v-chip>
+											<v-chip label small v-if="service.status == 3" class="error">Cancelado</v-chip>
+											<v-chip label small v-if="service.status == 4" class="error">No Registro</v-chip>
+											<v-chip label small v-if="service.status == 5" class="orange darken-1">Repetido</v-chip>
 										</td>
 									<!-- Div -->
 									<td class="text-center">
-										<v-chip label small v-if="service.status == 0" class="warning">Pendiente</v-chip>
-										<v-chip label small v-if="service.status == 1" class="success" :title="service.date_registered">Terminado</v-chip>
-										<v-chip label small v-if="service.status == 2" color="error">Cancelado</v-chip>
-										<v-chip label small v-if="service.status == 3" class="error">No Registro</v-chip>
-										<v-chip label small v-if="service.status == 4" color="orange darken-1">Repetido</v-chip>
+										<v-chip label small v-if="service.status == 1" class="orange" dark>Pendiente</v-chip>
+										<v-chip label small v-if="service.status == 2" class="green" dark :title="service.date_registered">Terminado</v-chip>
+										<v-chip label small v-if="service.status == 3" color="error">Cancelado</v-chip>
+										<v-chip label small v-if="service.status == 4" class="error">No Registro</v-chip>
+										<v-chip label small v-if="service.status == 5" color="orange darken-1">Repetido</v-chip>
 									</td>
 									<!-- Status -->
 									<td>
@@ -97,7 +97,7 @@
 												</v-btn>
 											</template>
 											<v-list>
-												<v-list-item @click="EditService(index)" v-if="service.status < 2">
+												<v-list-item @click="EditService(index)">
 													<v-list-item-content>
 														<v-list-item-title>Editar</v-list-item-title>
 													</v-list-item-content>
@@ -220,11 +220,11 @@ export default {
 			this.statuses = [
 				{id:'todo', status:'Todo'},
 				{id:'vigente', status:'Vigentes'},
-				{id:0, status:'Pendientes'},
-				{id:1, status:'Terminados'},
-				{id:2, status:'Cancelados'},
-				{id:3, status:'No Registro'},
-				{id:4, status:'Repetidos'}
+				{id:1, status:'Pendientes'},
+				{id:2, status:'Terminados'},
+				{id:3, status:'Cancelados'},
+				{id:4, status:'No Registro'},
+				{id:5, status:'Repetidos'}
 			];
 			this.status = 'todo';
 			this.search_table = '';
@@ -367,7 +367,7 @@ export default {
 
 		showComissions(index){
 			const service = this.services[index];
-			this.$refs.comissions_dialog.showComissions(service.id);
+			this.$refs.comissions_dialog.showComissions(service.id, 'service');
 		}
 	}
 }

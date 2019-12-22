@@ -22,9 +22,9 @@
 					<v-card-title>
 						<v-container fluid>
 							<v-row>
-								<v-col cols="12" sm="6" md="3" lg="2">
+								<!-- <v-col cols="12" sm="6" md="3" lg="2">
 									<v-select @change="Reload" v-model="status" :items="statuses" item-value="id" item-text="status" filled label="Trámite"></v-select>
-								</v-col>
+								</v-col> -->
 								<v-col cols="12" sm="6" md="3" lg="2">
 									<v-select @change="Reload" v-model="payed_status" :items="payed_statuses" item-value="id" item-text="status" filled label="Cobranza"></v-select>
 								</v-col>
@@ -69,37 +69,37 @@
 									<td>{{ service.customer }}</td>
 									<td class="text-center">
 										<ul class="list-style: none;" v-for="(bill, index) in service.bills" :key="index">
-											<a color="green" @click="editFolio(bill.id)" v-if="service.is_payed == 0 && service.status < 2">{{bill.folio}}</a>
+											<a color="green" @click="editFolio(bill.id)" v-if="service.is_payed == 1 && service.status < 3">{{bill.folio}}</a>
 											<a v-else @click="editFolio(bill.id)">{{bill.folio}}</a>
 										</ul>
-										<v-icon @click="createBill(index, 'Factura')" v-if="service.billed == 0 && service.status < 2" color="blue">add</v-icon>
+										<v-icon @click="createBill(index, 'Factura')" v-if="service.billed == 0 && service.status < 3" color="blue">add</v-icon>
 									</td>
 									<td class="text-center">
 										<ul class="list-style: none;" v-for="(receipt, index) in service.receipts" :key="index">
-											<a color="green" @click="editFolio(receipt.id)" v-if="service.is_payed == 0 && service.status < 2">{{receipt.folio}}</a>
+											<a color="green" @click="editFolio(receipt.id)" v-if="service.is_payed == 1 && service.status < 3">{{receipt.folio}}</a>
 											<a @click="editFolio(receipt.id)" v-else>{{receipt.folio}}</a>
 										</ul>
-										<v-icon @click="createReceipt(index, 'Recibo')" v-if="service.billed == 0 && service.status < 2" color="blue">add</v-icon>
+										<v-icon @click="createReceipt(index, 'Recibo')" v-if="service.billed == 0 && service.status < 3" color="blue">add</v-icon>
 									</td>
 									<td class="text-right" :title="'Facturado:'+formatPrice(service.billing)+' | Cobrado:'+formatPrice(service.charged)+' | Saldo:'+formatPrice(service.balance)">{{ formatPrice(service.final_price) }}</td>
 									<td class="text-center">{{ service.resp }}</td>
 									<!-- Payments -->
-									<td v-if="service.status < 2" class="text-center">
-										<v-chip label small v-if="service.is_payed == 0" class="warning">Pendiente</v-chip>
-										<v-chip label small v-if="service.is_payed == 1" :title="service.date_payed" class="success">Pagado</v-chip>
+									<td v-if="service.status < 3" class="text-center">
+										<v-chip label small v-if="service.is_payed == 1" class="orange" dark>Pendiente</v-chip>
+										<v-chip label small v-if="service.is_payed == 2" :title="service.date_payed" class="green" dark>Pagado</v-chip>
 									</td>
 									<td v-else class="text-center">
-										<v-chip label small v-if="service.status == 2" class="error">Cancelado</v-chip>
-										<v-chip label small v-if="service.status == 3" class="error">NoRegistro</v-chip>
-										<v-chip label small v-if="service.status == 4" class="error">Repetido</v-chip>
+										<v-chip label small v-if="service.status == 3" class="error">Cancelado</v-chip>
+										<v-chip label small v-if="service.status == 4" class="error">NoRegistro</v-chip>
+										<v-chip label small v-if="service.status == 5" class="error">Repetido</v-chip>
 									</td>
 									<!-- Div -->
 									<td class="text-center">
-										<v-chip label small v-if="service.status == 0" class="warning">Pendiente</v-chip>
-										<v-chip label small v-if="service.status == 1" class="success" :title="service.date_registered">Terminado</v-chip>
-										<v-chip label small v-if="service.status == 2" color="error">Cancelado</v-chip>
-										<v-chip label small v-if="service.status == 3" class="error">NoRegistro</v-chip>
-										<v-chip label small v-if="service.status == 4" color="error">Repetido</v-chip>
+										<v-chip label small v-if="service.status == 1" class="orange" dark>Pendiente</v-chip>
+										<v-chip label small v-if="service.status == 2" class="green" dark :title="service.date_registered">Terminado</v-chip>
+										<v-chip label small v-if="service.status == 3" color="error">Cancelado</v-chip>
+										<v-chip label small v-if="service.status == 4" class="error">NoRegistro</v-chip>
+										<v-chip label small v-if="service.status == 5" color="error">Repetido</v-chip>
 									</td>
 									<!-- Status -->
 									<td>
@@ -110,7 +110,7 @@
 												</v-btn>
 											</template>
 											<v-list>
-												<v-list-item @click="EditService(index)" v-if="service.status < 2">
+												<v-list-item @click="EditService(index)">
 													<v-list-item-content>
 														<v-list-item-title>Editar</v-list-item-title>
 													</v-list-item-content>
@@ -196,19 +196,19 @@
 										</v-flex>
 										<v-flex xs4 sm4 md12 lg1 xl1>
 											<small>Cobranza</small><br>
-											<v-chip label small v-if="service.is_payed == 0 && service.status < 2" class="warning">Pendiente</v-chip>
-											<v-chip label small v-if="service.is_payed == 1 && service.status < 2" class="success" :title="service.date_payed">Pagado</v-chip>
-											<v-chip label small v-if="service.status == 2" class="error">Cancelado</v-chip>
-											<v-chip label small v-if="service.status == 3" class="error">No Registro</v-chip>
-											<v-chip label small v-if="service.status == 4" class="orange darken-1">Repetido</v-chip>
+											<v-chip label small v-if="service.is_payed == 1 && service.status < 3" class="orange" dark>Pendiente</v-chip>
+											<v-chip label small v-if="service.is_payed == 2 && service.status < 3" class="green" dark :title="service.date_payed">Pagado</v-chip>
+											<v-chip label small v-if="service.status == 3" class="error">Cancelado</v-chip>
+											<v-chip label small v-if="service.status == 4" class="error">No Registro</v-chip>
+											<v-chip label small v-if="service.status == 5" class="orange darken-1">Repetido</v-chip>
 										</v-flex>
 										<v-flex xs4 sm4 md12 lg1 xl1>
 											<small>Trámite</small><br>
-											<v-chip label small v-if="service.status == 0" class="warning">Pendiente</v-chip>
-											<v-chip label small v-if="service.status == 1" class="success" :title="service.date_registered">Terminado</v-chip>
-											<v-chip label small v-if="service.status == 2" color="error">Cancelado</v-chip>
-											<v-chip label small v-if="service.status == 3" class="error">No Registro</v-chip>
-											<v-chip label small v-if="service.status == 4" color="orange darken-1">Repetido</v-chip>
+											<v-chip label small v-if="service.status == 1" class="orange" dark>Pendiente</v-chip>
+											<v-chip label small v-if="service.status == 2" class="green" dark :title="service.date_registered">Terminado</v-chip>
+											<v-chip label small v-if="service.status == 3" color="error">Cancelado</v-chip>
+											<v-chip label small v-if="service.status == 4" class="error">No Registro</v-chip>
+											<v-chip label small v-if="service.status == 5" color="orange darken-1">Repetido</v-chip>
 										</v-flex>
 									</v-layout>
 								</v-expansion-panel-header>
@@ -219,14 +219,14 @@
 											<ul class="list-style: none;" v-for="(bill, index) in service.bills" :key="index">
 												<li @click="editFolio(bill.id)">{{bill.folio}}</li>
 											</ul>
-											<v-icon v-if="service.is_payed == 0 && (service.status != 2 || service.status != 4)" color="blue" @click="createBill(index, 'Factura')">add</v-icon>
+											<v-icon v-if="service.is_payed == 1 && (service.status < 3)" color="blue" @click="createBill(index, 'Factura')">add</v-icon>
 										</v-flex>
 										<v-flex xs4 sm4 md4 lg1 xl1>
 											<small>Recibos</small><br>
 											<ul class="list-style: none;" v-for="(receipt, index) in service.receipts" :key="index">
 												<li @click="editFolio(bill.id)">{{receipt.folio}}</li>
 											</ul>
-											<v-icon v-if="service.is_payed == 0 && (service.status != 2 || service.status != 4)" color="blue" @click="createBill(index, 'Recibo')">add</v-icon>
+											<v-icon v-if="service.is_payed == 1 && (service.status < 3)" color="blue" @click="createBill(index, 'Recibo')">add</v-icon>
 										</v-flex>
 										<v-flex xs4 sm4 md4 lg2 xl1>
 											<small>Precio</small><br>
@@ -248,7 +248,7 @@
 									<br>
 									<v-layout row wrap>
 										<v-flex xs12 sm12 md12 lg12 xl12 class="text-left">
-											<v-btn dark fab small color="warning" title="Editar" @click="EditService(index)" v-if="service.status < 2">
+											<v-btn dark fab small color="warning" title="Editar" @click="EditService(index)">
 												<v-icon dark color="white">edit</v-icon>
 											</v-btn>
 											<v-btn dark fab small color="grey" title="Proceso" @click="CheckList(index)">
@@ -340,18 +340,18 @@ export default {
 		loadFilters(){
 			this.payed_statuses = [
 				{id:'todo', status:'Todo'},
-				{id:0, status:'Pendiente'},
-				{id:1, status:'Pagado'}
+				{id:1, status:'Pendiente'},
+				{id:2, status:'Pagado'}
 			];
-			// this.payed_status = 'todo';
+			this.payed_status = 1;
 
 			this.statuses = [
 				{id:'todo', status:'Todo'},
-				{id:0, status:'Pendiente'},
-				{id:1, status:'Terminado'},
-				{id:2, status:'Cancelado'},
-				{id:3, status:'No Registro'},
-				{id:4, status:'Repetido'}
+				{id:1, status:'Pendiente'},
+				{id:2, status:'Terminado'},
+				{id:3, status:'Cancelado'},
+				{id:4, status:'No Registro'},
+				{id:5, status:'Repetido'}
 			];
 			// this.status = 'todo';
 			this.search_table = '';
@@ -513,7 +513,7 @@ export default {
 
 		showComissions(index){
 			const service = this.services[index];
-			this.$refs.comissions_dialog.showComissions(service.id);
+			this.$refs.comissions_dialog.showComissions(service.id, 'service');
 		}
 	}
 }

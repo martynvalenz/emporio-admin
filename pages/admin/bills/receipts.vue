@@ -77,12 +77,20 @@
 														<v-icon color="warning">edit</v-icon>
 													</v-list-item-action>
 												</v-list-item>
-												<v-list-item>
+												<v-list-item v-if="bill.status < 2" @click="Cancel(index)">
 													<v-list-item-content>
 														<v-list-item-title>Cancelar</v-list-item-title>
 													</v-list-item-content>
 													<v-list-item-action>
 														<v-icon color="error">block</v-icon>
+													</v-list-item-action>
+												</v-list-item>
+												<v-list-item v-if="bill.status > 1" @click="Activate(index)">
+													<v-list-item-content>
+														<v-list-item-title>Activar</v-list-item-title>
+													</v-list-item-content>
+													<v-list-item-action>
+														<v-icon color="green">check</v-icon>
 													</v-list-item-action>
 												</v-list-item>
 											</v-list>
@@ -103,6 +111,15 @@
 				</v-card>
 			</v-flex>
 		</v-layout>
+		<v-snackbar
+            v-model="snackbar"
+            :timeout="timeout"
+            top
+            center
+            :color="snackColor"
+            >
+            {{ snackText }}
+        </v-snackbar>
 		<Customer :customer_dialog="1" ref="customer_form"></Customer>
 		<Services :service_dialog="1" ref="services_form" v-on:addService="newService($event)" v-on:updateService="updateService($event)"></Services>
 		<Bills :billing_dialog="1" ref="bills_form" v-on:newBill="newBill($event)" v-on:updateBill="updateBill($event)" v-on:reloadBills="Reload"></Bills>
@@ -131,6 +148,11 @@ export default {
 			selected_bill:'',
 			orderBy:'desc',
 			page:1,
+			//snackbar
+            snackbar: false,
+            snackColor: '',
+            snackText: '',
+            timeout: 6000,
 		}
 	},
 
@@ -228,7 +250,7 @@ export default {
 		},
 
 		addBill(){
-			this.$refs.bills_form.addBill();
+			this.$refs.bills_form.addBillAlready('', '', 'Recibo', 3);
 		},
 
 		editBill(index){
@@ -248,6 +270,38 @@ export default {
 
 		newBill(data){
 			this.bills.unshift(data);
+		},
+
+		async Cancel(index){
+            await this.$axios.put(`/api/bill/cancel/${this.bills[index].id}`)
+			.then(res => {
+				this.snackbar = true;
+				this.snackColor = 'success';
+				this.snackText = 'Se canceló la factura';
+				this.timeout = 2000;
+				this.errors = {};
+				this.bills[index] = res.data;
+			})
+			.catch(error => {
+				console.log(error);
+				this.loading_cancel = false;
+			})
+		},
+		
+		async Activate(index){
+			await this.$axios.put(`/api/bill/activate/${this.bills[index].id}`)
+			.then(res => {
+				this.snackbar = true;
+				this.snackColor = 'success';
+				this.snackText = 'Se activó la factura';
+				this.timeout = 2000;
+				this.errors = {};
+				this.bills[index] = res.data;
+			})
+			.catch(error => {
+				console.log(error);
+				this.loading_cancel = false;
+			})
 		}
 	}
 }

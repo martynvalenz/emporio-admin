@@ -271,6 +271,9 @@ export default {
                 this.binnacle_id = res.data.binnacle_id * 1;
                 this.status_category_id = res.data.status_category_id * 1;
                 this.status_subcategory_id = res.data.status_subcategory_id * 1;
+                if(res.data.status_category_id){
+                    this.getSubcategories();
+                }
                 this.comments = res.data.comments;
                 this.money_exchange_id = res.data.money_exchange_id * 1;
                 if(res.data.authorize == 1){

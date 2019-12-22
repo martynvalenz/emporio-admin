@@ -889,6 +889,9 @@ export default {
             this.select_related = '';
             this.related_services = [];
             this.related_ammount = 0;
+            this.sales_check = '1';
+            this.operations_check = '1';
+            this.management_check = '1';
         },
 
         ClearService(){

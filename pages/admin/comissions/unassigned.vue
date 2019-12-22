@@ -101,7 +101,7 @@
 				</v-card>
 			</v-flex>
 		</v-layout>
-		<Comissions ref="comissions_dialog"></Comissions>
+		<Comissions ref="comissions_dialog" v-on:updateComission="Reload()"></Comissions>
 	</div>
 </template>
 
@@ -241,7 +241,7 @@ export default {
 
 		showComissions(index){
 			const service = this.services[index];
-			this.$refs.comissions_dialog.showComissions(service.id);
+			this.$refs.comissions_dialog.showComissions(service.id, 'comis');
 		}
 	}
 }
