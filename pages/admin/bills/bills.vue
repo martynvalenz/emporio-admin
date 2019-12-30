@@ -263,17 +263,13 @@ export default {
 		},
 
 		updateBill(data){
-			this.services.splice(this.selected_bill, 1, data);
+			this.bills.splice(this.selected_bill, 1, data);
 			this.selected_bill = '';
 		},
 
 		formatPrice(value) {
 			let val = (value/1).toFixed(2).replace('.,', '.')
 			return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-		},
-
-		newBill(data){
-			this.bills.unshift(data);
 		},
 
 		async Cancel(index){

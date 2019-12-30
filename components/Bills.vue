@@ -12,7 +12,7 @@
 						<v-container fluid>
 							<v-row>
 								<v-col cols="12" sm="12" md="7" lg="6">
-									<v-autocomplete v-model="customer" v-if="!customer_disabled" :items="customers" outlined :loading="customerLoading" :search-input.sync="sync_customer" hide-no-data hide-selected item-text="customer" item-value="id" placeholder="Buscar cliente..." return-object :error-messages="errors.customer_id" label="Cliente" append-icon="clear" @click:append="ClearCustomer"></v-autocomplete>
+									<v-autocomplete v-model="customer" ref="customer" v-if="!customer_disabled" :items="customers" outlined :loading="customerLoading" :search-input.sync="sync_customer" hide-no-data hide-selected item-text="customer" item-value="id" placeholder="Buscar cliente..." return-object :error-messages="errors.customer_id" label="Cliente" append-icon="clear" @click:append="ClearCustomer"></v-autocomplete>
                                     <v-text-field v-if="customer_disabled" outlined v-model="customer_name" append-icon="edit" @click:append="ChangeCustomer" readonly></v-text-field>
 								</v-col>
                                 <v-col cols="12" sm="12" md="3" lg="2">
@@ -103,10 +103,10 @@
                                                     </v-edit-dialog>
                                                 </td>
                                                 <td class="text-right">
-                                                    <v-btn v-if="service.bill_id && service.det_id" fab dark x-small color="green">
+                                                    <!-- <v-btn v-if="service.bill_id && service.det_id" fab dark x-small color="green">
                                                         <v-icon>save</v-icon>
-                                                    </v-btn>
-                                                    <v-btn fab dark x-small color="error">
+                                                    </v-btn> -->
+                                                    <v-btn v-if="!service.bill_id && !service.det_id" fab dark x-small color="error">
                                                         <v-icon @click="Delete(index)">close</v-icon>
                                                     </v-btn>
                                                 </td>
@@ -525,6 +525,7 @@ export default {
             this.date = new Date().toISOString().substr(0, 10);
             this.customers = {};
             this.services = {};
+            this.pending_services = {};
             this.loading_services = false;
             this.status = 0;
             // this.billed_services = {};
@@ -566,12 +567,19 @@ export default {
         },
 
         ChangeCustomer(){
-            if(this.services.length == 0){
+            if(this.services.length == 0 || !this.customer_id){
                 this.customer_disabled = false;
                 this.customers = [];
                 this.customer_id = '';
                 this.customer_name = '';
                 this.customers_balance = 0;
+            }
+            else{
+                this.customer_disabled = true;
+                this.snackbar = true;
+                this.snackColor = 'error';
+                this.snackText = 'No se puede cambiar al cliente en una factura que ya tiene servicios asociados.';
+                this.timeout = 2000;
             }
         },
 
@@ -613,14 +621,19 @@ export default {
             if(this.bill_id){
                 this.$axios.put(`/api/bill/update-tax/${this.bill_id}`, {has_tax:this.has_tax, tax_percent:this.tax_percent})
                 .then(res => {
-                    this.subtotal = res.data.subtotal;
-                    this.tax = res.data.tax;
-                    this.total = res.data.total;
-                    this.is_payed = res.data.is_payed;
-                    this.balance = res.data.balance;
-                    this.payed_ammount = res.data.payed_ammount;
-                    this.ammount = res.data.total;
-                    this.bill_pending = res.data.balance;
+                    if(this.from_bill == 2 || this.from_bill == 3){
+                        this.$emit('updateBill', res.data)
+                    }
+                    else{
+                        this.subtotal = res.data.subtotal;
+                        this.tax = res.data.tax;
+                        this.total = res.data.total;
+                        this.is_payed = res.data.is_payed;
+                        this.balance = res.data.balance;
+                        this.payed_ammount = res.data.payed_ammount;
+                        this.ammount = res.data.total;
+                        this.bill_pending = res.data.balance;
+                    }
                 })
             }
         },
@@ -680,7 +693,7 @@ export default {
                         this.$emit('updateServices');
                     }
                     else if(this.from_bill == 2 || this.from_bill == 3){
-                        this.$emit('newBill', res.data)
+                        this.$emit('updateBill', success.data)
                     }
                     this.getAccounts();
                     this.loading = false;
@@ -731,7 +744,7 @@ export default {
                         this.$emit('updateServices');
                     }
                     else if(this.from_bill == 2 || this.from_bill == 3){
-                        this.$emit('newBill', res.data)
+                        this.$emit('newBill', success.data)
                     }
                     this.getAccounts();
                     this.loading = false;
@@ -789,6 +802,7 @@ export default {
 
         async getPendingServices(){
             this.loading_services = true;
+            this.services = [];
             if(this.customer_id){
                 await this.$axios.post('/api/services/pending-bills', {customer_id:this.customer_id})
                 .then(res => {
@@ -800,6 +814,8 @@ export default {
 
         async getBillServices(){
             this.loading_services = true;
+            this.services = [];
+            this.pending_services = [];
             if(this.customer_id){
                 await this.$axios.get(`/api/bill/services/${this.bill_id}/${this.customer_id}`)
                 .then(res => {
@@ -875,6 +891,9 @@ export default {
                 await this.$axios.post('/api/bill/add-service', {pending_ammount:this.pending_ammount, pending_service:this.pending_service, bill_id:this.bill_id, pending_ammount_billing:this.pending_ammount_billing, pending_final_price:this.pending_final_price})
                 .then(res => {
                     this.editBill(this.bill_id, this.from_bill);
+                    if(this.from_bill == 2 || this.from_bill == 3){
+                        this.$emit('updateBill', res.data)
+                    }
                 })
                 .catch(error => {
                     this.errors = error.response.data.errors;
@@ -905,7 +924,7 @@ export default {
                         this.$emit('updateServices');
                     }
                     else if(this.from_bill == 2 || this.from_bill == 3){
-                        this.$emit('reloadBills');
+                        this.$emit('updateBill', res.data)
                     }
                 })
                 .catch(error => {
@@ -931,7 +950,7 @@ export default {
                         this.$emit('updateServices');
                     }
                     else if(this.from_bill == 2 || this.from_bill == 3){
-                        this.$emit('reloadBills');
+                        this.$emit('updateBill', res.data)
                     }
                     this.billing_dialog = false;
                 })
@@ -949,7 +968,7 @@ export default {
                     this.$axios.put(`/api/bill/delete-service/${this.bill_id}/${service.det_id}`, {payed_ammount:service.payed_ammount, service_id:service.id, ammount:service.biller})
                     .then(res => {
                         this.services.splice(index, 1);
-                        this.editBill();
+                        this.editBill(this.bill_id, this.from_bill);
                         if(this.from_bill == 1){
                             this.$emit('updateServices');
                         }

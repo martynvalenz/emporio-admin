@@ -259,7 +259,7 @@ export default {
 		},
 
 		updateBill(data){
-			this.services.splice(this.selected_bill, 1, data);
+			this.bills.splice(this.selected_bill, 1, data);
 			this.selected_bill = '';
 		},
 
