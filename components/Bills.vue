@@ -103,9 +103,12 @@
                                                     </v-edit-dialog>
                                                 </td>
                                                 <td class="text-right">
-                                                    <!-- <v-btn v-if="service.bill_id && service.det_id" fab dark x-small color="green">
+                                                    <v-btn v-if="service.bill_id && service.det_id" fab dark x-small color="green">
                                                         <v-icon>save</v-icon>
-                                                    </v-btn> -->
+                                                    </v-btn>
+                                                    <v-btn @click="deleteService(index)" v-if="service.bill_id && service.det_id" fab dark x-small color="red">
+                                                        <v-icon>close</v-icon>
+                                                    </v-btn>
                                                     <v-btn v-if="!service.bill_id && !service.det_id" fab dark x-small color="error">
                                                         <v-icon @click="Delete(index)">close</v-icon>
                                                     </v-btn>
@@ -932,6 +935,17 @@ export default {
                     this.loading_free = false;
                 })
             }
+        },
+
+        async deleteService(index){
+            let id = this.services[index].det_id
+            await this.$axios.put(`/api/bill/delete-service/${bill_id}/${id}`)
+            .then(res => {
+
+            })
+            .catch(error => {
+                
+            })
         },
 
         async Cancel(){
