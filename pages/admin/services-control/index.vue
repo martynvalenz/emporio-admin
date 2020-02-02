@@ -176,7 +176,7 @@
 					<v-card-text v-if="service_control_view == 1">
 						<v-expansion-panels class="elevation-4">
 							<v-expansion-panel v-for="(service, index) in services" :key="index">
-								<v-expansion-panel-header v-slot="{ open }">
+								<v-expansion-panel-header>
 									<v-layout row wrap>
 										<v-flex xs6 sm6 md6 lg2 xl2>
 											<small>Fecha</small><br>
