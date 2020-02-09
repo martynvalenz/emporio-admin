@@ -33,10 +33,6 @@
                                 <v-card class="elevation-3">
                                     <v-card-title>{{comment.name}} {{comment.last_name}}</v-card-title>
                                     <v-card-text style="font-size:16px;">{{comment.comment}} <br><small>{{comment.created_at}}</small></v-card-text>
-                                    <!-- <v-card-actions v-if="comment.user_id == user.user.id">
-                                        <v-btn color="warning">Editar</v-btn>
-                                        <v-btn color="error">Eliminar</v-btn>
-                                    </v-card-actions> -->
                                 </v-card>
                             </v-timeline-item>
                         </v-timeline>
